@@ -3,10 +3,10 @@ name: Refresh TVP M3U
 on:
   schedule:
     - cron: "*/10 * * * *"   # every 10 minutes
-  workflow_dispatch:          # also allow manual trigger from the Actions tab
+  workflow_dispatch:
 
 permissions:
-  contents: write             # needed to commit tvp.m3u back to the repo
+  contents: write
 
 jobs:
   refresh:
@@ -18,13 +18,13 @@ jobs:
         run: |
           git clone "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" .
 
-      - name: Generate tvp.m3u
+      - name: Generate playlists
         run: python3 generate.py
 
-      - name: Commit and push updated playlist
+      - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add tvp.m3u
+          git add tvp.m3u tvp1.m3u tvp2.m3u tvpinfo.m3u tvpsport.m3u
           git diff --cached --quiet || git commit -m "chore: refresh TVP streams [$(date -u '+%Y-%m-%d %H:%M UTC')]"
           git push
