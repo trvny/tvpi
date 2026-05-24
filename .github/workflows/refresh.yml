@@ -8,9 +8,6 @@ on:
 permissions:
   contents: write             # needed to commit tvp.m3u back to the repo
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # opt into Node.js 24
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -18,21 +15,16 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4.2.2
-
-      - name: Set up Python
-        uses: actions/setup-python@v5.6.0
-        with:
-          python-version: "3.11"
+        run: |
+          git clone "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" .
 
       - name: Generate tvp.m3u
-        run: python generate.py
+        run: python3 generate.py
 
       - name: Commit and push updated playlist
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add tvp.m3u
-          # Only commit if the file actually changed
           git diff --cached --quiet || git commit -m "chore: refresh TVP streams [$(date -u '+%Y-%m-%d %H:%M UTC')]"
           git push
