@@ -15,19 +15,19 @@ CHANNELS = [
     {
         "id":    "399697",
         "name":  "TVP 1 HD",
-        "logo":  "https://s.tvp.pl/images/3/8/0/uid_3800ec3d7a9b6fa4517f2a1d4f5cd6b9_width_130_gs_0.png",
+        "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
         "group": "Polska",
     },
     {
         "id":    "399698",
         "name":  "TVP 2 HD",
-        "logo":  "https://s.tvp.pl/images/6/7/d/uid_67d7cfe9dd3e5ee8dbb47e2f98eb1e4f_width_130_gs_0.png",
+        "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
         "group": "Polska",
     },
     # Uncomment to add more:
-    # {"id": "399699", "name": "TVP Info",    "logo": "", "group": "Polska"},
+     {"id": "399699", "name": "TVP Info",    "logo": "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png", "group": "Polska"},
     # {"id": "399731", "name": "TVP World",   "logo": "", "group": "Polska"},
-    # {"id": "399700", "name": "TVP Sport",   "logo": "", "group": "Polska"},
+     {"id": "399700", "name": "TVP Sport",   "logo": "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png", "group": "Polska"},
     # {"id": "399701", "name": "TVP Kultura", "logo": "", "group": "Polska"},
     # {"id": "399702", "name": "TVP Polonia", "logo": "", "group": "Polska"},
     # {"id": "399703", "name": "TVP Historia","logo": "", "group": "Polska"},
