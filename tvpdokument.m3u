@@ -1,2 +1,4 @@
 #EXTM3U
-# Placeholder — will be filled on next Action run
+
+#EXTINF:-1 tvg-id="399721" tvg-name="TVP Dokument" tvg-logo="https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png" group-title="Polska",TVP Dokument
+https://rsdt-krk202-7.tvp.pl/token/video/live/53795159/20260525/2280187986/WTeBDsq2_u9s9cl96e9owFw5FWQjXOhwFiZ4RSq2s32PJEEX-myksV20W51U6m1_2pCsZ73t5r0GWW1QrdPKCvUVsN6FxFZnC5ApBjsWbdEfyUDrs9i7G1e5Z9HgzQVMl31Zs37GL3_2A887w94_rr_pDkfrnOh33DyZG63resc/156/master.m3u8
