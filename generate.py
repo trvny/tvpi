@@ -2,7 +2,8 @@
 """
 TVP M3U generator — runs in GitHub Actions
 Writes one combined tvp.m3u AND one file per channel:
-  tvp1.m3u, tvp2.m3u, tvpinfo.m3u, tvpkultura.m3u, tvpdokument.m3u, tvpsport.m3u
+  tvp1.m3u, tvp2.m3u, tvpinfo.m3u, tvpkultura.m3u, tvpdokument.m3u, tvpsport.m3u,
+  tvpnauka.m3u, tvprozrywka.m3u, tvphistoria.m3u
 """
 
 import json
@@ -49,6 +50,27 @@ CHANNELS = [
         "id":    "399721",
         "slug":  "tvpdokument",
         "name":  "TVP Dokument",
+        "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
+        "group": "Polska",
+    },
+    {
+        "id":    "399722",
+        "slug":  "tvpnauka",
+        "name":  "TVP Nauka",
+        "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
+        "group": "Polska",
+    },
+    {
+        "id":    "399724",
+        "slug":  "tvprozrywka",
+        "name":  "TVP Rozrywka",
+        "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
+        "group": "Polska",
+    },
+    {
+        "id":    "399703",
+        "slug":  "tvphistoria",
+        "name":  "TVP Historia",
         "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
         "group": "Polska",
     },
