@@ -1,9 +1,9 @@
 /**
- * TVP + wPolsce24 Live Stream Worker
+ * TVP + YouTube Live Stream Worker
  * Deploy to Cloudflare Workers (free tier: 100k req/day)
  *
  * Routes:
- *   /tvp.m3u         → all channels combined
+ *   /playlist.m3u    → all channels combined
  *   /tvp1.m3u        → TVP 1 HD
  *   /tvp2.m3u        → TVP 2 HD
  *   /tvpinfo.m3u     → TVP Info
@@ -14,6 +14,7 @@
  *   /tvprozrywka.m3u → TVP Rozrywka
  *   /tvphistoria.m3u → TVP Historia
  *   /wpolsce24.m3u   → wPolsce24 (via YouTube live)
+ *   /republika.m3u   → Telewizja Republika (via YouTube live)
  *
  * Caching strategy:
  *   - scheduled() (every 33 min) pre-fetches all stream URLs and stores them
@@ -26,56 +27,42 @@
 // Channel definitions
 // ---------------------------------------------------------------------------
 
+const TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
+
 const TVP_CHANNELS = [
-  { id: "399697", slug: "tvp1",       name: "TVP 1 HD",     logo: TVP_LOGO, group: "Polska" },
-  { id: "399698", slug: "tvp2",       name: "TVP 2 HD",     logo: TVP_LOGO, group: "Polska" },
-  { id: "399699", slug: "tvpinfo",    name: "TVP Info",     logo: TVP_LOGO, group: "Polska" },
-  { id: "399702", slug: "tvpsport",   name: "TVP Sport",    logo: TVP_LOGO, group: "Polska" },
-  { id: "399700", slug: "tvpkultura", name: "TVP Kultura",  logo: TVP_LOGO, group: "Polska" },
-  { id: "399721", slug: "tvpdokument",name: "TVP Dokument", logo: TVP_LOGO, group: "Polska" },
-  { id: "399722", slug: "tvpnauka",   name: "TVP Nauka",    logo: TVP_LOGO, group: "Polska" },
-  { id: "399724", slug: "tvprozrywka",name: "TVP Rozrywka", logo: TVP_LOGO, group: "Polska" },
-  { id: "399703", slug: "tvphistoria",name: "TVP Historia", logo: TVP_LOGO, group: "Polska" },
+  { id: "399697", slug: "tvp1",        name: "TVP 1 HD",     logo: TVP_LOGO, group: "Polska" },
+  { id: "399698", slug: "tvp2",        name: "TVP 2 HD",     logo: TVP_LOGO, group: "Polska" },
+  { id: "399699", slug: "tvpinfo",     name: "TVP Info",     logo: TVP_LOGO, group: "Polska" },
+  { id: "399702", slug: "tvpsport",    name: "TVP Sport",    logo: TVP_LOGO, group: "Polska" },
+  { id: "399700", slug: "tvpkultura",  name: "TVP Kultura",  logo: TVP_LOGO, group: "Polska" },
+  { id: "399721", slug: "tvpdokument", name: "TVP Dokument", logo: TVP_LOGO, group: "Polska" },
+  { id: "399722", slug: "tvpnauka",    name: "TVP Nauka",    logo: TVP_LOGO, group: "Polska" },
+  { id: "399724", slug: "tvprozrywka", name: "TVP Rozrywka", logo: TVP_LOGO, group: "Polska" },
+  { id: "399703", slug: "tvphistoria", name: "TVP Historia", logo: TVP_LOGO, group: "Polska" },
 ];
 
+// YouTube-sourced channels.
+// `liveUrl` is the channel's persistent /live page — resolved at request time
+// to whatever broadcast is currently live, so a stream restart on YouTube's
+// side never breaks the playlist.
 const YOUTUBE_CHANNELS = [
   {
     slug:    "wpolsce24",
     name:    "wPolsce24",
     logo:    "https://wpolsce24.tv/favicon.ico",
     group:   "Polska",
-    videoId: "CINoVvpEAyk",
+    liveUrl: "https://www.youtube.com/@TelewizjawPolsce24/live",
   },
-];
-
-const CHANNELS = [...TVP_CHANNELS, ...YOUTUBE_CHANNELS];
-
-function TVP_LOGO() {}  // placeholder — replaced below
-const _TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
-// Fix: redefine channels with actual logo string
-const TVP_CHANNELS_FIXED = [
-  { id: "399697", slug: "tvp1",        name: "TVP 1 HD",     logo: _TVP_LOGO, group: "Polska" },
-  { id: "399698", slug: "tvp2",        name: "TVP 2 HD",     logo: _TVP_LOGO, group: "Polska" },
-  { id: "399699", slug: "tvpinfo",     name: "TVP Info",     logo: _TVP_LOGO, group: "Polska" },
-  { id: "399702", slug: "tvpsport",    name: "TVP Sport",    logo: _TVP_LOGO, group: "Polska" },
-  { id: "399700", slug: "tvpkultura",  name: "TVP Kultura",  logo: _TVP_LOGO, group: "Polska" },
-  { id: "399721", slug: "tvpdokument", name: "TVP Dokument", logo: _TVP_LOGO, group: "Polska" },
-  { id: "399722", slug: "tvpnauka",    name: "TVP Nauka",    logo: _TVP_LOGO, group: "Polska" },
-  { id: "399724", slug: "tvprozrywka", name: "TVP Rozrywka", logo: _TVP_LOGO, group: "Polska" },
-  { id: "399703", slug: "tvphistoria", name: "TVP Historia", logo: _TVP_LOGO, group: "Polska" },
-];
-
-const YOUTUBE_CHANNELS_FIXED = [
   {
-    slug:    "wpolsce24",
-    name:    "wPolsce24",
-    logo:    "https://wpolsce24.tv/favicon.ico",
+    slug:    "republika",
+    name:    "Telewizja Republika",
+    logo:    "https://tvrepublika.pl/favicon.ico",
     group:   "Polska",
-    videoId: "CINoVvpEAyk",
+    liveUrl: "https://www.youtube.com/@Telewizja_Republika/live",
   },
 ];
 
-const ALL_CHANNELS = [...TVP_CHANNELS_FIXED, ...YOUTUBE_CHANNELS_FIXED];
+const ALL_CHANNELS = [...TVP_CHANNELS, ...YOUTUBE_CHANNELS];
 
 // ---------------------------------------------------------------------------
 // Cache config
@@ -112,9 +99,42 @@ async function fetchTvpStreamUrl(channelId) {
 }
 
 // ---------------------------------------------------------------------------
-// YouTube innertube API — fetches HLS manifest for a live stream
-// No API key required; uses the same internal endpoint browsers use.
+// YouTube — resolve a channel /live page to the current live video ID,
+// then fetch the HLS manifest via the innertube API.
+//
+// NOTE: YouTube frequently bot-walls datacenter IPs (Cloudflare Workers
+// included). This is best-effort: on failure the resolver returns null and
+// the channel falls back to its last cached/committed value.
 // ---------------------------------------------------------------------------
+
+const YT_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept-Language": "en-US,en;q=0.9",
+};
+
+// Scrape the current live video ID from a channel's /live HTML page.
+async function resolveLiveVideoId(liveUrl) {
+  try {
+    const res = await fetch(liveUrl, { headers: YT_HEADERS });
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    // The live video ID appears in several places in the page markup.
+    const patterns = [
+      /"videoId":"([\w-]{11})"/,
+      /<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})">/,
+      /watch\?v=([\w-]{11})/,
+    ];
+    for (const re of patterns) {
+      const m = html.match(re);
+      if (m) return m[1];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 async function fetchYouTubeStreamUrl(videoId) {
   try {
@@ -135,8 +155,7 @@ async function fetchYouTubeStreamUrl(videoId) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "User-Agent": YT_HEADERS["User-Agent"],
           "X-YouTube-Client-Name": "1",
           "X-YouTube-Client-Version": "2.20240101.00.00",
         },
@@ -162,6 +181,13 @@ async function fetchYouTubeStreamUrl(videoId) {
   }
 }
 
+// Resolve a YouTube channel (/live URL) to its current HLS manifest URL.
+async function fetchYouTubeChannelStreamUrl(liveUrl) {
+  const videoId = await resolveLiveVideoId(liveUrl);
+  if (!videoId) return null;
+  return fetchYouTubeStreamUrl(videoId);
+}
+
 // ---------------------------------------------------------------------------
 // Unified stream URL resolver
 // ---------------------------------------------------------------------------
@@ -171,9 +197,9 @@ async function fetchStreamUrlFromSource(ch) {
     // TVP channel
     return fetchTvpStreamUrl(ch.id);
   }
-  if (ch.videoId) {
+  if (ch.liveUrl) {
     // YouTube channel
-    return fetchYouTubeStreamUrl(ch.videoId);
+    return fetchYouTubeChannelStreamUrl(ch.liveUrl);
   }
   return null;
 }
