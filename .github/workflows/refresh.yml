@@ -16,9 +16,6 @@ jobs:
 
     steps:
 
-      - name: Setup curl
-        uses: kordlib/setup-curl@v1.0.2
-
       - name: Keep workflow alive
         run: |
           curl -s -X PUT \
