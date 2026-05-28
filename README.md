@@ -6,14 +6,14 @@ No server required — just point your IPTV player at the raw file URL.
 ## Player URL
 
 ```
-https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/tvp.m3u
+https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/streams/playlist.m3u
 ```
 
 Replace `YOUR_USERNAME` and `YOUR_REPO` with your actual GitHub username and repo name.
 
 > **Tip:** use the [jsDelivr CDN mirror](https://www.jsdelivr.com/github) for better availability:
 > ```
-> https://cdn.jsdelivr.net/gh/YOUR_USERNAME/YOUR_REPO@main/tvp.m3u
+> https://cdn.jsdelivr.net/gh/YOUR_USERNAME/YOUR_REPO@main/streams/playlist.m3u
 > ```
 
 ### ![tvp-vod](https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png)
