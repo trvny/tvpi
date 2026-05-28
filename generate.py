@@ -121,7 +121,7 @@ YT_COOKIES_FILE = "cookies.txt"
 
 # Retry tuning for transient YouTube failures (esp. HTTP 429 on shared
 # runner IPs). Backoff is longer for rate-limits than for generic errors.
-YT_MAX_ATTEMPTS = 3
+YT_MAX_ATTEMPTS = 2
 YT_BACKOFF_BASE = 5      # seconds; generic errors → 5s, 10s, 15s
 YT_BACKOFF_429  = 20     # seconds; rate-limits → 20s, 40s, 60s
 
