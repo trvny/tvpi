@@ -1,5 +1,0 @@
-name = "tvpi"
-main = "worker.js"
-compatibility_date = "2024-01-01"
-[triggers]
-crons = ["*/30 * * * *"]
