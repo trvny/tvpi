@@ -112,6 +112,38 @@ YOUTUBE_CHANNELS = [
     },
 ]
 
+# Optional Netscape-format cookies file. When present (written from the
+# YT_COOKIES secret in CI), it's handed to yt-dlp to get past YouTube's
+# bot-wall on datacenter IPs. Absent locally → yt-dlp runs without it.
+YT_COOKIES_FILE = "cookies.txt"
+
+
+def get_youtube_stream_url(yt_url):
+    cmd = [
+        "yt-dlp",
+        "--get-url",
+        "-f", "best[protocol=m3u8_native]/best[ext=m3u8]/best",
+        "--no-playlist",
+    ]
+    if os.path.exists(YT_COOKIES_FILE):
+        cmd += ["--cookies", YT_COOKIES_FILE]
+    cmd.append(yt_url)
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        url = result.stdout.strip().splitlines()[0] if result.stdout.strip() else None
+        if result.returncode != 0 or not url:
+            print(f"  [!] yt-dlp error: {result.stderr.strip()[:200]}", file=sys.stderr)
+            return None
+        return url
+    except FileNotFoundError:
+        print("  [!] yt-dlp not found — install with: pip install yt-dlp", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"  [!] yt-dlp exception: {e}", file=sys.stderr)
+        return None
+
+
 # ---------------------------------------------------------------------------
 # TVP API
 # ---------------------------------------------------------------------------
