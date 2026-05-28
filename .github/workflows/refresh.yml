@@ -2,6 +2,12 @@ name: Refresh TVP M3U
 
 on:
   schedule:
+    # Every 15 min. TVP signs HLS tokens with a ~15–30 min lifetime, so a
+    # 30-min cadence guarantees a dead window near the end of each cycle.
+    # 15 min keeps tokens fresh; note GitHub throttles frequent schedules and
+    # may still delay runs under load, so this narrows the gap rather than
+    # eliminating it. The Cloudflare Worker (request-time resolution) is the
+    # fully self-healing path — see README.
     - cron: "*/15 * * * *"
   workflow_dispatch:
 
@@ -17,6 +23,8 @@ jobs:
     steps:
 
       - name: Keep workflow alive
+        # Scheduled workflows are auto-disabled after 60 days of repo
+        # inactivity; re-enabling on every run prevents that.
         run: |
           curl -s -X PUT \
             -H "Authorization: Bearer ${{ github.token }}" \
@@ -26,29 +34,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6.0.2
 
-      - name: Set up Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-
-      - name: Sanity check Deno
-        run: deno --version
-
       - name: Install yt-dlp
-        run: pip install -q "yt-dlp[default]"
-
-      - name: Write YouTube cookies (optional)
-        env:
-          YT_COOKIES: ${{ secrets.YT_COOKIES }}
-        run: |
-          if [ -n "$YT_COOKIES" ]; then
-            printf '%s' "$YT_COOKIES" > cookies.txt
-            echo "cookies.txt written ($(wc -l < cookies.txt) lines)"
-          else
-            echo "no YT_COOKIES secret set — proceeding without cookies"
-          fi
+        run: pip install -q yt-dlp
 
       - name: Generate playlists
+        # YouTube channels (wpolsce24, republika) frequently fail here because
+        # YouTube bot-walls GitHub's datacenter IPs. generate.py now reuses the
+        # last-known-good URL on any transient failure instead of writing a
+        # placeholder, so a single flaky fetch no longer takes a channel dark.
         run: python3 generate.py
 
       - name: Commit and push
