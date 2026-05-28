@@ -31,8 +31,22 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Sanity check Deno
+        run: deno --version
+
       - name: Install yt-dlp
-        run: pip install -q yt-dlp
+        run: pip install -q "yt-dlp[default]"
+
+      - name: Write YouTube cookies (optional)
+        env:
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+        run: |
+          if [ -n "$YT_COOKIES" ]; then
+            printf '%s' "$YT_COOKIES" > cookies.txt
+            echo "cookies.txt written ($(wc -l < cookies.txt) lines)"
+          else
+            echo "no YT_COOKIES secret set — proceeding without cookies"
+          fi
 
       - name: Generate playlists
         run: python3 generate.py
