@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
-TVP + wPolsce24 M3U generator — runs in GitHub Actions
+TVP M3U generator — runs in GitHub Actions
 Writes files to the streams/ directory:
   streams/playlist.m3u  ← combined (all channels)
   streams/tvp1.m3u, streams/tvp2.m3u, streams/tvpinfo.m3u,
   streams/tvpkultura.m3u, streams/tvpdokument.m3u, streams/tvpsport.m3u,
-  streams/tvpnauka.m3u, streams/tvprozrywka.m3u, streams/tvphistoria.m3u,
-  streams/wpolsce24.m3u, streams/republika.m3u
+  streams/tvpnauka.m3u, streams/tvprozrywka.m3u, streams/tvphistoria.m3u
 
 A transient fetch failure no longer wipes a channel: the previous
 last-known-good URL is reused so the channel stays up until either a
@@ -15,7 +14,6 @@ fresh URL is fetched or there is genuinely nothing to fall back on.
 
 import json
 import os
-import subprocess
 import sys
 import urllib.request
 
@@ -48,16 +46,16 @@ TVP_CHANNELS = [
         "group": "Polska",
     },
     {
-        "id":    "399700",
-        "slug":  "tvpkultura",
-        "name":  "TVP Kultura",
+        "id":    "399702",
+        "slug":  "tvpsport",
+        "name":  "TVP Sport",
         "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
         "group": "Polska",
     },
     {
-        "id":    "399702",
-        "slug":  "tvpsport",
-        "name":  "TVP Sport",
+        "id":    "399700",
+        "slug":  "tvpkultura",
+        "name":  "TVP Kultura",
         "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
         "group": "Polska",
     },
@@ -88,31 +86,6 @@ TVP_CHANNELS = [
         "name":  "TVP Historia",
         "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
         "group": "Polska",
-    },
-]
-
-# ---------------------------------------------------------------------------
-# YouTube-sourced channels — fetched via yt-dlp
-#
-# Use the channel's persistent /live URL (not a fixed video ID): yt-dlp
-# resolves it to whatever broadcast is currently live, so a stream restart
-# on YouTube's side never breaks the playlist.
-# ---------------------------------------------------------------------------
-
-YOUTUBE_CHANNELS = [
-    {
-        "slug":    "wpolsce24",
-        "name":    "wPolsce24",
-        "logo":    "https://wpolsce24.tv/favicon.ico",
-        "group":   "Polska",
-        "yt_url":  "https://www.youtube.com/@TelewizjawPolsce24/live",
-    },
-    {
-        "slug":    "republika",
-        "name":    "Telewizja Republika",
-        "logo":    "https://tvrepublika.pl/favicon.ico",
-        "group":   "Polska",
-        "yt_url":  "https://www.youtube.com/@Telewizja_Republika/live",
     },
 ]
 
@@ -151,60 +124,11 @@ def get_tvp_stream_url(channel_id):
 
 
 # ---------------------------------------------------------------------------
-# yt-dlp helper — extracts the best HLS URL from a YouTube live stream
-# ---------------------------------------------------------------------------
-
-# Optional Netscape-format cookies file. The workflow writes this from the
-# YT_COOKIES repo secret to get past YouTube's bot-wall on datacenter IPs.
-# Absent locally / when no secret is set → yt-dlp runs without it.
-YT_COOKIES_FILE = "cookies.txt"
-
-
-def get_youtube_stream_url(yt_url):
-    """
-    Calls yt-dlp to extract the best HLS manifest URL for a live stream.
-    Returns the URL string on success, None on failure.
-
-    yt-dlp must be installed:  pip install "yt-dlp[default]"  (the [default]
-    extra pulls in yt-dlp-ejs, which is needed alongside a JS runtime like
-    Deno for YouTube extraction on yt-dlp ≥ 2025.11.12).
-    """
-    cmd = [
-        "yt-dlp",
-        "--get-url",
-        "-f", "best[protocol=m3u8_native]/best[ext=m3u8]/best",
-        "--no-playlist",
-    ]
-    if os.path.exists(YT_COOKIES_FILE):
-        cmd += ["--cookies", YT_COOKIES_FILE]
-    cmd.append(yt_url)
-
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=60,
-        )
-        url = result.stdout.strip().splitlines()[0] if result.stdout.strip() else None
-        if result.returncode != 0 or not url:
-            print(f"  [!] yt-dlp error: {result.stderr.strip()[:200]}", file=sys.stderr)
-            return None
-        return url
-    except FileNotFoundError:
-        print("  [!] yt-dlp not found — install with: pip install yt-dlp", file=sys.stderr)
-        return None
-    except Exception as e:
-        print(f"  [!] yt-dlp exception: {e}", file=sys.stderr)
-        return None
-
-
-# ---------------------------------------------------------------------------
 # M3U helpers
 # ---------------------------------------------------------------------------
 
 def extinf(ch):
-    # Use tvg-id if present (TVP channels), otherwise use slug
+    # Use tvg-id if present (TVP channels), otherwise fall back to slug
     tvg_id = ch.get("id", ch["slug"])
     return (
         f'#EXTINF:-1 tvg-id="{tvg_id}" '
@@ -233,8 +157,8 @@ def read_existing_url(filename):
     Return the last-known-good stream URL already written for this channel,
     or None if the file is missing / only contains a placeholder.
 
-    This lets a transient API/yt-dlp failure fall back to the previous URL
-    instead of clobbering a still-valid playlist with a placeholder.
+    This lets a transient API failure fall back to the previous URL instead
+    of clobbering a still-valid playlist with a placeholder.
     """
     try:
         with open(filename, encoding="utf-8") as f:
@@ -247,7 +171,7 @@ def read_existing_url(filename):
     return None
 
 
-def resolve_url(ch, fresh_url, filename):
+def resolve_url(fresh_url, filename):
     """
     Pick the best available URL for a channel:
       1. a freshly fetched URL, if we got one;
@@ -268,56 +192,32 @@ def main():
     all_ok_entries = []
     reused = 0
 
-    # --- TVP channels ---
     for ch in TVP_CHANNELS:
         filename = f"{STREAMS_DIR}/{ch['slug']}.m3u"
         print(f"Fetching {ch['name']} (id={ch['id']}) …", file=sys.stderr)
 
         fresh = get_tvp_stream_url(ch["id"])
-        url, is_fresh = resolve_url(ch, fresh, filename)
+        url, is_fresh = resolve_url(fresh, filename)
 
         if url and is_fresh:
             print(f"  ✓ {url[:80]}…", file=sys.stderr)
             all_ok_entries.append((ch, url))
             write_m3u(filename, [(ch, url)])
         elif url:
-            print(f"  ~ fetch failed — reusing last-known-good URL", file=sys.stderr)
+            print("  ~ fetch failed — reusing last-known-good URL", file=sys.stderr)
             all_ok_entries.append((ch, url))
             reused += 1
             # Leave the existing file untouched (it already holds this URL).
         else:
-            print(f"  ✗ no fresh or cached URL — writing placeholder", file=sys.stderr)
-            write_placeholder(filename, ch["name"])
-
-    # --- YouTube-sourced channels ---
-    for ch in YOUTUBE_CHANNELS:
-        filename = f"{STREAMS_DIR}/{ch['slug']}.m3u"
-        print(f"Fetching {ch['name']} via yt-dlp ({ch['yt_url']}) …", file=sys.stderr)
-
-        fresh = get_youtube_stream_url(ch["yt_url"])
-        url, is_fresh = resolve_url(ch, fresh, filename)
-
-        if url and is_fresh:
-            print(f"  ✓ {url[:80]}…", file=sys.stderr)
-            all_ok_entries.append((ch, url))
-            write_m3u(filename, [(ch, url)])
-        elif url:
-            print(f"  ~ fetch failed — reusing last-known-good URL", file=sys.stderr)
-            all_ok_entries.append((ch, url))
-            reused += 1
-        else:
-            print(f"  ✗ no fresh or cached URL — writing placeholder", file=sys.stderr)
+            print("  ✗ no fresh or cached URL — writing placeholder", file=sys.stderr)
             write_placeholder(filename, ch["name"])
 
     # Combined playlist
     write_m3u(f"{STREAMS_DIR}/playlist.m3u", all_ok_entries)
 
-    tvp_ok  = sum(1 for ch, _ in all_ok_entries if ch in TVP_CHANNELS)
-    yt_ok   = sum(1 for ch, _ in all_ok_entries if ch in YOUTUBE_CHANNELS)
-    total   = len(TVP_CHANNELS) + len(YOUTUBE_CHANNELS)
+    total = len(TVP_CHANNELS)
     print(
-        f"\nDone: {tvp_ok}/{len(TVP_CHANNELS)} TVP + {yt_ok}/{len(YOUTUBE_CHANNELS)} YT "
-        f"= {len(all_ok_entries)}/{total} streams available "
+        f"\nDone: {len(all_ok_entries)}/{total} streams available "
         f"({reused} reused from last-known-good).",
         file=sys.stderr,
     )
