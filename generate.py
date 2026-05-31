@@ -4,7 +4,7 @@ TVP M3U generator — runs in GitHub Actions
 Writes files to the streams/ directory:
   streams/playlist.m3u  ← combined (all channels)
   streams/tvp1.m3u, streams/tvp2.m3u, streams/tvpinfo.m3u,
-  streams/tvpkultura.m3u, streams/tvpdokument.m3u, streams/tvpsport.m3u,
+  streams/tvpdokument.m3u, streams/tvpsport.m3u,
   streams/tvpnauka.m3u, streams/tvprozrywka.m3u, streams/tvphistoria.m3u
 
 A transient fetch failure no longer wipes a channel: the previous
@@ -49,13 +49,6 @@ TVP_CHANNELS = [
         "id":    "399702",
         "slug":  "tvpsport",
         "name":  "TVP Sport",
-        "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
-        "group": "Polska",
-    },
-    {
-        "id":    "399700",
-        "slug":  "tvpkultura",
-        "name":  "TVP Kultura",
         "logo":  "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png",
         "group": "Polska",
     },
