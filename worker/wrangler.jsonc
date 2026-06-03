@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tvpi",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-03",
+  "workers_dev": true,
+
+  // Global last-known-good store. WRITTEN ONLY BY THE CRON (see scheduled()).
+  // 384 writes/day at the 30-min cadence below — well under the 1k/day cap.
+  "kv_namespaces": [
+    { "binding": "LKG", "id": "13a11c35c70e41aa9d683e9b23ed7cac" }
+  ],
+
+  // ~30 min keeps KV writes bounded; request-time resolution stays fresh
+  // regardless, so cadence only affects fallback freshness.
+  "triggers": {
+    "crons": ["*/30 * * * *"]
+  },
+
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 }
+  }
+}
