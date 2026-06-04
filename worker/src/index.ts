@@ -52,8 +52,13 @@ const CACHE_TTL = 600;
 const LIVE_TIMEOUT_MS = 7_000;
 /** Raw committed playlist, kept ~fresh by GitHub Actions; served from GitHub's CDN. */
 const RAW_BASE = "https://raw.githubusercontent.com/travino/tvpi/main/streams/";
-/** KV TTL for last-known-good; refreshed by the cron, generous for outages. */
-const KV_TTL = 1_800;
+/**
+ * KV TTL for last-known-good. Kept SHORTER than the 30-min cron (900s = 15 min)
+ * so a stale entry expires and resolution falls through to the raw GitHub
+ * mirror (refreshed ~every 15 min by refresh.yml) instead of serving a
+ * likely-expired TVP token out of KV.
+ */
+const KV_TTL = 900;
 /** Attempts per live source fetch before failing over. */
 const RETRY_ATTEMPTS = 2;
 
