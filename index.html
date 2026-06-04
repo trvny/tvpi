@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TVPI — Polish public TV as live M3U</title>
+<meta name="description" content="Live TVP channels as always-fresh M3U playlists, resolved request-time by a Cloudflare Worker so tokens never go stale.">
+<meta property="og:title" content="TVPI — Polish public TV as live M3U">
+<meta property="og:description" content="Live TVP channels as always-fresh M3U playlists.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230a0a0c'/><text x='50' y='70' font-family='Arial Black,sans-serif' font-size='52' font-weight='900' fill='%234ef08a' text-anchor='middle'>TV</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090b; --panel:#101216; --panel-2:#15181e; --line:#23272f;
+    --ink:#e9ebef; --muted:#8b909b; --faint:#5b606b;
+    --live:#4ef08a; --live-dim:#1c3a2a; --air:#ff453a; --amber:#ffb340;
+    --bar1:#c7c7c7;--bar2:#c7c700;--bar3:#00c7c7;--bar4:#00c700;--bar5:#c700c7;--bar6:#c70000;--bar7:#0000c7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Hanken Grotesk",system-ui,sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+    min-height:100vh; overflow-x:hidden;
+  }
+  /* atmosphere: vignette + faint scanlines + grain */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(140% 120% at 50% -10%, rgba(78,240,138,.05), transparent 45%),
+      radial-gradient(100% 80% at 100% 100%, rgba(0,120,255,.04), transparent 50%);
+  }
+  body::after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.4;
+    background:repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,.012) 2px 3px);
+    mix-blend-mode:overlay;
+  }
+  .wrap{position:relative; z-index:2; max-width:1080px; margin:0 auto; padding:0 24px}
+
+  /* ---- color-bar hairline ---- */
+  .bars{display:flex; height:4px; width:100%}
+  .bars span{flex:1}
+  .bars span:nth-child(1){background:var(--bar1)}.bars span:nth-child(2){background:var(--bar2)}
+  .bars span:nth-child(3){background:var(--bar3)}.bars span:nth-child(4){background:var(--bar4)}
+  .bars span:nth-child(5){background:var(--bar5)}.bars span:nth-child(6){background:var(--bar6)}
+  .bars span:nth-child(7){background:var(--bar7)}
+
+  /* ---- top bar ---- */
+  header{display:flex; align-items:center; justify-content:space-between; padding:22px 0 18px}
+  .brand{display:flex; align-items:baseline; gap:12px}
+  .logo{font-family:"Anton",sans-serif; font-size:30px; letter-spacing:.04em; color:var(--ink)}
+  .logo b{color:var(--live)}
+  .brand small{font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--faint);
+    letter-spacing:.18em; text-transform:uppercase}
+  .sys{display:flex; align-items:center; gap:9px; font-family:"JetBrains Mono",monospace;
+    font-size:12px; color:var(--muted)}
+  .sys .dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+  .sys.up .dot{background:var(--live); box-shadow:0 0 0 0 rgba(78,240,138,.5); animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(78,240,138,.45)}70%{box-shadow:0 0 0 7px rgba(78,240,138,0)}100%{box-shadow:0 0 0 0 rgba(78,240,138,0)}}
+
+  /* ---- hero ---- */
+  .hero{padding:46px 0 40px; opacity:0; transform:translateY(14px); animation:rise .7s .05s forwards cubic-bezier(.2,.7,.2,1)}
+  .kick{font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--live); display:flex; align-items:center; gap:10px; margin-bottom:18px}
+  .kick::before{content:"●"; color:var(--air); font-size:9px; animation:blink 1.6s steps(1) infinite}
+  @keyframes blink{50%{opacity:.25}}
+  h1{font-family:"Anton",sans-serif; font-weight:400; font-size:clamp(40px,8vw,82px);
+    line-height:.96; letter-spacing:.005em; text-transform:uppercase}
+  h1 em{font-style:normal; color:var(--live)}
+  .lede{margin-top:20px; max-width:560px; font-size:17px; color:var(--muted)}
+  .lede b{color:var(--ink); font-weight:600}
+
+  /* ---- playlist box ---- */
+  .feed{margin-top:32px; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:6px; max-width:680px; box-shadow:0 24px 60px -30px rgba(0,0,0,.8)}
+  .feed-row{display:flex; align-items:center; gap:10px}
+  .feed-label{font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--faint);
+    padding:0 6px 0 14px; letter-spacing:.1em; white-space:nowrap}
+  .url{flex:1; min-width:0; font-family:"JetBrains Mono",monospace; font-size:14px; color:var(--ink);
+    background:transparent; border:0; padding:14px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .copy{flex:none; font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:700;
+    letter-spacing:.06em; color:#06210f; background:var(--live); border:0; border-radius:9px;
+    padding:11px 18px; cursor:pointer; transition:transform .12s, background .2s; text-transform:uppercase}
+  .copy:hover{transform:translateY(-1px)}
+  .copy:active{transform:translateY(0)}
+  .copy.done{background:var(--ink)}
+  .hint{margin-top:14px; font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--faint)}
+  .hint a{color:var(--muted); text-decoration:underline; text-underline-offset:3px}
+  .hint a:hover{color:var(--live)}
+
+  /* ---- section heading ---- */
+  .shead{display:flex; align-items:center; gap:14px; margin:64px 0 22px}
+  .shead h2{font-family:"JetBrains Mono",monospace; font-size:13px; font-weight:700; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--muted)}
+  .shead .rule{flex:1; height:1px; background:var(--line)}
+  .shead .count{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--faint)}
+
+  /* ---- channel grid ---- */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px}
+  .ch{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:13px;
+    padding:16px; display:flex; flex-direction:column; gap:14px; transition:border-color .2s, transform .2s, background .2s;
+    opacity:0; transform:translateY(10px); animation:rise .55s forwards cubic-bezier(.2,.7,.2,1)}
+  .ch:hover{border-color:#33414a; transform:translateY(-3px); background:var(--panel-2)}
+  .ch-top{display:flex; align-items:center; gap:12px}
+  .ch-logo{width:38px;height:38px;border-radius:9px;background:#fff;flex:none;object-fit:contain;padding:5px;
+    border:1px solid var(--line)}
+  .ch-name{font-size:16px; font-weight:700; letter-spacing:.01em}
+  .ch-id{font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--faint)}
+  .ch-bot{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .stat{display:flex; align-items:center; gap:7px; font-family:"JetBrains Mono",monospace;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+  .stat i{width:8px;height:8px;border-radius:50%;background:var(--amber);transition:background .3s; flex:none}
+  .stat.on i{background:var(--live); box-shadow:0 0 8px var(--live)}
+  .stat.off i{background:var(--air)}
+  .stat.on{color:var(--live)} .stat.off{color:var(--air)}
+  .cbtn{font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700; letter-spacing:.05em;
+    color:var(--muted); background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    padding:7px 13px; cursor:pointer; transition:all .15s; text-transform:uppercase}
+  .ch:hover .cbtn{border-color:#3a4750; color:var(--ink)}
+  .cbtn:hover{background:var(--live); color:#06210f; border-color:var(--live)}
+  .cbtn.done{background:var(--ink); color:#06210f; border-color:var(--ink)}
+
+  /* ---- how / info ---- */
+  .info{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:20px}
+  .card .n{font-family:"Anton",sans-serif; font-size:20px; color:var(--live); line-height:1; margin-bottom:12px}
+  .card h3{font-size:15px; font-weight:700; margin-bottom:8px}
+  .card p{font-size:14px; color:var(--muted)}
+  .card code{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--ink); background:var(--panel-2);
+    padding:2px 6px; border-radius:5px; border:1px solid var(--line)}
+
+  .tags{display:flex; flex-wrap:wrap; gap:9px; margin-top:6px}
+  .tag{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--muted); background:var(--panel);
+    border:1px solid var(--line); border-radius:999px; padding:7px 15px}
+
+  footer{margin:72px 0 40px; padding-top:24px; border-top:1px solid var(--line);
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px;
+    font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--faint)}
+  footer a{color:var(--muted); text-decoration:none}
+  footer a:hover{color:var(--live)}
+
+  @keyframes rise{to{opacity:1; transform:translateY(0)}}
+  @media (max-width:540px){
+    .feed-label{display:none} .feed-row{flex-wrap:wrap}
+    .url{padding:12px 14px} .copy{margin:0 6px 6px auto}
+    header{flex-direction:column; align-items:flex-start; gap:12px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="bars"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="logo">TV<b>PI</b></span>
+      <small>Polish&nbsp;public&nbsp;TV&nbsp;·&nbsp;live&nbsp;M3U</small>
+    </div>
+    <div class="sys" id="sys"><span class="dot"></span><span id="sysText">checking signal…</span></div>
+  </header>
+
+  <section class="hero">
+    <div class="kick">On air · request-time resolved</div>
+    <h1>Polish public&nbsp;TV.<br><em>Always-fresh</em> streams.</h1>
+    <p class="lede">Every TVP channel as a ready-to-use M3U playlist. A Cloudflare Worker resolves each
+      stream <b>the moment your player asks</b>, so it can never hand you an expired token. Drop one URL
+      into VLC, Kodi or TiviMate and you're watching.</p>
+
+    <div class="feed">
+      <div class="feed-row">
+        <span class="feed-label">PLAYLIST</span>
+        <input class="url" id="mainUrl" readonly value="https://tvpi.travny.workers.dev/playlist.m3u">
+        <button class="copy" data-copy="https://tvpi.travny.workers.dev/playlist.m3u">Copy</button>
+      </div>
+    </div>
+    <p class="hint">All 8 channels in one feed. Prefer a single channel? Grab it below.
+      &nbsp;·&nbsp; <a href="https://tvpi.travny.workers.dev/playlist.m3u">open raw ↗</a></p>
+  </section>
+
+  <div class="shead">
+    <h2>Channels</h2><span class="rule"></span>
+    <span class="count" id="chCount">8 feeds</span>
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <div class="shead"><h2>How it stays fresh</h2><span class="rule"></span></div>
+  <div class="info">
+    <div class="card"><div class="n">01</div><h3>You request</h3>
+      <p>Your player opens a channel's <code>.m3u</code> from the Worker — no stale snapshot in between.</p></div>
+    <div class="card"><div class="n">02</div><h3>Worker resolves</h3>
+      <p>It pulls a fresh signed HLS URL from TVP live, cached only briefly — well under the token's life.</p></div>
+    <div class="card"><div class="n">03</div><h3>Self-heals</h3>
+      <p>Cache → live → last-known-good fallback. A momentary TVP hiccup doesn't take a channel down.</p></div>
+  </div>
+
+  <div class="shead"><h2>Tested players</h2><span class="rule"></span></div>
+  <div class="tags">
+    <span class="tag">VLC</span><span class="tag">Kodi · PVR IPTV Simple</span>
+    <span class="tag">TiviMate</span><span class="tag">Televizo</span><span class="tag">GSE Smart IPTV</span>
+  </div>
+
+  <footer>
+    <span>TVPI · live signal monitor</span>
+    <span><a href="https://tvpi.travny.workers.dev/playlist.m3u">worker endpoint ↗</a></span>
+  </footer>
+</div>
+
+<script>
+const WORKER = "https://tvpi.travny.workers.dev";
+const CHANNELS = [
+  {slug:"tvp1",        name:"TVP 1 HD",     id:"399697", domain:"tvp.pl"},
+  {slug:"tvp2",        name:"TVP 2 HD",     id:"399698", domain:"tvp.pl"},
+  {slug:"tvpinfo",     name:"TVP Info",     id:"399699", domain:"tvp.info"},
+  {slug:"tvpsport",    name:"TVP Sport",    id:"399702", domain:"sport.tvp.pl"},
+  {slug:"tvpdokument", name:"TVP Dokument", id:"399721", domain:"dokument.tvp.pl"},
+  {slug:"tvpnauka",    name:"TVP Nauka",    id:"399722", domain:"nauka.tvp.pl"},
+  {slug:"tvprozrywka", name:"TVP Rozrywka", id:"399724", domain:"rozrywka.tvp.pl"},
+  {slug:"tvphistoria", name:"TVP Historia", id:"399703", domain:"historia.tvp.pl"},
+];
+const favicon = d => `https://www.google.com/s2/favicons?domain=${d}&sz=64`;
+const m3u = s => `${WORKER}/${s}.m3u`;
+
+// ---- render channel cards ----
+const grid = document.getElementById("grid");
+grid.innerHTML = CHANNELS.map((c,i)=>`
+  <div class="ch" style="animation-delay:${0.12 + i*0.05}s" data-slug="${c.slug}">
+    <div class="ch-top">
+      <img class="ch-logo" src="${favicon(c.domain)}" alt="" loading="lazy"
+           onerror="this.style.visibility='hidden'">
+      <div>
+        <div class="ch-name">${c.name}</div>
+        <div class="ch-id">id ${c.id}</div>
+      </div>
+    </div>
+    <div class="ch-bot">
+      <span class="stat" id="stat-${c.slug}"><i></i>checking</span>
+      <button class="cbtn" data-copy="${m3u(c.slug)}">Copy</button>
+    </div>
+  </div>`).join("");
+
+// ---- copy to clipboard (delegated) ----
+document.addEventListener("click", async e=>{
+  const btn = e.target.closest("[data-copy]"); if(!btn) return;
+  const text = btn.dataset.copy;
+  try{ await navigator.clipboard.writeText(text); }
+  catch{ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t);
+         t.select(); document.execCommand("copy"); t.remove(); }
+  const prev = btn.textContent; btn.textContent="Copied"; btn.classList.add("done");
+  setTimeout(()=>{ btn.textContent=prev; btn.classList.remove("done"); }, 1400);
+});
+
+// ---- live status checks (Worker sends Access-Control-Allow-Origin: *) ----
+function check(url, ms=8000){
+  const ac = new AbortController(); const t=setTimeout(()=>ac.abort(), ms);
+  return fetch(url, {method:"GET", cache:"no-store", signal:ac.signal})
+    .then(r=>r.ok).catch(()=>false).finally(()=>clearTimeout(t));
+}
+async function run(){
+  const results = await Promise.all(CHANNELS.map(async c=>{
+    const ok = await check(m3u(c.slug));
+    const el = document.getElementById("stat-"+c.slug);
+    el.classList.remove("on","off"); el.classList.add(ok?"on":"off");
+    el.querySelector("i").nextSibling.remove();
+    el.appendChild(document.createTextNode(ok?"online":"offline"));
+    return ok;
+  }));
+  const up = results.filter(Boolean).length;
+  const sys = document.getElementById("sys"), txt=document.getElementById("sysText");
+  if(up>0) sys.classList.add("up");
+  txt.textContent = `${up}/${CHANNELS.length} channels online`;
+  document.getElementById("chCount").textContent = `${up}/${CHANNELS.length} online`;
+}
+run();
+</script>
+</body>
+</html>
