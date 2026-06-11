@@ -189,7 +189,7 @@
       <p><span class="n">2.</span><span class="t">The Worker pulls a <b>fresh signed HLS URL</b> from TVP, cached only briefly.</span></p>
       <p><span class="n">3.</span><span class="t">Cache &rarr; live &rarr; KV &rarr; GitHub &rarr; R2. A TVP hiccup <b>doesn't take a channel dark</b>.</span></p>
     </div>
-    <p class="players">PLAYERS &mdash; <b>VLC</b> &middot; <b>Kodi</b> (PVR IPTV Simple) &middot; <b>TiviMate</b> &middot; <b>Televizo</b> &middot; <b>GSE</b></p>
+    <p class="players">PLAYERS &mdash; <b>VLC</b> &middot; <b>MPC-HC</b> &middot; <b>Kodi</b> (PVR IPTV Simple) &middot; <b>TiviMate</b> &middot; <b>Televizo</b> &middot; <b>GSE</b></p>
   </div>
 
   <div class="fastext">
@@ -218,7 +218,8 @@ const CHANNELS = [
   {no:"107", slug:"tvprozrywka", name:"TVP Rozrywka"},
   {no:"108", slug:"tvphistoria", name:"TVP Historia"},
 ];
-const m3u = s => `${WORKER}/${s}.m3u`;
+const m3u  = s => `${WORKER}/${s}.m3u`;   // nested playlist — used for status checks (CORS-safe 200)
+const m3u8 = s => `${WORKER}/${s}.m3u8`;  // 302 → tokenized HLS manifest — what players should get
 
 // ---- live clock (teletext header) ----
 const pad = n => String(n).padStart(2,"0");
@@ -231,7 +232,7 @@ tick(); setInterval(tick, 1000);
 
 // ---- render channel rows ----
 document.getElementById("rows").innerHTML = CHANNELS.map(c=>`
-  <div class="row" role="button" tabindex="0" data-copy="${m3u(c.slug)}" data-slug="${c.slug}">
+  <div class="row" role="button" tabindex="0" data-copy="${m3u8(c.slug)}" data-slug="${c.slug}">
     <span class="no">${c.no}</span>
     <span class="nm">${c.name}</span>
     <span class="lead"></span>
@@ -259,6 +260,8 @@ document.addEventListener("keydown", e=>{
 });
 
 // ---- live status (Worker sends Access-Control-Allow-Origin: *) ----
+// NOTE: checks hit the .m3u endpoint, NOT .m3u8 — a browser fetch of the .m3u8
+// would follow the 302 into TVP's CORS wall and report a false BRAK.
 function check(url, ms=8000){
   const ac=new AbortController(); const t=setTimeout(()=>ac.abort(), ms);
   return fetch(url,{method:"GET",cache:"no-store",signal:ac.signal})
