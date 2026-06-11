@@ -1,4 +1,4 @@
-# TVP Live IPTV — M3U playlists
+# [TVP Live IPTV](https://tvpi.pages.dev)
 
 Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
 pick one as your primary:
