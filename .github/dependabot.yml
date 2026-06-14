@@ -1,13 +1,19 @@
 version: 2
 updates:
-  # Only real moving surface in this repo: the action versions in the workflows.
-  # (No package.json, no .gitmodules, no Python manifest — generate.py is pure
-  # stdlib and the worker installs wrangler ad-hoc — so npm/pip/gitsubmodule
-  # entries pointed at nothing and were removed.)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     groups:
       actions:
+        patterns: ["*"]
+
+  # Worker build toolchain (wrangler, typescript). Pinned via worker/package.json
+  # + lockfile so `npm ci` is reproducible; Dependabot bumps the lockfile here.
+  - package-ecosystem: "npm"
+    directory: "/worker"
+    schedule:
+      interval: "weekly"
+    groups:
+      worker-toolchain:
         patterns: ["*"]
