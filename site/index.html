@@ -112,9 +112,13 @@
     flex-wrap:wrap; background:rgba(70,224,224,.04)}
   .feedbox .u{flex:1; min-width:220px; font-size:23px; color:var(--w); word-break:break-all}
   .feedbox .u .ar{color:var(--g)}
+  .feedbox.alt{border-color:var(--g); background:rgba(84,224,106,.04)}
+  .feedbox .tag{font-family:"Silkscreen"; font-size:11px; text-shadow:none; padding:3px 7px;
+    color:var(--k); flex:none; letter-spacing:.02em}
+  .feedbox .tag.pri{background:var(--c)} .feedbox.alt .tag{background:var(--g)}
   .keybtn{font-family:"Silkscreen"; font-size:13px; text-shadow:none; border:0; cursor:pointer;
     padding:11px 16px; letter-spacing:.02em; color:var(--k)}
-  .keybtn.red{background:var(--r)} .keybtn:hover{filter:brightness(1.15)}
+  .keybtn.red{background:var(--r)} .keybtn.grn{background:var(--g)} .keybtn:hover{filter:brightness(1.15)}
   .keybtn.copied{background:var(--w)}
 
   /* ---------- how ---------- */
@@ -180,9 +184,16 @@
   <div class="sec c">
     <div class="sech"><span class="blk">M3U</span> FULL PLAYLIST</div>
     <div class="feedbox">
-      <span class="u" id="mainUrl"><span class="ar">&gt;&nbsp;</span>https://tvpi.travny.workers.dev/playlist.m3u</span>
+      <span class="tag pri">PRIMARY</span>
+      <span class="u"><span class="ar">&gt;&nbsp;</span>https://tvpi.travny.workers.dev/playlist.m3u</span>
       <button class="keybtn red" data-copy="https://tvpi.travny.workers.dev/playlist.m3u">COPY M3U</button>
     </div>
+    <div class="feedbox alt" style="margin-top:8px">
+      <span class="tag">BACKUP</span>
+      <span class="u"><span class="ar">&gt;&nbsp;</span>https://raw.githubusercontent.com/travino/tvpi/main/streams/playlist.m3u</span>
+      <button class="keybtn grn" data-copy="https://raw.githubusercontent.com/travino/tvpi/main/streams/playlist.m3u">COPY M3U</button>
+    </div>
+    <p class="players" style="margin-top:9px">BACKUP &mdash; static GitHub mirror, refreshed every 15&nbsp;min on a separate host. Survives a Worker / Cloudflare outage; a token may briefly lapse between refreshes.</p>
   </div>
 
   <div class="sec g">
@@ -197,7 +208,7 @@
 
   <div class="fastext">
     <button class="ft red" data-copy="https://tvpi.travny.workers.dev/playlist.m3u">COPY M3U<small>full playlist</small></button>
-    <a class="ft green" href="https://tvpi.travny.workers.dev/playlist.m3u">OPEN<small>raw feed</small></a>
+    <a class="ft green" href="https://raw.githubusercontent.com/travino/tvpi/main/streams/playlist.m3u">BACKUP<small>raw mirror</small></a>
     <a class="ft yellow" href="#rows">CHANNELS<small>pick one</small></a>
     <a class="ft cyan" href="https://github.com/travino/tvpi">GITHUB<small>source</small></a>
   </div>
