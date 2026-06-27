@@ -10,17 +10,12 @@
   // row-writes/day vs KV's ~1k, so the cron can refresh the LKG every run
   // (576/day at */20) and the row stays a trusted, genuinely-fresh fallback.
   // Read-path freshness is enforced in code (LKG_MAX_AGE_MS), since D1 has no
-  // native TTL.
-  //
-  // ONE-TIME SETUP — do this BEFORE merging, or deploy.yml's `wrangler deploy`
-  // will fail on the placeholder id:
-  //   1. wrangler d1 create tvpi-lkg              → paste the database_id below
-  //   2. wrangler d1 migrations apply tvpi-lkg --remote
+  // native TTL. DB created + migration 0001 applied to the remote already.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "tvpi-lkg",
-      "database_id": "PLACEHOLDER_RUN_wrangler_d1_create_tvpi-lkg",
+      "database_id": "2bb79e21-9133-4889-8761-1eedd561cee3",
       "migrations_dir": "migrations"
     }
   ],
