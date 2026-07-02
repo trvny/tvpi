@@ -1,4 +1,4 @@
-[![refresh](https://github.com/travino/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/travino/tvpi/actions/workflows/refresh.yml)
+[![refresh](https://github.com/travino/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/travino/tvpi/actions/workflows/refresh.yml) <picture><source media="(prefers-color-scheme: dark)" srcset="https://www.shieldcn.dev/github/license/travino/tvpi.svg?variant=branded&amp;size=xs&amp;mode=dark&amp;theme=neutral&amp;font=jetbrains-mono"><img alt="License" src="https://www.shieldcn.dev/github/license/travino/tvpi.svg?variant=ghost&amp;size=sm&amp;mode=light&amp;theme=neutral&amp;font=jetbrains-mono"></picture>
 
 # [TVP Live IPTV 📺](https://tvpi.pages.dev)
 
