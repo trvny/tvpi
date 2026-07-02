@@ -1,4 +1,5 @@
-[![refresh](https://github.com/travino/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/travino/tvpi/actions/workflows/refresh.yml) <picture><source media="(prefers-color-scheme: dark)" srcset="https://www.shieldcn.dev/github/license/travino/tvpi.svg?variant=branded&amp;size=xs&amp;mode=dark&amp;theme=neutral&amp;font=jetbrains-mono"><img alt="License" src="https://www.shieldcn.dev/github/license/travino/tvpi.svg?variant=branded&amp;size=xs&amp;mode=light&amp;theme=neutral&amp;font=jetbrains-mono"></picture>
+[![refresh](https://github.com/travino/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/travino/tvpi/actions/workflows/refresh.yml) ![Cloudflare Workers Badge](https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflareworkers&logoColor=fff&style=flat-square)
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://www.shieldcn.dev/github/license/travino/tvpi.svg?variant=branded&amp;size=xs&amp;mode=dark&amp;theme=neutral&amp;font=jetbrains-mono"><img alt="License" src="https://www.shieldcn.dev/github/license/travino/tvpi.svg?variant=branded&amp;size=xs&amp;mode=light&amp;theme=neutral&amp;font=jetbrains-mono"></picture>
 
 # [TVP Live IPTV 📺](https://tvpi.pages.dev)
 
