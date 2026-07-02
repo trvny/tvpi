@@ -108,3 +108,7 @@ lifetime so it's always fresh.
   path that's fully immune to token expiry.
 - If `generate.py` can't get a fresh URL **and** has no cached one for a channel,
   it writes a placeholder stub so the rest of the playlist still builds.
+
+## License
+
+[MIT-0](LICENSE)
