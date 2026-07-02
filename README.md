@@ -1,4 +1,6 @@
-# [TVP Live IPTV](https://tvpi.pages.dev)
+[![refresh](https://github.com/travino/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/travino/tvpi/actions/workflows/refresh.yml)
+
+# [TVP Live IPTV 📺](https://tvpi.pages.dev)
 
 Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
 pick one as your primary:
