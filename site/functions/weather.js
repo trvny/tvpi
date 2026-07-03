@@ -1,13 +1,13 @@
 // GET /weather  →  proxies weather.travny.workers.dev/state.json
 // The upstream worker sends no CORS header, so a browser fetch from
-// tvpi.pages.dev is blocked. This same-origin Pages Function re-serves the
+// travny.pages.dev is blocked. This same-origin Pages Function re-serves the
 // JSON with Access-Control-Allow-Origin:* and a short edge cache.
 export async function onRequest() {
   const UPSTREAM = "https://weather.travny.workers.dev/state.json";
   const cors = {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": "*",
-    "cache-control": "public, max-age=300",
+    "cache-control": "public, s-maxage=300, stale-while-revalidate=60",
   };
   try {
     const res = await fetch(UPSTREAM, { cf: { cacheTtl: 300, cacheEverything: true } });

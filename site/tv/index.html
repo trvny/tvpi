@@ -8,13 +8,13 @@
 <meta property="og:title" content="TVPI · TVP ╳ IPTV">
 <meta property="og:description" content="Polish public TV as always-fresh M3U playlists.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://tvpi.pages.dev/tv/">
-<meta property="og:image" content="https://tvpi.pages.dev/assets/og.png">
+<meta property="og:url" content="https://travny.pages.dev/tv/">
+<meta property="og:image" content="https://travny.pages.dev/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://tvpi.pages.dev/assets/og.png">
+<meta name="twitter:image" content="https://travny.pages.dev/assets/og.png">
 <meta name="theme-color" content="#04060a">
 <meta name="google-site-verification" content="GNRW9My8O_IdeadkT_TDeq9zaNW8axruvvOdk3-aZ2I" />
-<link rel="canonical" href="https://tvpi.pages.dev/tv/">
+<link rel="canonical" href="https://travny.pages.dev/tv/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2304060a'/><rect x='3' y='4' width='3.4' height='7' fill='%23f5e94e'/><rect x='7' y='4' width='3.4' height='7' fill='%2346e0e0'/><rect x='11' y='4' width='3.4' height='7' fill='%2354e06a'/><rect x='15' y='4' width='3.4' height='7' fill='%23e85ad0'/><rect x='19' y='4' width='3.4' height='7' fill='%23ff5147'/><rect x='23' y='4' width='3.4' height='7' fill='%236f8cff'/><text x='16' y='29' font-family='monospace' font-size='19' font-weight='700' fill='%2346e0e0' text-anchor='middle'>T</text></svg>">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
@@ -61,21 +61,17 @@
   .scr-in{position:relative; z-index:4}
   *{text-shadow:0 0 3px}
   h1,h2,.big{text-shadow:0 0 10px}
-
   .testbars{display:flex; height:14px; margin-bottom:14px; border:1px solid #0d1117}
   .testbars i{flex:1}
   .testbars i:nth-child(1){background:var(--w)}.testbars i:nth-child(2){background:var(--y)}
   .testbars i:nth-child(3){background:var(--c)}.testbars i:nth-child(4){background:var(--g)}
   .testbars i:nth-child(5){background:var(--m)}.testbars i:nth-child(6){background:var(--r)}
   .testbars i:nth-child(7){background:var(--b)}
-
   .topbar{display:flex; align-items:baseline; justify-content:space-between; gap:12px;
     font-size:20px; color:var(--dim); letter-spacing:.04em}
   .topbar .pg{color:var(--k); background:var(--c); padding:1px 8px; font-weight:700;
     font-family:"Silkscreen"; font-size:13px; text-shadow:none}
   .topbar .clk{color:var(--g)}
-  .topbar a{color:var(--y); text-decoration:none}
-
   .masthead{margin:18px 0 6px; display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap}
   h1{font-family:"Silkscreen",monospace; font-weight:700; color:var(--y);
     font-size:clamp(38px,11vw,74px); line-height:.9; letter-spacing:.02em}
@@ -85,17 +81,14 @@
     letter-spacing:.08em; margin-top:6px}
   .live::before{content:"\25CF"; color:var(--r); animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
-
   .tagline{font-size:23px; color:var(--w); margin:14px 0 4px; max-width:60ch}
   .tagline b{color:var(--y); font-weight:400}
-
   .sec{margin-top:34px}
   .sech{font-size:24px; letter-spacing:.06em; display:flex; align-items:center; gap:10px; margin-bottom:8px}
   .sech .blk{font-family:"Silkscreen"; font-size:12px; padding:3px 8px; color:var(--k); text-shadow:none}
   .y .blk{background:var(--y)} .c .blk{background:var(--c)} .g .blk{background:var(--g)}
   .y .sech{color:var(--y)} .c .sech{color:var(--c)} .g .sech{color:var(--g)}
   .sech .en{color:var(--dim); font-size:19px}
-
   .rows{border-top:1px solid var(--faint)}
   .row{display:flex; align-items:flex-end; gap:8px; padding:7px 4px 5px; cursor:pointer;
     border-bottom:1px solid #0e131c; font-size:24px; transition:background .1s}
@@ -110,7 +103,6 @@
   .row .cp{flex:none; color:var(--faint); font-size:18px; width:9ch; text-align:right; letter-spacing:.04em}
   .row:hover .cp{color:var(--y)}
   .row.copied .cp{color:var(--k); background:var(--y); text-shadow:none}
-
   .feedbox{border:2px solid var(--c); padding:12px 14px; display:flex; align-items:center; gap:12px;
     flex-wrap:wrap; background:rgba(70,224,224,.04)}
   .feedbox .u{flex:1; min-width:220px; font-size:23px; color:var(--w); word-break:break-all}
@@ -123,15 +115,12 @@
     padding:11px 16px; letter-spacing:.02em; color:var(--k)}
   .keybtn.red{background:var(--r)} .keybtn.grn{background:var(--g)} .keybtn:hover{filter:brightness(1.15)}
   .keybtn.copied{background:var(--w)}
-
   .how{font-size:23px; color:var(--w)}
   .how p{padding:4px 0; border-bottom:1px solid #0e131c; display:flex; gap:12px}
   .how p .n{color:var(--m); flex:none}
   .how p .t b{color:var(--c); font-weight:400}
-
   .players{font-size:22px; color:var(--dim); margin-top:10px}
   .players b{color:var(--w); font-weight:400}
-
   .fastext{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:34px}
   .ft{font-family:"Silkscreen"; font-size:12px; text-shadow:none; color:var(--w);
     border-top:6px solid; padding:11px 8px 9px; text-align:center; cursor:pointer;
@@ -141,13 +130,11 @@
   .ft.red{border-color:var(--r)} .ft.green{border-color:var(--g)}
   .ft.yellow{border-color:var(--y)} .ft.cyan{border-color:var(--c)}
   .ft.copied{background:var(--g)} .ft.copied,.ft.copied small{color:var(--k); text-shadow:none}
-
   footer{margin-top:26px; padding-top:12px; border-top:1px solid var(--faint);
     display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
     font-size:19px; color:var(--dim); letter-spacing:.05em}
   footer .pg{color:var(--y)} footer a{color:var(--c); text-decoration:none}
   footer a:hover{text-decoration:underline}
-
   @media (max-width:560px){
     body{padding:8px}
     .row{font-size:21px} .row .nm{white-space:normal}
@@ -159,14 +146,11 @@
 </head>
 <body>
 <div class="crt"><div class="scr-in">
-
   <div class="testbars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-
   <div class="topbar">
-    <span><a href="/">&lsaquo;&nbsp;HUB</a> &middot; TELEGAZETA <span class="pg">P101</span></span>
+    <span><a href="/" style="color:var(--y);text-decoration:none">&lsaquo;&nbsp;HUB</a> &middot; TELEGAZETA <span class="pg">P101</span></span>
     <span class="clk" id="clk">--:--:--</span>
   </div>
-
   <div class="masthead">
     <h1>TVPI</h1>
     <div>
@@ -176,12 +160,10 @@
   </div>
   <p class="tagline">Polish public television as ready-to-use <b>IPTV M3U</b> playlists. A Cloudflare
     Worker resolves each stream the moment your player asks, so the signed token is never stale.</p>
-
   <div class="sec c">
     <div class="sech"><span class="blk">KANA&#321;Y</span> CHANNELS <span class="en" id="chCount">101&ndash;108</span></div>
     <div class="rows" id="rows"></div>
   </div>
-
   <div class="sec c">
     <div class="sech"><span class="blk">M3U</span> FULL PLAYLIST</div>
     <div class="feedbox">
@@ -194,9 +176,8 @@
       <span class="u"><span class="ar">&gt;&nbsp;</span>https://raw.githubusercontent.com/travino/tvpi/main/streams/playlist.m3u</span>
       <button class="keybtn grn" data-copy="https://raw.githubusercontent.com/travino/tvpi/main/streams/playlist.m3u">COPY M3U</button>
     </div>
-    <p class="players" style="margin-top:9px">BACKUP &mdash; static GitHub mirror, refreshed every 15&nbsp;min on a separate host. Survives a Worker / Cloudflare outage; a token may briefly lapse between refreshes.</p>
+    <p class="players" style="margin-top:9px">BACKUP &mdash; static GitHub mirror, refreshed every 15&nbsp;min on a separate host.</p>
   </div>
-
   <div class="sec g">
     <div class="sech"><span class="blk">INFO</span> HOW IT STAYS FRESH</div>
     <div class="how">
@@ -206,22 +187,25 @@
     </div>
     <p class="players">PLAYERS &mdash; <b>VLC</b> &middot; <b>MPC-HC</b> &middot; <b>Kodi</b> (PVR IPTV Simple) &middot; <b>TiviMate</b> &middot; <b>Televizo</b> &middot; <b>GSE</b></p>
   </div>
-
   <div class="fastext">
     <button class="ft red" data-copy="https://tvpi.travny.workers.dev/playlist.m3u">COPY M3U<small>full playlist</small></button>
     <a class="ft green" href="https://raw.githubusercontent.com/travino/tvpi/main/streams/playlist.m3u">BACKUP<small>raw mirror</small></a>
     <a class="ft yellow" href="#rows">CHANNELS<small>pick one</small></a>
-    <a class="ft cyan" href="https://github.com/travino/tvpi">GITHUB<small>source</small></a>
+    <a class="ft cyan" href="/">&#8592; HUB<small>back</small></a>
   </div>
-
   <footer>
     <span><a href="/">&lsaquo;&nbsp;TRAVINO&nbsp;HUB</a> &middot; TELEGAZETA <span class="pg">P101/108</span></span>
     <span><a href="https://tvpi.travny.workers.dev/playlist.m3u">tvpi.travny.workers.dev</a></span>
   </footer>
-
 </div></div>
-
 <script>
+const pad = n => String(n).padStart(2,"0");
+(function tick(){
+  const d = new Date();
+  document.getElementById("clk").textContent =
+    `${pad(d.getDate())}.${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  setTimeout(tick, 1000);
+})();
 const WORKER = "https://tvpi.travny.workers.dev";
 const CHANNELS = [
   {no:"101", slug:"tvp1",        name:"TVP 1 HD"},
@@ -235,15 +219,13 @@ const CHANNELS = [
 ];
 const m3u  = s => `${WORKER}/${s}.m3u`;
 const m3u8 = s => `${WORKER}/${s}.m3u8`;
-
-const pad = n => String(n).padStart(2,"0");
-function tick(){
+const pad2 = n => String(n).padStart(2,"0");
+function tick2(){
   const d = new Date();
   document.getElementById("clk").textContent =
-    `${pad(d.getDate())}.${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    `${pad2(d.getDate())}.${pad2(d.getMonth()+1)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
-tick(); setInterval(tick, 1000);
-
+tick2(); setInterval(tick2, 1000);
 document.getElementById("rows").innerHTML = CHANNELS.map(c=>`
   <div class="row" role="button" tabindex="0" data-copy="${m3u8(c.slug)}" data-slug="${c.slug}">
     <span class="no">${c.no}</span>
@@ -252,7 +234,6 @@ document.getElementById("rows").innerHTML = CHANNELS.map(c=>`
     <span class="st chk" id="st-${c.slug}">CHECK&hellip;</span>
     <span class="cp">&#10515; COPY</span>
   </div>`).join("");
-
 async function copy(text){
   try{ await navigator.clipboard.writeText(text); }
   catch{ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t);
@@ -270,7 +251,6 @@ document.addEventListener("click", e=>{
 document.addEventListener("keydown", e=>{
   if((e.key==="Enter"||e.key===" ") && e.target.classList.contains("row")){ e.preventDefault(); e.target.click(); }
 });
-
 function check(url, ms=8000){
   const ac=new AbortController(); const t=setTimeout(()=>ac.abort(), ms);
   return fetch(url,{method:"GET",cache:"no-store",signal:ac.signal})
