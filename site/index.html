@@ -25,7 +25,7 @@
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://tvpi.travny.workers.dev" crossorigin>
-<link rel="preconnect" href="https://travino.github.io" crossorigin>
+<link rel="preconnect" href="https://trvny.github.io" crossorigin>
 <link rel="dns-prefetch" href="https://weather.travny.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -200,22 +200,22 @@
       <span class="go">OPEN &rsaquo;</span>
     </a>
     <section class="panel fd">
-      <a class="phead" href="https://travino.github.io/feeds/">
+      <a class="phead" href="https://trvny.github.io/feeds/">
         <span class="blk">P300</span> FEEDY <span class="en">RECENT &rsaquo;</span>
       </a>
       <ul class="feedlist" id="feedlist"><li class="fdload">&#322;adowanie feed&oacute;w&hellip;</li></ul>
-      <a class="pgo" href="https://travino.github.io/feeds/reader/">&#9654; OPEN READER</a>
+      <a class="pgo" href="https://trvny.github.io/feeds/reader/">&#9654; OPEN READER</a>
     </section>
   </div>
   <div class="fastext">
     <a class="ft cyan"   href="/tv/">TVP IPTV<small>8 channels</small></a>
     <a class="ft yellow" href="https://weather.travny.workers.dev/">POGODA<small>weather</small></a>
-    <a class="ft green"  href="https://travino.github.io/feeds/">FEEDY<small>all feeds</small></a>
-    <a class="ft red"    href="https://travino.github.io/feeds/reader/">READER<small>inbox</small></a>
+    <a class="ft green"  href="https://trvny.github.io/feeds/">FEEDY<small>all feeds</small></a>
+    <a class="ft red"    href="https://trvny.github.io/feeds/reader/">READER<small>inbox</small></a>
   </div>
   <footer>
     <span>TRAVINO &middot; TELEGAZETA <span class="pg">P100</span></span>
-    <span><a href="https://github.com/travino">github.com/travino</a></span>
+    <span><a href="https://github.com/trvny">github.com/trvny</a></span>
   </footer>
 </div></div>
 <script>
@@ -296,7 +296,7 @@ const FEEDS=[
   {file:"anthropic",  src:"CLAUDE",  col:"var(--b)"},
   {file:"steam",      src:"STEAM",   col:"var(--r)"},
 ];
-const FBASE="https://travino.github.io/feeds/feed_";
+const FBASE="https://trvny.github.io/feeds/feed_";
 function rel(d){const s=(Date.now()-d)/1000; return s<3600?Math.max(1,Math.round(s/60))+"m":s<86400?Math.round(s/3600)+"h":Math.round(s/86400)+"d";}
 function clean(t){const x=document.createElement("textarea");x.innerHTML=t;return x.value.replace(/\s+[-\u2013\u2014]\s+[^-\u2013\u2014]{2,30}$/,"").trim();}
 async function grabFeed(f){
