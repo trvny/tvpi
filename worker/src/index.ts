@@ -80,7 +80,7 @@ const CACHE_SOFT_TTL = 300;
 /** Bound every upstream fetch so a hung request fails over fast. */
 const LIVE_TIMEOUT_MS = 7_000;
 /** Raw committed playlist, kept ~fresh by GitHub Actions; served from GitHub's CDN. */
-const RAW_BASE = "https://raw.githubusercontent.com/travino/tvpi/main/streams/";
+const RAW_BASE = "https://raw.githubusercontent.com/trvny/tvpi/main/streams/";
 /**
  * Freshness window for the D1 last-known-good. D1 has no native TTL, so the READ
  * path enforces it: an LKG row older than this is ignored and resolution falls
