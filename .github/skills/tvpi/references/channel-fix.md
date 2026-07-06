@@ -1,4 +1,4 @@
-# TVP Channel Fix (travino/tvpi)
+# TVP Channel Fix (trvny/tvpi)
 
 A channel stopped playing. The job is to find **which resolution layer broke**, fix the one real cause, and verify — not to blindly regenerate or commit placeholders. Most "outages" are either an expired token on the raw mirror (self-healing, not a bug) or the live TVP fetch failing because the API shape or a channel ID changed.
 
@@ -7,7 +7,7 @@ A channel stopped playing. The job is to find **which resolution layer broke**, 
 Two delivery paths, both fed from the same TVP API:
 
 - **Worker** (`https://tvpi.travny.workers.dev`, source `worker/src/index.ts`) — resolves per request: **L1** per-colo Cache → **L2** live TVP API → **L3a** KV last-known-good → **L3b** raw GitHub mirror. KV is written **only** by the cron (`scheduled()`), never on the request path.
-- **Raw mirror** (`https://raw.githubusercontent.com/travino/tvpi/main/streams/{slug}.m3u`) — static snapshots committed every 15 min by `generate.py` via `.github/workflows/refresh.yml`.
+- **Raw mirror** (`https://raw.githubusercontent.com/trvny/tvpi/main/streams/{slug}.m3u`) — static snapshots committed every 15 min by `generate.py` via `.github/workflows/refresh.yml`.
 
 Channels (keep `CHANNELS` in `index.ts` and `TVP_CHANNELS` in `generate.py` identical): `tvp1` 399697, `tvp2` 399698, `tvpinfo` 399699, `tvpsport` 399702, `tvpdokument` 399721, `tvpnauka` 399722, `tvprozrywka` 399724, `tvphistoria` 399703.
 

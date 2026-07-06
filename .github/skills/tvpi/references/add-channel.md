@@ -1,6 +1,6 @@
-# Add a Channel (travino/tvpi)
+# Add a Channel (trvny/tvpi)
 
-You add a live channel to **travino/tvpi**, which serves Polish live TV as M3U playlists through two paths fed off the same channel list: a Cloudflare **Worker** (`worker/src/index.ts`, request-time resolution, recommended) and a **raw GitHub mirror** (`generate.py` → `streams/*.m3u`, committed every 15 min). A channel must be added to **both** files or the two paths disagree — the Worker would 404 a slug the mirror serves, or vice-versa.
+You add a live channel to **trvny/tvpi**, which serves Polish live TV as M3U playlists through two paths fed off the same channel list: a Cloudflare **Worker** (`worker/src/index.ts`, request-time resolution, recommended) and a **raw GitHub mirror** (`generate.py` → `streams/*.m3u`, committed every 15 min). A channel must be added to **both** files or the two paths disagree — the Worker would 404 a slug the mirror serves, or vice-versa.
 
 The single most important habit: **keep `CHANNELS` (index.ts) and `TVP_CHANNELS`/static lists (generate.py) in lockstep** — same `slug`, `name`, `logo`, `group`, and `id`. Read both files before editing.
 

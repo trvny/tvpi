@@ -1,4 +1,4 @@
-# TVP Project Review (travino/tvpi)
+# TVP Project Review (trvny/tvpi)
 
 Audit the Worker, the generator, and the workflows for correctness, robustness, and the project's load-bearing invariants. This is the only place the design rules are enforced, so check them explicitly rather than trusting that code "looks fine."
 
