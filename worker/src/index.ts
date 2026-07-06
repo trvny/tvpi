@@ -9,6 +9,9 @@
  *                                    manifest. Stable, saveable URL for players
  *                                    that won't expand nested M3Us (MPC-HC/LAV)
  *                                    — a fresh token is resolved on every open.
+ *   POST /push/<slug>              → residential-IP push of a fresh HLS url
+ *                                    straight into the D1 LKG + R2 mirror.
+ *                                    See "L3a-push" below.
  *
  * Per-channel resolution: L1 per-colo Cache → L2 live TVP API →
  * L3a D1 global last-known-good → L3b raw GitHub mirror → L3c R2 mirror.
@@ -20,15 +23,28 @@
  * ~CACHE_SOFT_TTL old. A cold colo (no cache) still blocks on live, since there
  * is nothing fresher.
  *
- * LKG WRITE POLICY: the D1 last-known-good (L3a) is written ONLY by scheduled()
- * (cron). The request path never writes it — it only reads (a single-row PK
- * lookup, cheap against D1's 5M row-reads/day free tier). The cron UPSERTs every
+ * LKG WRITE POLICY: the D1 last-known-good (L3a) is written by scheduled()
+ * (cron) AND by the /push endpoint (see "L3a-push"). The request path never
+ * writes it on its own — GET requests only read (a single-row PK lookup,
+ * cheap against D1's 5M row-reads/day free tier). The cron UPSERTs every
  * channel each run: at the 20-minute cadence that is 72 × 8 = 576 row-writes/day,
  * ~0.6% of the 100k/day free cap. (This replaced a KV-backed L3a whose ~1k
  * writes/day cap forced KV_TTL below the cron interval, so the entry expired
  * between runs and the layer was nearly always skipped. D1 lets the cron keep
  * the LKG genuinely fresh, so it serves as a TRUSTED fallback ahead of the raw
  * mirror — whose freshness rides the less-reliable GitHub Actions cron.)
+ *
+ * L3a-push (residential IP): as of 2026-07, TVP enforces its geo-block at the
+ * API/manifest level (not just on HLS segments) for every channel except
+ * tvpinfo — `GEOIP_FILTER_FAILED` on the plain playlist call. No Cloudflare
+ * colo or GitHub Actions runner is in Poland, so both L2 (this Worker) and the
+ * raw-mirror generator (L3b, GitHub Actions) are structurally unable to fetch
+ * those channels anymore. POST /push/<slug> lets a script running on a
+ * Polish-residential IP (cron on a home machine) push a freshly-fetched HLS
+ * url straight into D1 + R2, the same way the cron would if it could reach
+ * TVP. Auth: `Authorization: Bearer <PUSH_TOKEN>` (Worker secret, not in
+ * wrangler.jsonc — set via the Cloudflare API/dashboard). See
+ * scripts/residential_push.py.
  *
  * R2 MIRROR (L3c): the cron also writes each channel's .m3u to the MIRROR
  * bucket. R2 survives the repo going private (unlike L3b raw GitHub) and is an
@@ -216,8 +232,8 @@ async function revalidateCache(ch: Channel): Promise<void> {
 // L3a — D1 global last-known-good
 //
 // READ on the request path (cheap: a single-row PK lookup, <5M row-reads/day
-// free). WRITE only from the cron (see refreshAllStreams). Schema lives in
-// migrations/0001_create_lkg.sql:
+// free). WRITE from the cron (see refreshAllStreams) and from the /push
+// endpoint (see handlePush). Schema lives in migrations/0001_create_lkg.sql:
 //   CREATE TABLE lkg (slug TEXT PRIMARY KEY, url TEXT NOT NULL, ts INTEGER);
 // ---------------------------------------------------------------------------
 
@@ -272,9 +288,10 @@ async function fetchRawGithubUrl(slug: string): Promise<string | null> {
 // ---------------------------------------------------------------------------
 // L3c — R2 mirror (global, survives the repo going private)
 //
-// READ on the request path. WRITE only from the cron (see refreshAllStreams).
-// Keys mirror the raw layout (streams/<slug>.m3u) so the bucket doubles as a
-// public mirror if a custom domain is later attached to it.
+// READ on the request path. WRITE from the cron (see refreshAllStreams) and
+// from the /push endpoint (see handlePush). Keys mirror the raw layout
+// (streams/<slug>.m3u) so the bucket doubles as a public mirror if a custom
+// domain is later attached to it.
 // ---------------------------------------------------------------------------
 
 const R2_KEY = (slug: string): string => `streams/${slug}.m3u`;
@@ -306,7 +323,7 @@ async function writeToR2(env: Env, ch: Channel, url: string): Promise<void> {
 // Resolve: L1 → L2 → L3a → L3b → L3c
 //
 // The request path writes only the per-colo cache (L1). The D1 LKG and R2 are
-// the cron's job.
+// written by the cron and by /push.
 // ---------------------------------------------------------------------------
 
 async function getStreamUrl(ch: Channel, env: Env, ctx: ExecutionContext): Promise<Resolved> {
@@ -338,7 +355,42 @@ async function getStreamUrl(ch: Channel, env: Env, ctx: ExecutionContext): Promi
 }
 
 // ---------------------------------------------------------------------------
-// Cron — the ONLY place the D1 LKG and the R2 mirror are written
+// /push/<slug> — residential-IP push straight into D1 + R2 (see file header,
+// "L3a-push"). Bypasses L2 entirely: the caller already has a fresh HLS url
+// fetched from a Polish IP, so this just does what the cron would do with it.
+// ---------------------------------------------------------------------------
+
+async function handlePush(request: Request, env: Env, slug: string): Promise<Response> {
+  const auth = request.headers.get("Authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length) : "";
+  if (!env.PUSH_TOKEN || token !== env.PUSH_TOKEN) {
+    return new Response("Unauthorized\n", { status: 401 });
+  }
+
+  const ch = CHANNEL_BY_SLUG.get(slug);
+  if (!ch) return new Response("Unknown channel\n", { status: 404 });
+
+  let body: { url?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return new Response("Invalid JSON body\n", { status: 400 });
+  }
+  const url = typeof body.url === "string" ? body.url : "";
+  if (!url.startsWith("https://")) {
+    return new Response("Body must be {\"url\": \"https://...\"}\n", { status: 400 });
+  }
+
+  await writeToCache(ch.slug, url);
+  await writeToD1(env, ch.slug, url);
+  await writeToR2(env, ch, url);
+  log("info", { msg: "residential push accepted", slug: ch.slug });
+  return new Response("ok\n", { status: 200 });
+}
+
+// ---------------------------------------------------------------------------
+// Cron — the ONLY scheduled writer of the D1 LKG and the R2 mirror (the
+// /push endpoint is the other, request-triggered writer)
 // ---------------------------------------------------------------------------
 
 async function refreshAllStreams(env: Env): Promise<void> {
@@ -389,6 +441,10 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
       const path = new URL(request.url).pathname.replace(/\/$/, "") || "/";
+
+      if (request.method === "POST" && path.startsWith("/push/")) {
+        return handlePush(request, env, path.slice("/push/".length));
+      }
 
       const notFound = (): Response =>
         new Response(
