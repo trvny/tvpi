@@ -1,11 +1,9 @@
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://www.shieldcn.dev/github/license/trvny/tvpi.svg?variant=branded&size=xm&mode=dark&theme=neutral&font=jetbrains-mono"><img alt="License" src="https://www.shieldcn.dev/github/license/trvny/tvpi.svg?variant=branded&size=xm&mode=light&theme=neutral&font=jetbrains-mono"></picture>
+[![refresh](https://github.com/trvny/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/trvny/tvpi/actions/workflows/refresh.yml)
 [![Cloudflare](https://workers.cloudflare.com/built-with-cloudflare.svg)](https://cloudflare.com)
-[![refresh](https://github.com/trvny/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/trvny/tvpi/actions/workflows/refresh.yml) [![Cloudflare Workers Badge](https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflareworkers&logoColor=fff&style=flat-square)](https://tvpi.travny.workers.dev) [![Cloudflare Pages Badge](https://img.shields.io/badge/Cloudflare%20Pages-F38020?logo=cloudflarepages&logoColor=fff&style=flat-square)](https://tvpi.pages.dev/) ![TypeScript Badge](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff&style=flat-square) ![Python Badge](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=flat)
+[![Cloudflare Workers Badge](https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflareworkers&logoColor=fff&style=flat)](https://tvpi.travny.workers.dev) [![Cloudflare Pages Badge](https://img.shields.io/badge/Cloudflare%20Pages-F38020?logo=cloudflarepages&logoColor=fff&style=flat)](https://tvpi.pages.dev/) ![TypeScript Badge](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff&style=flat-square) ![Python Badge](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=flat)
 
 # [TVP Live IPTV 📺](https://tvpi.pages.dev)
-
-Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
-pick one as your primary:
 
 > ## ⚠️ Known issue (since ~2026-07): 7/8 channels degraded
 >
@@ -24,6 +22,9 @@ pick one as your primary:
 >
 > **Ideas, PRs, or "I run a PL box and can test this" welcome** — open an issue
 > or comment on #9.
+
+Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
+pick one as your primary:
 
 | Source | URL base | Refresh | Best for |
 |--------|----------|---------|----------|
