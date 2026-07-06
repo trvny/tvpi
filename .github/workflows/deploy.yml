@@ -8,6 +8,10 @@ on:
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
+concurrency:
+  group: deploy-tvpi-worker
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -21,6 +25,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
 
       - run: npm install
         working-directory: worker
