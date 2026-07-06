@@ -1,4 +1,4 @@
-&lt;picture&gt;&lt;source media="(prefers-color-scheme: dark)" srcset="https://www.shieldcn.dev/github/license/trvny/tvpi.svg?variant=branded&amp;size=xm&amp;mode=dark&amp;theme=neutral&amp;font=jetbrains-mono"&gt;&lt;img alt="License" src="https://www.shieldcn.dev/github/license/trvny/tvpi.svg?variant=branded&amp;size=xm&amp;mode=light&amp;theme=neutral&amp;font=jetbrains-mono"&gt;&lt;/picture&gt;
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://www.shieldcn.dev/github/license/trvny/tvpi.svg?variant=branded&size=xm&mode=dark&theme=neutral&font=jetbrains-mono"><img alt="License" src="https://www.shieldcn.dev/github/license/trvny/tvpi.svg?variant=branded&size=xm&mode=light&theme=neutral&font=jetbrains-mono"></picture>
 [![Cloudflare](https://workers.cloudflare.com/built-with-cloudflare.svg)](https://cloudflare.com)
 [![refresh](https://github.com/trvny/tvpi/actions/workflows/refresh.yml/badge.svg)](https://github.com/trvny/tvpi/actions/workflows/refresh.yml) [![Cloudflare Workers Badge](https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflareworkers&logoColor=fff&style=flat-square)](https://tvpi.travny.workers.dev) [![Cloudflare Pages Badge](https://img.shields.io/badge/Cloudflare%20Pages-F38020?logo=cloudflarepages&logoColor=fff&style=flat-square)](https://tvpi.pages.dev/) ![TypeScript Badge](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff&style=flat-square) ![Python Badge](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=flat)
 
@@ -7,23 +7,23 @@
 Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
 pick one as your primary:
 
-&gt; ## ⚠️ Known issue (since ~2026-07): 7/8 channels degraded
-&gt;
-&gt; TVP now returns `GEOIP_FILTER_FAILED` (403) on the playlist **API call itself**
-&gt; — not just HLS segment delivery — for every channel except **TVP Info**. No
-&gt; Cloudflare Worker colo or GitHub Actions runner is in Poland, so neither the
-&gt; Worker's live fetch nor the raw-mirror generator can refresh those 7 channels
-&gt; anymore. They currently fall back to a stale mirror snapshot.
-&gt;
-&gt; Fix in progress in [PR #9](https://github.com/trvny/tvpi/pull/9): a
-&gt; `POST /push/&lt;slug&gt;` endpoint that lets a script running on a **Polish IP**
-&gt; push fresh urls into the Worker's cache. Still needs something to actually run
-&gt; that script on a schedule from Poland (phone/Termux works but isn't durable;
-&gt; a cheap PL VPS or residential proxy is the open question — datacenter/hosting
-&gt; ASNs may be blocked same as everything else, untested).
-&gt;
-&gt; **Ideas, PRs, or "I run a PL box and can test this" welcome** — open an issue
-&gt; or comment on #9.
+> ## ⚠️ Known issue (since ~2026-07): 7/8 channels degraded
+>
+> TVP now returns `GEOIP_FILTER_FAILED` (403) on the playlist **API call itself**
+> — not just HLS segment delivery — for every channel except **TVP Info**. No
+> Cloudflare Worker colo or GitHub Actions runner is in Poland, so neither the
+> Worker's live fetch nor the raw-mirror generator can refresh those 7 channels
+> anymore. They currently fall back to a stale mirror snapshot.
+>
+> Fix in progress in [PR #9](https://github.com/trvny/tvpi/pull/9): a
+> `POST /push/<slug>` endpoint that lets a script running on a **Polish IP**
+> push fresh urls into the Worker's cache. Still needs something to actually run
+> that script on a schedule from Poland (phone/Termux works but isn't durable;
+> a cheap PL VPS or residential proxy is the open question — datacenter/hosting
+> ASNs may be blocked same as everything else, untested).
+>
+> **Ideas, PRs, or "I run a PL box and can test this" welcome** — open an issue
+> or comment on #9.
 
 | Source | URL base | Refresh | Best for |
 |--------|----------|---------|----------|
