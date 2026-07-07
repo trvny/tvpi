@@ -2,6 +2,8 @@
 # Docs: https://megalinter.io/latest/config-file/
 ---
 APPLY_FIXES: none
+APPLY_FIXES_EVENT: none
+APPLY_FIXES_MODE: commit
 FLAVOR_SUGGESTIONS: false
 # REPOSITORY: secret/SAST scanning - GitHub secret scanning + Dependabot
 #   already cover this here
