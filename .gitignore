@@ -230,6 +230,9 @@ instance/
 
 docs/_build/
 
+.pyre/
+.pytype/
+.pypirc
 .pybuilder/
 target/
 
@@ -268,6 +271,4 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-.pyre/
-.pytype/
-.pypirc
+megalinter-reports/
