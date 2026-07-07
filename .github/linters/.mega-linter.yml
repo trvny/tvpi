@@ -1,0 +1,15 @@
+# MegaLinter configuration
+# Docs: https://megalinter.io/latest/config-file/
+---
+APPLY_FIXES: none
+
+# REPOSITORY: secret/SAST scanning (gitleaks, trivy, semgrep, checkov, ...) -
+#   GitHub secret scanning + Dependabot already cover this here
+# SPELL: cspell - not useful for this repo's content
+# COPYPASTE: jscpd - not useful for this repo's size
+DISABLE:
+  - REPOSITORY
+  - SPELL
+  - COPYPASTE
+
+FILTER_REGEX_EXCLUDE: "(package-lock\\.json|streams/.*\\.m3u|favicon\\.ico)"
