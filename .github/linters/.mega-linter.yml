@@ -18,9 +18,12 @@ DISABLE:
 #   dialect - worker/migrations is SQLite (D1), every "fix" it wants is wrong.
 # TYPESCRIPT_STANDARD: can't locate worker/tsconfig.json from repo root;
 #   revisit with an explicit --project arg if you want this back.
+# JAVASCRIPT_STANDARD: single file (functions/weather.js, a Pages Function),
+#   not worth a dedicated style pass for one file.
 DISABLE_LINTERS:
   - ACTION_ZIZMOR
   - SQL_TSQLLINT
   - TYPESCRIPT_STANDARD
+  - JAVASCRIPT_STANDARD
 
 FILTER_REGEX_EXCLUDE: "(package-lock\\.json|streams/.*\\.m3u|favicon\\.ico)"
