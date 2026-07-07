@@ -19,7 +19,8 @@ Usage:
 
 Cron (every 10 min, comfortably under TVP's ~15-30 min token lifetime and the
 Worker's 15-min LKG_MAX_AGE_MS read-side freshness window):
-  */10 * * * * TVPI_PUSH_TOKEN=... /usr/bin/python3 /path/to/residential_push.py >> /path/to/push.log 2>&1
+  */10 * * * * TVPI_PUSH_TOKEN=... /usr/bin/python3 \\
+      /path/to/residential_push.py >> /path/to/push.log 2>&1
 """
 import json
 import os
@@ -86,7 +87,8 @@ def push(slug: str, url: str, token: str) -> bool:
         with urllib.request.urlopen(req, timeout=10) as res:
             return res.status == 200
     except urllib.error.HTTPError as e:
-        print(f"[{slug}] push rejected: {e.code} {e.read().decode(errors='replace')}", file=sys.stderr)
+        body = e.read().decode(errors="replace")
+        print(f"[{slug}] push rejected: {e.code} {body}", file=sys.stderr)
         return False
     except urllib.error.URLError as e:
         print(f"[{slug}] push failed: {e}", file=sys.stderr)
