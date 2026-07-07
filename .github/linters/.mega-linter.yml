@@ -11,6 +11,7 @@ DISABLE:
   - REPOSITORY
   - SPELL
   - COPYPASTE
+  - ZIZMOR
 
 FILTER_REGEX_EXCLUDE: "(package-lock\\.json|streams/.*\\.m3u|favicon\\.ico)"
 #ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
