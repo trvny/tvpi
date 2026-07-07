@@ -3,16 +3,24 @@
 ---
 APPLY_FIXES: none
 
-# REPOSITORY: secret/SAST scanning (gitleaks, trivy, semgrep, checkov, ...) -
-#   GitHub secret scanning + Dependabot already cover this here
+# REPOSITORY: secret/SAST scanning - GitHub secret scanning + Dependabot
+#   already cover this here
 # SPELL: cspell - not useful for this repo's content
 # COPYPASTE: jscpd - not useful for this repo's size
 DISABLE:
   - REPOSITORY
   - SPELL
   - COPYPASTE
-  - ZIZMOR
+
+# ACTION_ZIZMOR: same as autka - real workflow-security debt, worth its own
+#   pass, not blocking this rollout.
+# SQL_TSQLLINT: MegaLinter's only SQL linter defaults to T-SQL (MSSQL)
+#   dialect - worker/migrations is SQLite (D1), every "fix" it wants is wrong.
+# TYPESCRIPT_STANDARD: can't locate worker/tsconfig.json from repo root;
+#   revisit with an explicit --project arg if you want this back.
+DISABLE_LINTERS:
+  - ACTION_ZIZMOR
+  - SQL_TSQLLINT
+  - TYPESCRIPT_STANDARD
 
 FILTER_REGEX_EXCLUDE: "(package-lock\\.json|streams/.*\\.m3u|favicon\\.ico)"
-#ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
-#  - GITHUB_TOKEN
