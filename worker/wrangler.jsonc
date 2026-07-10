@@ -4,6 +4,7 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-06-03",
   "workers_dev": true,
+  "preview_urls": false,
 
   // Global last-known-good store (L3a). WRITTEN ONLY BY THE CRON (see
   // scheduled()). Replaces the former KV namespace: D1's free tier is ~100k
