@@ -36,6 +36,7 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/refresh.yml/enable"
 
       - name: Checkout repo
+        # zizmor: ignore[artipacked] this job commits & pushes refreshed streams, so it needs persisted creds
         uses: actions/checkout@v7.0.0
 
       - name: Generate playlists
