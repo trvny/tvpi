@@ -3,6 +3,7 @@
   "name": "tvpi",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-03",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
 
