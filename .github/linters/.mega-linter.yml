@@ -2,7 +2,10 @@
 # Docs: https://megalinter.io/latest/config-file/
 ---
 FLAVOR_SUGGESTIONS: false
-APPLY_FIXES: none
+# Auto-fix applied in-container and surfaced under
+# megalinter-reports/updated_sources/ in the artifact. No writeback:
+# mega-linter.yml keeps APPLY_FIXES_EVENT: none, so nothing is committed.
+APPLY_FIXES: all
 
 # REPOSITORY: secret/SAST scanning - GitHub secret scanning + Dependabot
 #   already cover this here
@@ -13,8 +16,9 @@ DISABLE:
   - SPELL
   - COPYPASTE
 
-# ACTION_ZIZMOR: same as autka - real workflow-security debt, worth its own
-#   pass, not blocking this rollout.
+# ACTION_ZIZMOR: now enabled and green (see below + .github/zizmor.yml).
+#   Runs offline; unpinned-uses waived to ref-pin; artipacked fixed via
+#   persist-credentials (deploy) or waived inline where the job pushes (refresh).
 # SQL_TSQLLINT: MegaLinter's only SQL linter defaults to T-SQL (MSSQL)
 #   dialect - worker/migrations is SQLite (D1), every "fix" it wants is wrong.
 # TYPESCRIPT_STANDARD: can't locate worker/tsconfig.json from repo root;
@@ -22,9 +26,14 @@ DISABLE:
 # JAVASCRIPT_STANDARD: single file (functions/weather.js, a Pages Function),
 #   not worth a dedicated style pass for one file.
 DISABLE_LINTERS:
-  - ACTION_ZIZMOR
   - SQL_TSQLLINT
   - TYPESCRIPT_STANDARD
   - JAVASCRIPT_STANDARD
+
+# ACTION_ZIZMOR: run offline (no GitHub API -> no ref-confusion crash) and
+#   fail CI only on low+ severity. See .github/zizmor.yml for the ref-pin policy.
+ACTION_ZIZMOR_ARGUMENTS:
+  - "--offline"
+  - "--min-severity=low"
 
 FILTER_REGEX_EXCLUDE: "(package-lock\\.json|streams/.*\\.m3u|favicon\\.ico)"
