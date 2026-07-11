@@ -1,4 +1,4 @@
-name: Refresh TVP M3U
+name: Refresh M3U
 
 on:
   schedule:
@@ -37,7 +37,7 @@ jobs:
 
       - name: Checkout repo
         # zizmor: ignore[artipacked] this job commits & pushes refreshed streams, so it needs persisted creds
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7
 
       - name: Generate playlists
         # Pure-stdlib Python (urllib) — no extra dependencies needed.
