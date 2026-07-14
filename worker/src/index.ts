@@ -158,6 +158,23 @@ async function withRetry(
 
 const sourceLabel = (ch: Channel): string => `tvp:${ch.slug}`;
 
+/**
+ * Constant-time string comparison. `a !== b` short-circuits on the first
+ * differing byte, which leaks timing information an attacker can use to
+ * brute-force a secret one byte at a time. Walk every byte regardless of
+ * where (or whether) a mismatch occurs.
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+  const bufA = new TextEncoder().encode(a);
+  const bufB = new TextEncoder().encode(b);
+  const len = Math.max(bufA.length, bufB.length);
+  let diff = bufA.length ^ bufB.length;
+  for (let i = 0; i < len; i++) {
+    diff |= (bufA[i] ?? 0) ^ (bufB[i] ?? 0);
+  }
+  return diff === 0;
+}
+
 // ---------------------------------------------------------------------------
 // L2 — TVP API
 // ---------------------------------------------------------------------------
@@ -363,7 +380,7 @@ async function getStreamUrl(ch: Channel, env: Env, ctx: ExecutionContext): Promi
 async function handlePush(request: Request, env: Env, slug: string): Promise<Response> {
   const auth = request.headers.get("Authorization") ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length) : "";
-  if (!env.PUSH_TOKEN || token !== env.PUSH_TOKEN) {
+  if (!env.PUSH_TOKEN || !timingSafeEqual(token, env.PUSH_TOKEN)) {
     return new Response("Unauthorized\n", { status: 401 });
   }
 
