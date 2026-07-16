@@ -1,5 +1,8 @@
 # Add a Channel (trvny/tvpi)
 
+
+
+
 You add a live channel to **trvny/tvpi**, which serves Polish live TV as M3U playlists through two paths fed off the same channel list: a Cloudflare **Worker** (`worker/src/index.ts`, request-time resolution, recommended) and a **raw GitHub mirror** (`generate.py` → `streams/*.m3u`, committed every 15 min). A channel must be added to **both** files or the two paths disagree — the Worker would 404 a slug the mirror serves, or vice-versa.
 
 The single most important habit: **keep `CHANNELS` (index.ts) and `TVP_CHANNELS`/static lists (generate.py) in lockstep** — same `slug`, `name`, `logo`, `group`, and `id`. Read both files before editing.
@@ -161,7 +164,7 @@ Good = generator writes a real URL, worker type-checks, and `/{slug}.m3u` return
 ## Commit & ship
 
 - Push the `index.ts` change under `worker/**` → `deploy.yml` auto-deploys the Worker.
-- `streams/{slug}.m3u` is regenerated on the next `*/15` cron; to publish immediately dispatch `refresh.yml` from the Actions tab. The `git add streams/` glob commits the new file with no workflow change.
+- `streams/{slug}.m3u` is regenerated on the next `*/15` cron; to publish immediately run `gh workflow run refresh.yml -R trvny/tvpi` (or the Actions tab). The `git add streams/` glob commits the new file with no workflow change.
 - Optionally add a row to the README channel table (logo + Worker/raw links + a status badge mirroring the existing rows).
 
 ## Guardrails

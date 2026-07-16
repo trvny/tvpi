@@ -1,5 +1,8 @@
 # TVP Project Review (trvny/tvpi)
 
+
+
+
 Audit the Worker, the generator, and the workflows for correctness, robustness, and the project's load-bearing invariants. This is the only place the design rules are enforced, so check them explicitly rather than trusting that code "looks fine."
 
 ## Instructions
@@ -33,7 +36,7 @@ Context that drives the review: the Worker is the recommended self-healing path 
 ### Robustness
 
 - Every upstream `fetch` is bounded by a timeout (`AbortSignal.timeout(LIVE_TIMEOUT_MS)`); no unbounded awaits on TVP, KV, or GitHub.
-- Diagnostic headers present and accurate: `X-Source-Cache/Live/KV/Raw` reflect where each channel was served (this is what the channel-fix workflow reads).
+- Diagnostic headers present and accurate: `X-Source-Cache/Live/KV/Raw` reflect where each channel was served (this is what `tvpi-channel-fix` reads).
 - Playlist responses send `Cache-Control: no-store` (clients must not cache short-lived tokens) and `Access-Control-Allow-Origin: *`.
 - Handler is typed (`satisfies ExportedHandler<Env>`) and the file type-checks (`npx wrangler types && npx tsc --noEmit`) — a TS error blocks `deploy.yml`.
 

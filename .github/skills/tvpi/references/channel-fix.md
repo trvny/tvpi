@@ -1,5 +1,8 @@
 # TVP Channel Fix (trvny/tvpi)
 
+
+
+
 A channel stopped playing. The job is to find **which resolution layer broke**, fix the one real cause, and verify — not to blindly regenerate or commit placeholders. Most "outages" are either an expired token on the raw mirror (self-healing, not a bug) or the live TVP fetch failing because the API shape or a channel ID changed.
 
 ## Architecture in one breath
@@ -37,7 +40,12 @@ Interpretation:
 | `X-Source-KV` or `X-Source-Raw` | **L2 live fetch is FAILING for this channel** | This is the real signal. Go to Step 2 to find why. |
 | nothing / HTTP 503 | All layers exhausted | If it's **all** channels → suspect cron-stalled + API-wide break/outage. If **one** → discontinued ID. Step 2. |
 
-Also glance at the raw mirror's freshness — a stale commit across *all* files points at the cron, not the code. In chat, read the last commit touching `streams/` via the github connector (`github:list_commits` with `path=streams`) and compare to the current UTC time.
+Also glance at the raw mirror's freshness — a stale commit across *all* files points at the cron, not the code. Use authenticated `gh` (the unauthenticated `api.github.com` is rate-limited from cloud/CI IPs and returns a `message` dict instead of commits):
+
+```bash
+# Last commit that touched streams/ (UTC); compare to `date -u`:
+gh api "repos/trvny/tvpi/commits?path=streams&per_page=1" -q '.[0].commit.committer.date'
+```
 
 ### 2. Confirm the cause against the live TVP API
 
@@ -71,7 +79,11 @@ Change only the path to match the new shape. Leave timeouts, headers, retry, and
 
 **Fix C — only the raw mirror is stale, Worker serves `live`.** No code bug. A token expired before the next commit landed. It self-heals on the next cron; only act if the cron itself is stalled (Fix D). Tell the user to prefer the Worker URL.
 
-**Fix D — cron stalled / Actions paused.** The raw commit timestamp (Step 1) is old across all channels and `Refresh TVP M3U` shows no recent runs. The workflow self-re-enables, but GitHub still pauses or delays schedules. Trigger a run manually from the Actions tab (Refresh TVP M3U → Run workflow) — the user dispatches it; `gh` has no token in chat.
+**Fix D — cron stalled / Actions paused.** The raw commit timestamp (Step 1) is old across all channels and `Refresh TVP M3U` shows no recent runs. The workflow self-re-enables, but GitHub still pauses or delays schedules. Trigger a run manually:
+
+```bash
+gh workflow run refresh.yml -R trvny/tvpi   # or: Actions tab → Refresh TVP M3U → Run workflow
+```
 
 **Fix E — Worker globally 500/stale behavior.** Check the latest `Deploy Worker` run; a TypeScript error blocks deploy. Reproduce locally before pushing:
 
