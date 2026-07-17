@@ -19,8 +19,9 @@
 > a cheap PL VPS or residential proxy is the open question — datacenter/hosting
 > ASNs may be blocked same as everything else, untested).
 >
-> **Ideas, PRs, or "I run a PL box and can test this" welcome** — open an issue
-> or comment on #9.
+> **Ideas, PRs, or "I run a PL box and can test this" welcome** — [issue](https://github.com/trvny/tvpi/issues/15)
+
+---
 
 Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
 pick one as your primary:
