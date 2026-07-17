@@ -35,12 +35,13 @@
     --y:#f5e94e; --c:#46e0e0; --g:#54e06a; --m:#e85ad0; --r:#ff5147; --b:#6f8cff;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth; overflow-x:hidden}
   body{
     background:#000; color:var(--w);
     font-family:"VT323",monospace; line-height:1.18;
     min-height:100vh; padding:18px; display:flex; justify-content:center;
     -webkit-font-smoothing:none;
+    overflow-x:hidden;
   }
   .crt{
     position:relative; width:100%; max-width:960px; background:var(--scr);
@@ -63,7 +64,7 @@
     animation:flick 5s infinite steps(60);
   }
   @keyframes flick{0%,97%{opacity:1}98%{opacity:.94}99%{opacity:.99}}
-  .scr-in{position:relative; z-index:4}
+  .scr-in{position:relative; z-index:4; min-width:0}
   *{text-shadow:0 0 3px}
   h1,h2,.big{text-shadow:0 0 10px}
   .testbars{display:flex; height:14px; margin-bottom:14px; border:1px solid #0d1117}
@@ -72,7 +73,7 @@
   .testbars i:nth-child(3){background:var(--c)}.testbars i:nth-child(4){background:var(--g)}
   .testbars i:nth-child(5){background:var(--m)}.testbars i:nth-child(6){background:var(--r)}
   .testbars i:nth-child(7){background:var(--b)}
-  .topbar{display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  .topbar{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;
     font-size:20px; color:var(--dim); letter-spacing:.04em}
   .topbar .pg{color:var(--k); background:var(--c); padding:1px 8px; font-weight:700;
     font-family:"Silkscreen"; font-size:13px; text-shadow:none}
@@ -88,8 +89,8 @@
   @keyframes blink{50%{opacity:0}}
   .tagline{font-size:23px; color:var(--w); margin:14px 0 4px; max-width:62ch}
   .tagline b{color:var(--y); font-weight:400}
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:30px}
-  .panel{grid-column:span 1; display:block; text-decoration:none; color:inherit;
+  .grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; margin-top:30px}
+  .panel{grid-column:span 1; display:block; text-decoration:none; color:inherit; min-width:0;
     background:#0b0f16; border-top:6px solid var(--faint); padding:14px 16px 16px;
     position:relative; transition:background .12s, transform .12s}
   a.panel:hover,a.panel:focus-visible,.panel:focus-within{background:#111826; outline:none}
@@ -105,8 +106,8 @@
   .tvbig{display:flex; align-items:baseline; gap:12px; margin:2px 0 10px}
   .tvbig .n{font-family:"Silkscreen"; font-size:40px; color:var(--c); text-shadow:0 0 12px}
   .tvbig .lbl{font-size:22px; color:var(--w); letter-spacing:.06em}
-  .chips{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
-  .chip{font-size:18px; letter-spacing:.02em; padding:4px 6px; background:#070b12;
+  .chips{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px}
+  .chip{font-size:18px; letter-spacing:.02em; padding:4px 6px; background:#070b12; min-width:0;
     border-left:3px solid var(--faint); color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .chip.on{border-color:var(--g); color:var(--w)} .chip.off{border-color:var(--r); color:var(--r)}
   .chip .d{font-family:"Silkscreen"; font-size:10px; color:var(--dim); margin-right:5px}
@@ -125,7 +126,7 @@
   .feedlist{list-style:none; margin:2px 0 4px}
   .feedlist li{border-bottom:1px solid #0e131c}
   .feedlist a{display:flex; gap:10px; align-items:baseline; padding:6px 2px; text-decoration:none;
-    color:var(--w); font-size:22px}
+    color:var(--w); font-size:22px; min-width:0}
   .feedlist a:hover{background:rgba(84,224,106,.07)}
   .feedlist a:hover .ttl{color:var(--g)}
   .feedlist .src{font-family:"Silkscreen"; font-size:10px; text-shadow:none; padding:2px 6px; color:var(--k);
@@ -139,8 +140,8 @@
   .go{position:absolute; right:14px; bottom:12px; font-family:"Silkscreen"; font-size:11px;
     text-shadow:none; color:var(--dim)}
   a.panel:hover .go{color:var(--w)}
-  .fastext{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:24px}
-  .ft{font-family:"Silkscreen"; font-size:12px; text-shadow:none; color:var(--w);
+  .fastext{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:24px}
+  .ft{font-family:"Silkscreen"; font-size:12px; text-shadow:none; color:var(--w); min-width:0;
     border-top:6px solid; padding:11px 8px 9px; text-align:center; cursor:pointer;
     background:#0b0f16; letter-spacing:.02em; transition:background .12s; text-decoration:none; display:block}
   .ft:hover{background:#121826}
@@ -155,9 +156,10 @@
   footer a:hover{text-decoration:underline}
   @media (max-width:640px){
     body{padding:8px}
-    .grid{grid-template-columns:1fr}
+    .grid{grid-template-columns:minmax(0,1fr)}
     .panel.tv,.panel.wx{grid-column:1 / -1}
-    .chips{grid-template-columns:repeat(2,1fr)}
+    .chips{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .fastext{grid-template-columns:repeat(2,minmax(0,1fr))}
     .feedlist .ago{display:none}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
