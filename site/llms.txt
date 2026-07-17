@@ -1,0 +1,19 @@
+# TVP Live IPTV
+
+> Live Polish public TV (TVP) channels as ready-to-use M3U/HLS playlists. A Cloudflare Worker resolves fresh signed stream URLs at request time, since TVP's HLS tokens expire in ~15–30 minutes.
+
+Two ways to consume the streams: the Worker (recommended, always-fresh) or a static raw-file mirror refreshed every 15 minutes.
+
+## Playlists
+
+- [Combined playlist — Worker](https://tvpi.travny.workers.dev/playlist.m3u): all channels, resolved fresh on every request
+- [Combined playlist — raw mirror](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u): static snapshot, refreshed every 15 min via GitHub Actions
+
+## Docs
+
+- [README](https://github.com/trvny/tvpi/blob/main/README.md): full channel list, how it works, known issues (most channels are currently degraded due to TVP geo-blocking non-Polish IPs)
+- [Source](https://github.com/trvny/tvpi): monorepo (Cloudflare Worker + generator script + this site)
+
+## Optional
+
+- [Worker source](https://github.com/trvny/tvpi/blob/main/worker/src/index.ts)
