@@ -1,6 +1,6 @@
 {
-  "name": "TRAVINO — Telegazeta",
-  "short_name": "TRAVINO",
+  "name": "TRAVNY — Telegazeta",
+  "short_name": "TRAVNY",
   "description": "Streams, skies & feeds — one teletext hub. TVP over IP, weather, and a self-hosted feed reader.",
   "start_url": "/",
   "display": "standalone",
