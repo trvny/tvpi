@@ -2,7 +2,7 @@
 
 > Live Polish public TV (TVP) channels as ready-to-use M3U/HLS playlists. A Cloudflare Worker resolves fresh signed stream URLs at request time, since TVP's HLS tokens expire in ~15–30 minutes.
 
-Two ways to consume the streams: the Worker (recommended, always-fresh) or a static raw-file mirror refreshed every 15 minutes. This site is also the landing hub ("TRAVINO") for a small set of sibling projects — see Related below.
+Two ways to consume the streams: the Worker (recommended, always-fresh) or a static raw-file mirror refreshed every 15 minutes. This site is also the landing hub ("TRAVNY") for a small set of sibling projects — see Related below.
 
 ## Playlists
 
