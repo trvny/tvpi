@@ -41,6 +41,7 @@ CHANNELS = {
     "tvpnauka": "399722",
     "tvprozrywka": "399724",
     "tvphistoria": "399703",
+    "tvpmuzyka": "2999109",
 }
 
 TVP_API_URL = (
