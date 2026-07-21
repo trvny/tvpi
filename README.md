@@ -3,12 +3,12 @@
 
 # [TVP Live IPTV 📺](https://tvpi.pages.dev)
 
-> ## ⚠️ Known issue (since ~2026-07): 7/8 channels degraded
+> ## ⚠️ Known issue (since ~2026-07): 8/9 channels degraded
 >
 > TVP now returns `GEOIP_FILTER_FAILED` (403) on the playlist **API call itself**
 > — not just HLS segment delivery — for every channel except **TVP Info**. No
 > Cloudflare Worker colo or GitHub Actions runner is in Poland, so neither the
-> Worker's live fetch nor the raw-mirror generator can refresh those 7 channels
+> Worker's live fetch nor the raw-mirror generator can refresh those 8 channels
 > anymore. They currently fall back to a stale mirror snapshot.
 >
 > Fix in progress in [PR #9](https://github.com/trvny/tvpi/pull/9): a
@@ -63,6 +63,7 @@ a nested playlist.)
 | <img src="https://www.google.com/s2/favicons?domain=nauka.tvp.pl&sz=64" width="22" height="22"> | **TVP Nauka** | [m3u8](https://tvpi.travny.workers.dev/tvpnauka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpnauka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpnauka.m3u&up_message=online&down_message=offline&label=) |
 | <img src="https://www.google.com/s2/favicons?domain=rozrywka.tvp.pl&sz=64" width="22" height="22"> | **TVP Rozrywka** | [m3u8](https://tvpi.travny.workers.dev/tvprozrywka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvprozrywka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvprozrywka.m3u&up_message=online&down_message=offline&label=) |
 | <img src="https://www.google.com/s2/favicons?domain=historia.tvp.pl&sz=64" width="22" height="22"> | **TVP Historia** | [m3u8](https://tvpi.travny.workers.dev/tvphistoria.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvphistoria.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvphistoria.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=tvp.pl&sz=64" width="22" height="22"> | **TVP Muzyka i Koncerty** | [m3u8](https://tvpi.travny.workers.dev/tvpmuzyka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpmuzyka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpmuzyka.m3u&up_message=online&down_message=offline&label=) |
 
 > **Tip:** the [jsDelivr CDN mirror](https://www.jsdelivr.com/github) can be
 > more reliable than raw.githubusercontent.com:

@@ -161,7 +161,7 @@
   <p class="tagline">Polish public television as ready-to-use <b>IPTV M3U</b> playlists. A Cloudflare
     Worker resolves each stream the moment your player asks, so the signed token is never stale.</p>
   <div class="sec c">
-    <div class="sech"><span class="blk">KANA&#321;Y</span> CHANNELS <span class="en" id="chCount">101&ndash;108</span></div>
+    <div class="sech"><span class="blk">KANA&#321;Y</span> CHANNELS <span class="en" id="chCount">101&ndash;109</span></div>
     <div class="rows" id="rows"></div>
   </div>
   <div class="sec c">
@@ -194,7 +194,7 @@
     <a class="ft cyan" href="/">&#8592; HUB<small>back</small></a>
   </div>
   <footer>
-    <span><a href="/">&lsaquo;&nbsp;TRAVINO&nbsp;HUB</a> &middot; TELEGAZETA <span class="pg">P101/108</span></span>
+    <span><a href="/">&lsaquo;&nbsp;TRAVINO&nbsp;HUB</a> &middot; TELEGAZETA <span class="pg">P101/109</span></span>
     <span><a href="https://tvpi.travny.workers.dev/playlist.m3u">tvpi.travny.workers.dev</a></span>
   </footer>
 </div></div>
@@ -216,6 +216,7 @@ const CHANNELS = [
   {no:"106", slug:"tvpnauka",    name:"TVP Nauka"},
   {no:"107", slug:"tvprozrywka", name:"TVP Rozrywka"},
   {no:"108", slug:"tvphistoria", name:"TVP Historia"},
+  {no:"109", slug:"tvpmuzyka",   name:"TVP Muzyka i Koncerty"},
 ];
 const m3u  = s => `${WORKER}/${s}.m3u`;
 const m3u8 = s => `${WORKER}/${s}.m3u8`;
