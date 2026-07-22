@@ -18,7 +18,7 @@ Two ways to consume the streams: the Worker (recommended, always-fresh) or a sta
 
 - [Feeds](https://trvny.github.io/feeds/): self-updating Atom/RSS feed directory, 55+ feeds regenerated every 2 hours
 - [Weather](https://weather.travny.workers.dev/): multi-source weather ensemble (temp, wind, humidity, AQI, pollen) for Kościelec (Chrzanów)
-- [Codebench](https://codebench.travny.workers.dev/): dev tool
+- [Codebench](https://codebench.travny.workers.dev/): qr tool
 
 ## Optional
 
