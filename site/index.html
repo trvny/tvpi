@@ -1,23 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TRAVNY — Telegazeta · streams · skies · feeds</title>
-<meta name="description" content="One teletext screen for Polish public TV over IP, live weather for Kościelec, and the freshest items from a self-hosted feed reader. Streams, skies and feeds in one place.">
-<meta property="og:title" content="TRAVNY · TELEGAZETA">
-<meta property="og:description" content="Streams, skies & feeds — one teletext hub. TVP over IP · weather · RSS.">
+<title>TRAVNY: TVP IPTV, pogoda Chrzanów i feedy RSS</title>
+<meta name="description" content="Telegazetowy hub: aktualne playlisty TVP IPTV, pogoda dla Chrzanowa i Kościelca oraz najnowsze wpisy z własnego czytnika RSS.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:title" content="TRAVNY: TVP IPTV, pogoda Chrzanów i feedy RSS">
+<meta property="og:description" content="Playlisty TVP IPTV, lokalna pogoda dla Chrzanowa i Kościelca oraz najnowsze feedy RSS w jednym telegazetowym hubie.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://tvpi.pages.dev/">
 <meta property="og:image" content="https://tvpi.pages.dev/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="TRAVNY · TELEGAZETA">
-<meta name="twitter:description" content="Streams, skies & feeds — one teletext hub.">
+<meta name="twitter:title" content="TRAVNY: TVP IPTV, pogoda Chrzanów i feedy RSS">
+<meta name="twitter:description" content="Playlisty TVP IPTV, pogoda Chrzanów i feedy RSS w jednym retro hubie.">
 <meta name="twitter:image" content="https://tvpi.pages.dev/assets/og.png">
 <meta name="theme-color" content="#04060a">
-<meta name="google-site-verification" content="GNRW9My8O_IdeadkT_TDeq9zaNW8axruvvOdk3-aZ2I" />
+<meta name="google-site-verification" content="GNRW9My8O_IdeadkT_TDeq9zaNW8axruvvOdk3-aZ2I">
 <link rel="canonical" href="https://tvpi.pages.dev/">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/icon-32.png">
@@ -86,6 +87,8 @@
   .masthead{margin:18px 0 6px; display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap}
   h1{font-family:"Silkscreen",monospace; font-weight:700; color:var(--y);
     font-size:clamp(34px,9vw,66px); line-height:.9; letter-spacing:.02em}
+  h1 .h1seo{display:block;margin-top:9px;font-family:"VT323",monospace;
+    font-size:clamp(16px,2.6vw,22px);font-weight:400;line-height:1.1;letter-spacing:.055em;color:var(--c);text-shadow:0 0 5px}
   .sub{font-size:clamp(20px,3.4vw,28px); color:var(--c); letter-spacing:.06em; padding-bottom:6px}
   .sub b{color:var(--m); font-style:normal}
   .live{display:inline-flex; align-items:center; gap:8px; font-size:22px; color:var(--g);
@@ -178,47 +181,56 @@
     <span class="clk" id="clk">--:--:--</span>
   </div>
   <div class="masthead">
-    <h1>TRAVNY</h1>
+    <h1>TRAVNY<small class="h1seo">TVP IPTV · POGODA CHRZANÓW · FEEDY RSS</small></h1>
     <div>
       <div class="sub">STREAMS <b>&#10005;</b> SKIES <b>&#10005;</b> FEEDS</div>
       <div class="live">NADAJE NA &#379;YWO &middot; LIVE</div>
     </div>
   </div>
-  <p class="tagline">One teletext screen for the lot &mdash; <b>Polish public TV over IP</b>, the
-    <b>weather</b> over Ko&#347;cielec, and the freshest items from a self-hosted <b>feed reader</b>.
-    Tap a panel to open it full.</p>
+  <p class="tagline">Jeden ekran w stylu telegazety: <b>aktualne playlisty TVP IPTV</b>,
+    <b>pogoda dla Chrzanowa i Kościelca</b> oraz najnowsze wpisy z własnego <b>czytnika RSS</b>.</p>
   <div class="grid">
     <a class="panel tv" href="/tv/">
-      <div class="phead"><span class="blk">P101</span> TVP &#10005; IPTV <span class="en" id="tvcount">CHECK&hellip;</span></div>
-      <div class="tvbig"><span class="n" id="tvbig">&mdash;/9</span><span class="lbl">ON&nbsp;AIR</span></div>
-      <div class="chips" id="tvchips"></div>
-      <span class="go">OPEN &rsaquo;</span>
+      <div class="phead"><span class="blk">P101</span> TVP &#10005; IPTV <span class="en" id="tvcount">—/9 ON AIR</span></div>
+      <div class="tvbig"><span class="n" id="tvbig">—/9</span><span class="lbl">ON&nbsp;AIR</span></div>
+      <div class="chips" id="tvchips">
+        <span class="chip" id="c-tvp1"><span class="d">101</span>TVP1</span>
+        <span class="chip" id="c-tvp2"><span class="d">102</span>TVP2</span>
+        <span class="chip" id="c-tvpinfo"><span class="d">103</span>INFO</span>
+        <span class="chip" id="c-tvpsport"><span class="d">104</span>SPORT</span>
+        <span class="chip" id="c-tvpdokument"><span class="d">105</span>DOK</span>
+        <span class="chip" id="c-tvpnauka"><span class="d">106</span>NAUKA</span>
+        <span class="chip" id="c-tvprozrywka"><span class="d">107</span>ROZR</span>
+        <span class="chip" id="c-tvphistoria"><span class="d">108</span>HIST</span>
+        <span class="chip" id="c-tvpmuzyka"><span class="d">109</span>MUZ</span>
+      </div>
+      <span class="go">OTWÓRZ &rsaquo;</span>
     </a>
     <a class="panel wx" href="https://weather.travny.workers.dev/">
-      <div class="phead"><span class="blk">P200</span> POGODA <span class="en">WEATHER</span></div>
+      <div class="phead"><span class="blk">P200</span> POGODA <span class="en">CHRZANÓW</span></div>
       <div class="wxrow">
-        <span class="wxtemp" id="wxtemp">&mdash;&deg;</span>
-        <span class="wxcond" id="wxcond">&mdash;</span>
+        <span class="wxtemp" id="wxtemp">—&deg;</span>
+        <span class="wxcond" id="wxcond">Pogoda Chrzanów</span>
       </div>
-      <div class="wxmeta" id="wxmeta">&mdash; &#322;adowanie&hellip;</div>
+      <div class="wxmeta" id="wxmeta">Temperatura, AQI, pyłki i ostrzeżenia IMGW · dane odświeżane automatycznie</div>
       <div class="wxwarn" id="wxwarn"></div>
       <div class="wxplace">Ko&#347;cielec (Chrzan&oacute;w) &middot; mediana &#378;r&oacute;de&#322;</div>
-      <span class="go">OPEN &rsaquo;</span>
+      <span class="go">OTWÓRZ &rsaquo;</span>
     </a>
     <section class="panel fd">
       <a class="phead" href="https://trvny.github.io/feeds/">
-        <span class="blk">P300</span> FEEDY <span class="en">RECENT &rsaquo;</span>
+        <span class="blk">P300</span> FEEDY <span class="en">NAJNOWSZE &rsaquo;</span>
       </a>
-      <ul class="feedlist" id="feedlist"><li class="fdload">&#322;adowanie feed&oacute;w&hellip;</li></ul>
-      <a class="pgo" href="https://trvny.github.io/feeds/reader/">&#9654; OPEN READER</a>
+      <ul class="feedlist" id="feedlist"><li class="fdload">Najnowsze wpisy z Reuters, TVP, OpenAI i innych źródeł.</li></ul>
+      <a class="pgo" href="https://trvny.github.io/feeds/reader/">&#9654; OTWÓRZ CZYTNIK</a>
     </section>
   </div>
   <div class="fastext">
-    <a class="ft cyan"   href="/tv/">TVP IPTV<small>9 channels</small></a>
-    <a class="ft yellow" href="https://weather.travny.workers.dev/">POGODA<small>weather</small></a>
-    <a class="ft green"  href="https://trvny.github.io/feeds/">FEEDY<small>all feeds</small></a>
-    <a class="ft red"    href="https://trvny.github.io/feeds/reader/">READER<small>inbox</small></a>
-    <a class="ft blue"   href="https://codebench.travny.workers.dev/">CODEBENCH<small>barcode tool</small></a>
+    <a class="ft cyan" href="/tv/">TVP IPTV<small>9 kanałów</small></a>
+    <a class="ft yellow" href="https://weather.travny.workers.dev/">POGODA<small>Chrzanów</small></a>
+    <a class="ft green" href="https://trvny.github.io/feeds/">FEEDY<small>wszystkie źródła</small></a>
+    <a class="ft red" href="https://trvny.github.io/feeds/reader/">READER<small>czytnik</small></a>
+    <a class="ft blue" href="https://codebench.travny.workers.dev/">CODEBENCH<small>narzędzie kodów</small></a>
   </div>
   <footer>
     <span>TRAVNY &middot; TELEGAZETA <span class="pg">P100</span></span>
@@ -306,7 +318,7 @@ const FEEDS=[
 ];
 const FBASE="https://trvny.github.io/feeds/feed_";
 function rel(d){const s=(Date.now()-d)/1000; return s<3600?Math.max(1,Math.round(s/60))+"m":s<86400?Math.round(s/3600)+"h":Math.round(s/86400)+"d";}
-function clean(t){const x=document.createElement("textarea");x.innerHTML=t;return x.value.replace(/\s+[-\u2013\u2014]\s+[^-\u2013\u2014]{2,30}$/,"").trim();}
+function clean(t){const x=document.createElement("textarea");x.innerHTML=t;return x.value.replace(/\s+[-\u2013\u2014]\s+[^-\u2013\u2014]{2,30}$/g,"").trim();}
 async function grabFeed(f){
   try{
     const ac=new AbortController(),t=setTimeout(()=>ac.abort(),6000);
