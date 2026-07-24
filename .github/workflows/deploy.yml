@@ -39,7 +39,7 @@ jobs:
           cache: npm
           cache-dependency-path: worker/package-lock.json
 
-      - run: npm install
+      - run: npm ci
         working-directory: worker
 
       - name: Type check
