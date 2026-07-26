@@ -3,7 +3,7 @@
 ---
 name: MegaLinter
 
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy
   push:
     branches: [main]
   pull_request: null
