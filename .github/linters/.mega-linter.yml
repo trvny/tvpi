@@ -4,8 +4,9 @@
 FLAVOR_SUGGESTIONS: false
 SECURITY_SUGGESTIONS: false
 
-# Apply safe formatter fixes inside the runner and expose only changed sources
-# through a dedicated workflow artifact. Nothing is committed back to branches.
+# Apply fixes only inside the runner and include changed copies under
+# megalinter-reports/updated_sources in the standard reports artifact.
+# Nothing is committed back to branches.
 APPLY_FIXES: all
 UPDATED_SOURCES_REPORTER: true
 UPDATED_SOURCES_REPORTER_DIR: updated_sources
