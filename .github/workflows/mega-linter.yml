@@ -1,5 +1,4 @@
-# MegaLinter - code quality across the repo. Report-only (no auto-fix
-# commits); see .mega-linter.yml for what's disabled and why.
+# MegaLinter - code quality and downloadable auto-fixes.
 # https://megalinter.io
 ---
 name: MegaLinter
@@ -33,7 +32,8 @@ jobs:
           persist-credentials: false
 
       - name: MegaLinter
-        uses: oxsecurity/megalinter/flavors/cupcake@v9
+        id: megalinter
+        uses: oxsecurity/megalinter/flavors/javascript@v9
         env:
           MEGALINTER_CONFIG: .github/linters/.mega-linter.yml
           VALIDATE_ALL_CODEBASE: >-
@@ -43,14 +43,31 @@ jobs:
             }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLY_FIXES_EVENT: none
-          APPLY_FIXES_MODE: commit
+
+      - name: Prepare MegaLinter fixes
+        if: always() && steps.megalinter.outputs.has_updated_sources == '1'
+        run: git diff --binary --no-ext-diff > megalinter-fixes.patch
+
+      - name: Archive MegaLinter fixes
+        if: always() && steps.megalinter.outputs.has_updated_sources == '1'
+        uses: actions/upload-artifact@v7
+        with:
+          name: MegaLinter fixes
+          include-hidden-files: "true"
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            megalinter-fixes.patch
+            megalinter-reports/updated_sources
 
       - name: Archive MegaLinter reports
-        if: success() || failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: MegaLinter reports
           include-hidden-files: "true"
+          retention-days: 7
           path: |
             megalinter-reports
+            !megalinter-reports/updated_sources/**
             mega-linter.log
