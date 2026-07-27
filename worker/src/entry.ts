@@ -4,6 +4,54 @@ const MANIFEST_MAX_AGE_MS = 15 * 60_000;
 const MANIFEST_MAX_BYTES = 512 * 1024;
 const manifestKey = (slug: string): string => `manifests/${slug}.m3u8`;
 
+const TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
+const PLAYLIST_CHANNELS = [
+  { id: "399697", slug: "tvp1", name: "TVP 1 HD", logo: TVP_LOGO, group: "Polska" },
+  { id: "399698", slug: "tvp2", name: "TVP 2 HD", logo: TVP_LOGO, group: "Polska" },
+  { id: "399699", slug: "tvpinfo", name: "TVP Info", logo: TVP_LOGO, group: "Polska" },
+  { id: "399702", slug: "tvpsport", name: "TVP Sport", logo: TVP_LOGO, group: "Polska" },
+  {
+    id: "399721",
+    slug: "tvpdokument",
+    name: "TVP Dokument",
+    logo: TVP_LOGO,
+    group: "Polska",
+  },
+  { id: "399722", slug: "tvpnauka", name: "TVP Nauka", logo: TVP_LOGO, group: "Polska" },
+  {
+    id: "399724",
+    slug: "tvprozrywka",
+    name: "TVP Rozrywka",
+    logo: TVP_LOGO,
+    group: "Polska",
+  },
+  {
+    id: "399703",
+    slug: "tvphistoria",
+    name: "TVP Historia",
+    logo: TVP_LOGO,
+    group: "Polska",
+  },
+  {
+    id: "2999109",
+    slug: "tvpmuzyka",
+    name: "TVP Muzyka i Koncerty",
+    logo: TVP_LOGO,
+    group: "Polska",
+  },
+] as const;
+
+function buildStablePlaylist(origin: string): string {
+  const lines = ["#EXTM3U"];
+  for (const channel of PLAYLIST_CHANNELS) {
+    lines.push(
+      `#EXTINF:-1 tvg-id="${channel.id}" tvg-name="${channel.name}" tvg-logo="${channel.logo}" group-title="${channel.group}",${channel.name}`,
+      `${origin}/${channel.slug}.m3u8`,
+    );
+  }
+  return lines.join("\n") + "\n";
+}
+
 function pushedManifest(value: unknown): string | null {
   if (typeof value !== "string" || value.length > MANIFEST_MAX_BYTES) return null;
   return value.trimStart().startsWith("#EXTM3U") ? value : null;
@@ -46,7 +94,8 @@ async function syncManifest(env: Env, slug: string, manifest: string | null): Pr
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const path = new URL(request.url).pathname.replace(/\/$/, "") || "/";
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/\/$/, "") || "/";
 
     if (request.method === "POST" && path.startsWith("/push/")) {
       let manifest: string | null = null;
@@ -62,6 +111,17 @@ export default {
         await syncManifest(env, path.slice("/push/".length), manifest);
       }
       return response;
+    }
+
+    if (request.method === "GET" && (path === "/" || path === "/playlist.m3u")) {
+      return new Response(buildStablePlaylist(url.origin), {
+        headers: {
+          "Content-Type": "application/x-mpegurl",
+          "Cache-Control": "no-store",
+          "Access-Control-Allow-Origin": "*",
+          "X-Playlist-Type": "stable-channel-endpoints",
+        },
+      });
     }
 
     if (request.method === "GET" && path.endsWith(".m3u8")) {
