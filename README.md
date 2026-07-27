@@ -3,6 +3,8 @@
 
 # [TVP Live IPTV 📺](https://tvpi.pages.dev)
 
+---
+
 > ## ⚠️ Known issue (since ~2026-07): 8/9 channels degraded
 >
 > TVP now returns `GEOIP_FILTER_FAILED` (403) on the playlist **API call itself**
@@ -22,8 +24,14 @@
 
 ---
 
+## Combined playlist
+
 Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
 pick one as your primary:
+
+| | Worker (recommended) | Raw mirror |
+|---|---|---|
+| **All channels** | [`playlist.m3u`](https://tvpi.travny.workers.dev/playlist.m3u) | [`playlist.m3u`](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u) |
 
 | Source | URL base | Refresh | Best for |
 |--------|----------|---------|----------|
@@ -36,13 +44,19 @@ pick one as your primary:
 > token can expire before the next refresh lands, which shows up as a channel
 > that works then drops then recovers. Use the Worker if you can.
 
-## Combined playlist (all channels)
-
-| | Worker (recommended) | Raw mirror |
-|---|---|---|
-| **All channels** | [`playlist.m3u`](https://tvpi.travny.workers.dev/playlist.m3u) | [`playlist.m3u`](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u) |
-
 ## Channels
+
+| Logo | Channel | Worker | Raw mirror | Status |
+|:---:|---|:---:|:---:|:---:|
+| <img src="https://www.google.com/s2/favicons?domain=tvp.pl&sz=64" width="32" height="32"> | **TVP 1** | [m3u8](https://tvpi.travny.workers.dev/tvp1.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvp1.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvp1.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=tvp.pl&sz=64" width="32" height="32"> | **TVP 2** | [m3u8](https://tvpi.travny.workers.dev/tvp2.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvp2.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvp2.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=tvp.info&sz=64" width="25" height="25"> | **TVP Info** | [m3u8](https://tvpi.travny.workers.dev/tvpinfo.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpinfo.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpinfo.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=sport.tvp.pl&sz=64" width="32" height="32"> | **TVP Sport** | [m3u8](https://tvpi.travny.workers.dev/tvpsport.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpsport.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpsport.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=dokument.tvp.pl&sz=64" width="25" height="25"> | **TVP Dokument** | [m3u8](https://tvpi.travny.workers.dev/tvpdokument.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpdokument.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpdokument.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=nauka.tvp.pl&sz=64" width="32" height="32"> | **TVP Nauka** | [m3u8](https://tvpi.travny.workers.dev/tvpnauka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpnauka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpnauka.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=rozrywka.tvp.pl&sz=64" width="25" height="25"> | **TVP Rozrywka** | [m3u8](https://tvpi.travny.workers.dev/tvprozrywka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvprozrywka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvprozrywka.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=historia.tvp.pl&sz=64" width="32" height="32"> | **TVP Historia** | [m3u8](https://tvpi.travny.workers.dev/tvphistoria.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvphistoria.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvphistoria.m3u&up_message=online&down_message=offline&label=) |
+| <img src="https://www.google.com/s2/favicons?domain=tvp.pl&sz=64" width="25" height="25"> | **TVP Muzyka i Koncerty** | [m3u8](https://tvpi.travny.workers.dev/tvpmuzyka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpmuzyka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpmuzyka.m3u&up_message=online&down_message=offline&label=) |
 
 The **Status** badge pings the Worker endpoint live, so it reflects whether the
 service is currently responding for that channel.
@@ -52,18 +66,6 @@ tokenized HLS manifest**. They are stable, saveable URLs — put them straight
 into your own playlist and every play resolves a fresh token. (Plain `.m3u`
 per-channel playlists still exist at the same paths for players that prefer
 a nested playlist.)
-
-| Logo | Channel | Worker | Raw mirror | Status |
-|:---:|---|:---:|:---:|:---:|
-| <img src="https://www.google.com/s2/favicons?domain=tvp.pl&sz=64" width="22" height="22"> | **TVP 1 HD** | [m3u8](https://tvpi.travny.workers.dev/tvp1.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvp1.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvp1.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=tvp.pl&sz=64" width="22" height="22"> | **TVP 2 HD** | [m3u8](https://tvpi.travny.workers.dev/tvp2.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvp2.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvp2.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=tvp.info&sz=64" width="22" height="22"> | **TVP Info** | [m3u8](https://tvpi.travny.workers.dev/tvpinfo.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpinfo.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpinfo.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=sport.tvp.pl&sz=64" width="22" height="22"> | **TVP Sport** | [m3u8](https://tvpi.travny.workers.dev/tvpsport.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpsport.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpsport.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=dokument.tvp.pl&sz=64" width="22" height="22"> | **TVP Dokument** | [m3u8](https://tvpi.travny.workers.dev/tvpdokument.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpdokument.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpdokument.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=nauka.tvp.pl&sz=64" width="22" height="22"> | **TVP Nauka** | [m3u8](https://tvpi.travny.workers.dev/tvpnauka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpnauka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpnauka.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=rozrywka.tvp.pl&sz=64" width="22" height="22"> | **TVP Rozrywka** | [m3u8](https://tvpi.travny.workers.dev/tvprozrywka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvprozrywka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvprozrywka.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=historia.tvp.pl&sz=64" width="22" height="22"> | **TVP Historia** | [m3u8](https://tvpi.travny.workers.dev/tvphistoria.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvphistoria.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvphistoria.m3u&up_message=online&down_message=offline&label=) |
-| <img src="https://www.google.com/s2/favicons?domain=tvp.pl&sz=64" width="22" height="22"> | **TVP Muzyka i Koncerty** | [m3u8](https://tvpi.travny.workers.dev/tvpmuzyka.m3u8) | [m3u](https://raw.githubusercontent.com/trvny/tvpi/main/streams/tvpmuzyka.m3u) | ![status](https://img.shields.io/website?url=https%3A%2F%2Ftvpi.travny.workers.dev%2Ftvpmuzyka.m3u&up_message=online&down_message=offline&label=) |
 
 > **Tip:** the [jsDelivr CDN mirror](https://www.jsdelivr.com/github) can be
 > more reliable than raw.githubusercontent.com:
@@ -76,7 +78,6 @@ a nested playlist.)
 ## How it works
 
 The raw-file path:
-
 1. **GitHub Actions** runs `generate.py` every 15 minutes (cron schedule).
 2. The script calls the TVP API for fresh signed HLS token URLs.
 3. On any transient failure it reuses that channel's last-known-good URL rather
@@ -109,15 +110,6 @@ lifetime so it's always fresh.
 2. Actions run automatically — no secrets or extra config needed.
 3. After the first run (up to 15 min), grab a raw URL and add it to your player,
    or deploy the Worker (`worker/`, via `wrangler deploy`) and use the Worker URL.
-
-## Tested players
-
-- VLC
-- MPC-HC (use the `.m3u8` redirect URLs)
-- Kodi (PVR IPTV Simple Client)
-- TiviMate
-- Televizo
-- GSE Smart IPTV
 
 ## Notes
 
