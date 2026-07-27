@@ -6,9 +6,8 @@ live HLS URL directly from TVP's API, validates the available HLS masters,
 normalizes relative playlist references, and pushes the fresh URL into the
 Worker's cache/D1/R2 fallback stores.
 
-The normalized manifests are also written locally. They are useful for testing
-players that mishandle redirects, relative audio playlists, or an HLS master
-without an explicitly selected default audio rendition.
+Set TVPI_MANIFEST_DIR to also write normalized manifests locally for testing
+players that mishandle redirects, relative audio playlists, or default audio.
 
 Env:
   TVPI_PUSH_TOKEN   shared secret, must match the Worker's PUSH_TOKEN secret
@@ -17,6 +16,7 @@ Env:
 Usage:
   TVPI_PUSH_TOKEN=... python3 residential_push.py
 """
+import http.client
 import json
 import os
 import re
@@ -55,6 +55,7 @@ TVP_HEADERS = {
 }
 
 URI_ATTRIBUTE_RE = re.compile(r'URI="([^"]+)"', re.IGNORECASE)
+GROUP_ID_RE = re.compile(r'(?:^|,)GROUP-ID="([^"]+)"', re.IGNORECASE)
 
 
 def set_attribute(line: str, name: str, value: str) -> str:
@@ -68,25 +69,46 @@ def set_attribute(line: str, name: str, value: str) -> str:
 
 
 def normalize_manifest(url: str, body: str) -> str:
-    """Make child URIs absolute and choose one default audio rendition."""
+    """Make child URIs absolute and choose one default per audio group."""
     raw_lines = body.splitlines()
-    audio_indexes = [
-        index
-        for index, line in enumerate(raw_lines)
-        if line.upper().startswith("#EXT-X-MEDIA:")
-        and "TYPE=AUDIO" in line.upper()
-        and "URI=" in line.upper()
-    ]
+    audio_groups: dict[str, list[int]] = {}
 
-    preferred_audio = None
-    for index in audio_indexes:
-        upper = raw_lines[index].upper()
-        if 'LANGUAGE="POL"' in upper or 'LANGUAGE="PL"' in upper or "POLSK" in upper:
-            preferred_audio = index
-            break
-    if preferred_audio is None and audio_indexes:
-        preferred_audio = audio_indexes[0]
+    for index, line in enumerate(raw_lines):
+        upper = line.upper()
+        if not (
+            upper.startswith("#EXT-X-MEDIA:")
+            and "TYPE=AUDIO" in upper
+            and "URI=" in upper
+        ):
+            continue
+        group_match = GROUP_ID_RE.search(line)
+        group = group_match.group(1) if group_match else f"__ungrouped_{index}"
+        audio_groups.setdefault(group, []).append(index)
 
+    preferred_audio: set[int] = set()
+    for indexes in audio_groups.values():
+        preferred = next(
+            (
+                index
+                for index in indexes
+                if 'LANGUAGE="POL"' in raw_lines[index].upper()
+                or 'LANGUAGE="PL"' in raw_lines[index].upper()
+                or "POLSK" in raw_lines[index].upper()
+            ),
+            None,
+        )
+        if preferred is None:
+            preferred = next(
+                (
+                    index
+                    for index in indexes
+                    if "DEFAULT=YES" in raw_lines[index].upper()
+                ),
+                indexes[0],
+            )
+        preferred_audio.add(preferred)
+
+    audio_indexes = {index for indexes in audio_groups.values() for index in indexes}
     normalized: list[str] = []
     for index, line in enumerate(raw_lines):
         stripped = line.strip()
@@ -104,7 +126,7 @@ def normalize_manifest(url: str, body: str) -> str:
                 rewritten = set_attribute(
                     rewritten,
                     "DEFAULT",
-                    "YES" if index == preferred_audio else "NO",
+                    "YES" if index in preferred_audio else "NO",
                 )
                 rewritten = set_attribute(rewritten, "AUTOSELECT", "YES")
             normalized.append(rewritten)
@@ -124,7 +146,11 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
         with urllib.request.urlopen(req, timeout=8) as res:
             final_url = res.geturl()
             body = res.read().decode("utf-8", errors="replace")
-    except (urllib.error.URLError, TimeoutError) as exc:
+    except (
+        urllib.error.URLError,
+        TimeoutError,
+        http.client.IncompleteRead,
+    ) as exc:
         print(f"manifest rejected: {exc}", file=sys.stderr)
         return None
 
@@ -132,9 +158,16 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
         print("manifest rejected: response is not HLS", file=sys.stderr)
         return None
 
-    lines = [line.strip().upper() for line in body.splitlines()]
+    raw_lines = [line.strip() for line in body.splitlines()]
+    lines = [line.upper() for line in raw_lines]
     stream_lines = [line for line in lines if line.startswith("#EXT-X-STREAM-INF")]
     media_lines = [line for line in lines if line.startswith("#EXT-X-MEDIA")]
+    uri_lines = [line for line in raw_lines if line and not line.startswith("#")]
+    segments = sum(line.startswith("#EXTINF:") for line in lines)
+    if not uri_lines or (not stream_lines and segments == 0):
+        print("manifest rejected: no playable entries", file=sys.stderr)
+        return None
+
     audio_codecs = ("MP4A", "AAC", "AC-3", "EC-3")
     muxed_audio = any(
         any(codec in line for codec in audio_codecs) and "AUDIO=" not in line
@@ -145,7 +178,6 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
         "TYPE=AUDIO" in line and "DEFAULT=YES" in line for line in media_lines
     )
     variants = len(stream_lines)
-    segments = sum(line.startswith("#EXTINF:") for line in lines)
 
     if muxed_audio:
         score, label = 400, "declared muxed audio"
@@ -171,6 +203,8 @@ def fetch_hls(channel_id: str) -> tuple[str, str] | None:
 
     try:
         sources = data["sources"]["HLS"]
+        if not isinstance(sources, list):
+            raise TypeError("HLS sources are not a list")
     except (KeyError, TypeError):
         print(f"[{channel_id}] unexpected response shape: {data}", file=sys.stderr)
         return None
@@ -219,25 +253,45 @@ def push(slug: str, url: str, manifest: str, token: str) -> bool:
         return False
 
 
+def configured_manifest_dir() -> Path | None:
+    value = os.environ.get("TVPI_MANIFEST_DIR")
+    if not value:
+        return None
+
+    directory = Path(value)
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        print(f"local manifests disabled: {exc}", file=sys.stderr)
+        return None
+    return directory
+
+
+def write_local_manifest(directory: Path | None, slug: str, manifest: str) -> None:
+    if not directory:
+        return
+    output = directory / f"{slug}.m3u8"
+    try:
+        output.write_text(manifest, encoding="utf-8")
+        print(f"[{slug}] wrote {output}")
+    except OSError as exc:
+        print(f"[{slug}] local manifest write failed: {exc}", file=sys.stderr)
+
+
 def main() -> int:
     token = os.environ.get("TVPI_PUSH_TOKEN")
     if not token:
         print("TVPI_PUSH_TOKEN not set", file=sys.stderr)
         return 1
 
-    default_dir = Path(__file__).resolve().parent / "manifests"
-    manifest_dir = Path(os.environ.get("TVPI_MANIFEST_DIR", default_dir))
-    manifest_dir.mkdir(parents=True, exist_ok=True)
-
+    manifest_dir = configured_manifest_dir()
     ok = 0
     for slug, channel_id in CHANNELS.items():
         resolved = fetch_hls(channel_id)
         if not resolved:
             continue
         url, manifest = resolved
-        output = manifest_dir / f"{slug}.m3u8"
-        output.write_text(manifest, encoding="utf-8")
-        print(f"[{slug}] wrote {output}")
+        write_local_manifest(manifest_dir, slug, manifest)
         if push(slug, url, manifest, token):
             ok += 1
 
