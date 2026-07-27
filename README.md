@@ -27,19 +27,19 @@
 
 ## Combined playlist
 
-Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
-pick one as your primary:
+Live TVP channels as ready-to-use M3U playlists. The Worker playlist contains
+stable per-channel `.m3u8` endpoints; each channel resolves or serves its fresh
+manifest only when the player opens it.
 
 | Source | URL base | Refresh | Best for |
 |--------|----------|---------|----------|
-| **Cloudflare Worker** [`playlist.m3u`](https://tvpi.travny.workers.dev/playlist.m3u) | `https://tvpi.travny.workers.dev` | request-time, self-healing | never serves a stale token |
+| **Cloudflare Worker** [`playlist.m3u`](https://tvpi.travny.workers.dev/playlist.m3u) | `https://tvpi.travny.workers.dev` | per channel, when opened | stable saveable playlist |
 | **GitHub Raw** [`playlist.m3u`](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u) | `https://raw.githubusercontent.com/trvny/tvpi/main/streams/` | every 15 min via Actions | offline/no-Worker fallback |
 
 > Why two? TVP signs each HLS URL with a short (~15–30 min) token. The Worker
-> resolves URLs **when your player asks**, so it can't hand out an expired one.
-> The raw git file is a static snapshot refreshed on a timer — simpler, but a
-> token can expire before the next refresh lands, which shows up as a channel
-> that works then drops then recovers. Use the Worker if you can.
+> playlist points to stable TVPI `.m3u8` URLs, so opening a channel can obtain the
+> current pushed manifest or resolve a fresh token. The raw git file is a static
+> snapshot refreshed on a timer, so its token can expire before the next refresh.
 
 ## Channels
 
@@ -97,9 +97,9 @@ GitHub Actions (every 15 min)
    Your IPTV player 🎬
 ```
 
-The Worker path skips the commit entirely: it resolves the URL when your player
-requests it (cache → live fallback), caching each result for under TVP's token
-lifetime so it's always fresh.
+The Worker combined playlist skips token resolution. It lists stable channel
+endpoints, and each endpoint serves the current pushed manifest or runs the
+normal cache/live/fallback resolution only when that channel is opened.
 
 ## Setup
 
