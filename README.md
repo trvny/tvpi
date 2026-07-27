@@ -5,22 +5,23 @@
 
 ---
 
-> ## ⚠️ Known issue (since ~2026-07): 8/9 channels degraded
+> ## ⚠️ Current status: residential push workaround verified
 >
-> TVP now returns `GEOIP_FILTER_FAILED` (403) on the playlist **API call itself**
-> — not just HLS segment delivery — for every channel except **TVP Info**. No
-> Cloudflare Worker colo or GitHub Actions runner is in Poland, so neither the
-> Worker's live fetch nor the raw-mirror generator can refresh those 8 channels
-> anymore. They currently fall back to a stale mirror snapshot.
+> TVP still returns `GEOIP_FILTER_FAILED` (403) from non-Polish infrastructure,
+> so GitHub Actions and Cloudflare cannot refresh most channels on their own.
 >
-> Fix in progress in [PR #9](https://github.com/trvny/tvpi/pull/9): a
-> `POST /push/<slug>` endpoint that lets a script running on a **Polish IP**
-> push fresh urls into the Worker's cache. Still needs something to actually run
-> that script on a schedule from Poland (phone/Termux works but isn't durable;
-> a cheap PL VPS or residential proxy is the open question — datacenter/hosting
-> ASNs may be blocked same as everything else, untested).
+> The residential push path is implemented and has been tested end to end from a
+> Polish home connection. `scripts/residential_push.py` refreshed **9/9**
+> channels, pushed validated and normalized HLS manifests to the Worker, and all
+> nine stable Worker `.m3u8` URLs played successfully immediately after refresh.
 >
-> **Ideas, PRs, or "I run a PL box and can test this" welcome** — [issue](https://github.com/trvny/tvpi/issues/15)
+> This confirms that the **method works**, but TVPI is not a guaranteed 24/7
+> service yet. A machine on a Polish residential IP must run the pusher roughly
+> every 10 minutes, and the current maintainer cannot keep that machine online
+> around the clock. Temporary outages and stale fallbacks are therefore expected.
+>
+> A durable Polish residential runner or host is still wanted. See
+> [issue #15](https://github.com/trvny/tvpi/issues/15).
 
 ---
 
