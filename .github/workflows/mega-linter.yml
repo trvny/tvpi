@@ -1,4 +1,4 @@
-# MegaLinter - code quality and downloadable auto-fixes.
+# MegaLinter - code quality reports.
 # https://megalinter.io
 ---
 name: MegaLinter
@@ -42,7 +42,6 @@ jobs:
               contains(fromJSON('["refs/heads/main", "refs/heads/master"]'), github.ref)
             }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLY_FIXES_EVENT: none
 
       - name: Archive MegaLinter reports
         if: always()
