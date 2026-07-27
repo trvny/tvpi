@@ -24,7 +24,7 @@ TVP stream URLs use short-lived signatures, so the Worker endpoint is preferred.
 
 ### TVPI
 
-Use for discovering and watching TVP channels or obtaining the combined M3U playlist. Most channels may be degraded outside Poland because of upstream geo-restrictions.
+Use for discovering and watching TVP channels or obtaining the combined M3U playlist. At present, 8 of 9 channels are degraded because TVP rejects the server-side API requests made by both the Worker and GitHub Actions; the hosted endpoints therefore return stale fallbacks even to viewers in Poland.
 
 ### Weather
 
