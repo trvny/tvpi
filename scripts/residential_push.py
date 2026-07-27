@@ -59,6 +59,48 @@ TVP_HEADERS = {
 }
 
 
+def inspect_manifest(url: str) -> tuple[int, str] | None:
+    headers = {
+        **TVP_HEADERS,
+        "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, */*",
+    }
+    req = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=8) as res:
+            body = res.read().decode("utf-8", errors="replace")
+    except (urllib.error.URLError, TimeoutError) as e:
+        print(f"manifest rejected: {e}", file=sys.stderr)
+        return None
+
+    if not body.lstrip().startswith("#EXTM3U"):
+        print("manifest rejected: response is not HLS", file=sys.stderr)
+        return None
+
+    lines = [line.strip().upper() for line in body.splitlines()]
+    stream_lines = [line for line in lines if line.startswith("#EXT-X-STREAM-INF")]
+    media_lines = [line for line in lines if line.startswith("#EXT-X-MEDIA")]
+    audio_codecs = ("MP4A", "AAC", "AC-3", "EC-3")
+    muxed_audio = any(
+        any(codec in line for codec in audio_codecs) and "AUDIO=" not in line
+        for line in stream_lines
+    )
+    separate_audio = any("TYPE=AUDIO" in line for line in media_lines)
+    audio_codec = any(codec in body.upper() for codec in audio_codecs)
+    variants = len(stream_lines)
+    segments = sum(line.startswith("#EXTINF:") for line in lines)
+
+    if muxed_audio:
+        score, label = 300, "muxed audio"
+    elif separate_audio:
+        score, label = 200, "alternate audio"
+    elif audio_codec:
+        score, label = 150, "audio codec"
+    else:
+        score, label = 100, "audio unknown"
+
+    return score + variants + min(segments, 20), label
+
+
 def fetch_hls(channel_id: str) -> str | None:
     req = urllib.request.Request(TVP_API_URL.format(id=channel_id), headers=TVP_HEADERS)
     try:
@@ -67,11 +109,32 @@ def fetch_hls(channel_id: str) -> str | None:
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
         print(f"[{channel_id}] fetch failed: {e}", file=sys.stderr)
         return None
+
     try:
-        return data["sources"]["HLS"][0]["src"]
-    except (KeyError, IndexError, TypeError):
+        sources = data["sources"]["HLS"]
+    except (KeyError, TypeError):
         print(f"[{channel_id}] unexpected response shape: {data}", file=sys.stderr)
         return None
+
+    candidates: list[tuple[int, str, str, int]] = []
+    seen: set[str] = set()
+    for index, source in enumerate(sources, start=1):
+        url = source.get("src") if isinstance(source, dict) else None
+        if not isinstance(url, str) or not url.startswith("https://") or url in seen:
+            continue
+        seen.add(url)
+        inspected = inspect_manifest(url)
+        if inspected:
+            score, label = inspected
+            candidates.append((score, url, label, index))
+
+    if not candidates:
+        print(f"[{channel_id}] no playable HLS manifest", file=sys.stderr)
+        return None
+
+    _, url, label, index = max(candidates)
+    print(f"[{channel_id}] selected HLS {index}/{len(sources)} ({label})")
+    return url
 
 
 def push(slug: str, url: str, token: str) -> bool:
