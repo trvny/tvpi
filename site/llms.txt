@@ -1,26 +1,55 @@
-# TVP Live IPTV
+# TRAVNY hub / TVP Live IPTV
 
-> Live Polish public TV (TVP) channels as ready-to-use M3U/HLS playlists. A Cloudflare Worker resolves fresh signed stream URLs at request time, since TVP's HLS tokens expire in ~15–30 minutes.
+> TVPI is the landing hub for a small family of public tools: live Polish public television, a local weather dashboard, self-updating feeds, and two browser-based workbenches. The hub itself also publishes ready-to-use TVP M3U/HLS playlists.
 
-Two ways to consume the streams: the Worker (recommended, always-fresh) or a static raw-file mirror refreshed every 15 minutes. This site is also the landing hub ("TRAVNY") for a small family of sibling tools — see Related below.
+Use the sections below to choose the right service instead of treating the homepage as only an IPTV player.
 
-## Playlists
+## Hub map
+
+- [TVPI homepage](https://tvpi.pages.dev/): visual hub and TVP channel directory
+- [TV player](https://tvpi.pages.dev/tv/): browser playback for the current TVP streams
+- [Weather](https://weather.travny.workers.dev/): multi-source local weather ensemble for Kościelec in Chrzanów, including temperature, wind, humidity, air quality and pollen
+- [Feeds](https://trvny.github.io/feeds/): self-updating Atom/RSS directory with 55+ feeds regenerated every two hours; [LLM guide](https://trvny.github.io/feeds/llms.txt)
+- [Streambench](https://streambench.travny.workers.dev/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.travny.workers.dev/llms.txt)
+- [Codebench](https://codebench.travny.workers.dev/): local QR and barcode studio for generating, reading and exporting machine-readable codes
+
+## TVP playlists
+
+TVP stream URLs use short-lived signatures, so the Worker endpoint is preferred. The raw GitHub mirror is a periodically refreshed fallback.
 
 - [Combined playlist — Worker](https://tvpi.travny.workers.dev/playlist.m3u): all channels, resolved fresh on every request
-- [Combined playlist — raw mirror](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u): static snapshot, refreshed every 15 min via GitHub Actions
+- [Combined playlist — raw mirror](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u): static snapshot refreshed every 15 minutes
 
-## Docs
+## Project roles
 
-- [README](https://github.com/trvny/tvpi/blob/main/README.md): full channel list, how it works, known issues (most channels are currently degraded due to TVP geo-blocking non-Polish IPs)
-- [Source](https://github.com/trvny/tvpi): monorepo (Cloudflare Worker + generator script + this site)
+### TVPI
 
-## Related
+Use for discovering and watching TVP channels or obtaining the combined M3U playlist. Most channels may be degraded outside Poland because of upstream geo-restrictions.
 
-- [Streambench](https://streambench.travny.workers.dev/): browser workshop for IPTV, internet radio, HLS and local M3U/M3U8 playlists, with logos, metadata, XMLTV EPG, diagnostics and local editing; [LLM guide](https://streambench.travny.workers.dev/llms.txt)
-- [Codebench](https://codebench.travny.workers.dev/): local utility for generating, reading and exporting QR codes and other machine-readable codes
-- [Feeds](https://trvny.github.io/feeds/): self-updating Atom/RSS feed directory, 55+ feeds regenerated every 2 hours
-- [Weather](https://weather.travny.workers.dev/): multi-source weather ensemble (temperature, wind, humidity, AQI and pollen) for Kościelec in Chrzanów
+### Weather
 
-## Optional
+Use for the local Chrzanów/Kościelec forecast and environmental readings. It combines several sources rather than exposing a single-provider forecast.
 
+### Feeds
+
+Use when a site lacks a convenient native feed. The directory publishes Atom/RSS files, an OPML bundle, a browser reader, a sitemap and its own `llms.txt`.
+
+### Streambench
+
+Use for testing or editing stream URLs and playlists locally in the browser. It supports direct playback, public catalogues, local files, pasted playlists, diagnostics, favourites, hidden items, exports and optional XMLTV EPG.
+
+### Codebench
+
+Use for creating and scanning QR codes and barcodes. Processing is designed to stay in the browser where supported.
+
+## Discovery files
+
+- [Sitemap](https://tvpi.pages.dev/sitemap.xml)
+- [Robots policy](https://tvpi.pages.dev/robots.txt)
+- [Web manifest](https://tvpi.pages.dev/site.webmanifest)
+
+## Source and documentation
+
+- [README](https://github.com/trvny/tvpi/blob/main/README.md): channel list, architecture and known issues
+- [Repository](https://github.com/trvny/tvpi): Cloudflare Worker, stream refresh scripts and hub site
 - [Worker source](https://github.com/trvny/tvpi/blob/main/worker/src/index.ts)
