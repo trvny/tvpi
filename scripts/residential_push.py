@@ -19,12 +19,12 @@ Usage:
 """
 import json
 import os
-from pathlib import Path
 import re
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 WORKER_BASE = "https://tvpi.travny.workers.dev"
 
@@ -63,7 +63,7 @@ def set_attribute(line: str, name: str, value: str) -> str:
     replacement = f"{name}={value}"
     if match:
         prefix = "," if match.group(0).startswith(",") else ""
-        return line[:match.start()] + prefix + replacement + line[match.end():]
+        return line[: match.start()] + prefix + replacement + line[match.end() :]
     return line + "," + replacement
 
 
@@ -95,6 +95,7 @@ def normalize_manifest(url: str, body: str) -> str:
             continue
 
         if stripped.startswith("#"):
+
             def replace_uri(match: re.Match[str]) -> str:
                 return f'URI="{urllib.parse.urljoin(url, match.group(1))}"'
 
@@ -224,7 +225,7 @@ def main() -> int:
         print("TVPI_PUSH_TOKEN not set", file=sys.stderr)
         return 1
 
-    default_dir = Path(__file__).resolve().parent.parent / "manifests"
+    default_dir = Path(__file__).resolve().parent / "manifests"
     manifest_dir = Path(os.environ.get("TVPI_MANIFEST_DIR", default_dir))
     manifest_dir.mkdir(parents=True, exist_ok=True)
 
