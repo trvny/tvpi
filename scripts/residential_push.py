@@ -19,7 +19,7 @@ Usage:
 
 Cron (every 10 min, comfortably under TVP's ~15-30 min token lifetime and the
 Worker's 15-min LKG_MAX_AGE_MS read-side freshness window):
-  */10 * * * * TVPI_PUSH_TOKEN=... /usr/bin/python3 \\
+  */10 * * * * TVPI_PUSH_TOKEN=... /usr/bin/python3 \
       /path/to/residential_push.py >> /path/to/push.log 2>&1
 """
 import json
@@ -81,6 +81,7 @@ def push(slug: str, url: str, token: str) -> bool:
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
+            "User-Agent": TVP_HEADERS["User-Agent"],
         },
         method="POST",
     )
