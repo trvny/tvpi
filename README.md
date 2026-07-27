@@ -29,14 +29,10 @@
 Live TVP channels as ready-to-use M3U playlists. Two ways to consume them —
 pick one as your primary:
 
-| | Worker (recommended) | Raw mirror |
-|---|---|---|
-| **All channels** | [`playlist.m3u`](https://tvpi.travny.workers.dev/playlist.m3u) | [`playlist.m3u`](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u) |
-
 | Source | URL base | Refresh | Best for |
 |--------|----------|---------|----------|
-| **Cloudflare Worker** (recommended) | `https://tvpi.travny.workers.dev` | request-time, self-healing | never serves a stale token |
-| **Raw GitHub file** (backup mirror) | `https://raw.githubusercontent.com/trvny/tvpi/main/streams/` | every 15 min via Actions | offline/no-Worker fallback |
+| **Cloudflare Worker** [`playlist.m3u`](https://tvpi.travny.workers.dev/playlist.m3u) | `https://tvpi.travny.workers.dev` | request-time, self-healing | never serves a stale token |
+| **GitHub Raw** [`playlist.m3u`](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u) | `https://raw.githubusercontent.com/trvny/tvpi/main/streams/` | every 15 min via Actions | offline/no-Worker fallback |
 
 > Why two? TVP signs each HLS URL with a short (~15–30 min) token. The Worker
 > resolves URLs **when your player asks**, so it can't hand out an expired one.
