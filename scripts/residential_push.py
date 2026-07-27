@@ -6,12 +6,17 @@ live HLS URL directly from TVP's API, validates the available HLS masters,
 normalizes relative playlist references, and pushes the fresh URL into the
 Worker's cache/D1/R2 fallback stores.
 
+The last working HLS candidate index is cached locally. Later runs validate that
+candidate first and only scan every alternative when it stops working, cutting
+normal network and CPU work without giving up the full fallback scan.
+
 Set TVPI_MANIFEST_DIR to also write normalized manifests locally for testing
 players that mishandle redirects, relative audio playlists, or default audio.
 
 Env:
   TVPI_PUSH_TOKEN   shared secret, must match the Worker's PUSH_TOKEN secret
   TVPI_MANIFEST_DIR optional output directory for normalized .m3u8 manifests
+  TVPI_STATE_FILE   optional candidate-cache path
 
 Usage:
   TVPI_PUSH_TOKEN=... python3 residential_push.py
@@ -173,7 +178,9 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
         any(codec in line for codec in audio_codecs) and "AUDIO=" not in line
         for line in stream_lines
     )
-    separate_audio = any("TYPE=AUDIO" in line and "URI=" in line for line in media_lines)
+    separate_audio = any(
+        "TYPE=AUDIO" in line and "URI=" in line for line in media_lines
+    )
     default_audio = any(
         "TYPE=AUDIO" in line and "DEFAULT=YES" in line for line in media_lines
     )
@@ -192,7 +199,21 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
     return score + variants + min(segments, 20), label, normalized
 
 
-def fetch_hls(channel_id: str) -> tuple[str, str] | None:
+def source_candidates(sources: list[object]) -> list[tuple[int, str]]:
+    candidates: list[tuple[int, str]] = []
+    seen: set[str] = set()
+    for index, source in enumerate(sources, start=1):
+        url = source.get("src") if isinstance(source, dict) else None
+        if not isinstance(url, str) or not url.startswith("https://") or url in seen:
+            continue
+        seen.add(url)
+        candidates.append((index, url))
+    return candidates
+
+
+def fetch_hls(
+    channel_id: str, preferred_index: int | None
+) -> tuple[str, str, int] | None:
     req = urllib.request.Request(TVP_API_URL.format(id=channel_id), headers=TVP_HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=10) as res:
@@ -209,25 +230,33 @@ def fetch_hls(channel_id: str) -> tuple[str, str] | None:
         print(f"[{channel_id}] unexpected response shape: {data}", file=sys.stderr)
         return None
 
-    candidates: list[tuple[int, str, str, str, int]] = []
-    seen: set[str] = set()
-    for index, source in enumerate(sources, start=1):
-        url = source.get("src") if isinstance(source, dict) else None
-        if not isinstance(url, str) or not url.startswith("https://") or url in seen:
+    available = source_candidates(sources)
+    preferred = next((item for item in available if item[0] == preferred_index), None)
+    if preferred:
+        index, url = preferred
+        inspected = inspect_manifest(url)
+        if inspected:
+            _, label, manifest = inspected
+            print(f"[{channel_id}] reused HLS {index}/{len(sources)} ({label})")
+            return url, manifest, index
+        print(f"[{channel_id}] cached HLS {index} failed; rescanning", file=sys.stderr)
+
+    inspected_candidates: list[tuple[int, str, str, str, int]] = []
+    for index, url in available:
+        if preferred and index == preferred[0]:
             continue
-        seen.add(url)
         inspected = inspect_manifest(url)
         if inspected:
             score, label, manifest = inspected
-            candidates.append((score, url, label, manifest, index))
+            inspected_candidates.append((score, url, label, manifest, index))
 
-    if not candidates:
+    if not inspected_candidates:
         print(f"[{channel_id}] no playable HLS manifest", file=sys.stderr)
         return None
 
-    _, url, label, manifest, index = max(candidates)
+    _, url, label, manifest, index = max(inspected_candidates)
     print(f"[{channel_id}] selected HLS {index}/{len(sources)} ({label})")
-    return url, manifest
+    return url, manifest, index
 
 
 def push(slug: str, url: str, manifest: str, token: str) -> bool:
@@ -278,6 +307,40 @@ def write_local_manifest(directory: Path | None, slug: str, manifest: str) -> No
         print(f"[{slug}] local manifest write failed: {exc}", file=sys.stderr)
 
 
+def configured_state_file() -> Path:
+    value = os.environ.get("TVPI_STATE_FILE")
+    if value:
+        return Path(value)
+    return Path(__file__).with_name(".residential_push_state.json")
+
+
+def load_preferences(path: Path) -> dict[str, int]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {
+        slug: index
+        for slug, index in data.items()
+        if slug in CHANNELS and isinstance(index, int) and index > 0
+    }
+
+
+def save_preferences(path: Path, preferences: dict[str, int]) -> None:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_suffix(path.suffix + ".tmp")
+        temporary.write_text(
+            json.dumps(preferences, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(path)
+    except OSError as exc:
+        print(f"candidate cache write failed: {exc}", file=sys.stderr)
+
+
 def main() -> int:
     token = os.environ.get("TVPI_PUSH_TOKEN")
     if not token:
@@ -285,15 +348,24 @@ def main() -> int:
         return 1
 
     manifest_dir = configured_manifest_dir()
+    state_file = configured_state_file()
+    preferences = load_preferences(state_file)
+    preferences_changed = False
     ok = 0
     for slug, channel_id in CHANNELS.items():
-        resolved = fetch_hls(channel_id)
+        resolved = fetch_hls(channel_id, preferences.get(slug))
         if not resolved:
             continue
-        url, manifest = resolved
+        url, manifest, source_index = resolved
         write_local_manifest(manifest_dir, slug, manifest)
         if push(slug, url, manifest, token):
             ok += 1
+            if preferences.get(slug) != source_index:
+                preferences[slug] = source_index
+                preferences_changed = True
+
+    if preferences_changed:
+        save_preferences(state_file, preferences)
 
     print(f"pushed {ok}/{len(CHANNELS)}")
     return 0 if ok else 1
