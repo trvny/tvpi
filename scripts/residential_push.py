@@ -1,37 +1,33 @@
 #!/usr/bin/env python3
 """Residential-IP push for tvpi.
 
-As of 2026-07, TVP enforces its geo-block at the API/manifest level (not just
-on HLS segments) for every channel except tvpinfo -- GEOIP_FILTER_FAILED on
-the plain playlist call. No Cloudflare Worker colo or GitHub Actions runner is
-in Poland, so the Worker's live fetch (L2) and the GitHub Actions raw-mirror
-generator (L3b) are both structurally unable to reach those channels anymore.
-
 Run this on a machine with a Polish residential IP. It fetches each channel's
-live HLS url directly from TVP's API and pushes it into the Worker's D1 LKG
-(+ R2 mirror), the same rows the cron would write if it could reach TVP.
+live HLS URL directly from TVP's API, validates the available HLS masters,
+normalizes relative playlist references, and pushes the fresh URL into the
+Worker's cache/D1/R2 fallback stores.
+
+The normalized manifests are also written locally. They are useful for testing
+players that mishandle redirects, relative audio playlists, or an HLS master
+without an explicitly selected default audio rendition.
 
 Env:
   TVPI_PUSH_TOKEN   shared secret, must match the Worker's PUSH_TOKEN secret
+  TVPI_MANIFEST_DIR optional output directory for normalized .m3u8 manifests
 
 Usage:
   TVPI_PUSH_TOKEN=... python3 residential_push.py
-
-Cron (every 10 min, comfortably under TVP's ~15-30 min token lifetime and the
-Worker's 15-min LKG_MAX_AGE_MS read-side freshness window):
-  */10 * * * * TVPI_PUSH_TOKEN=... /usr/bin/python3 \
-      /path/to/residential_push.py >> /path/to/push.log 2>&1
 """
 import json
 import os
+from pathlib import Path
+import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 WORKER_BASE = "https://tvpi.travny.workers.dev"
 
-# Keep in lockstep with CHANNELS in worker/src/index.ts and TVP_CHANNELS in
-# generate.py -- same slug/id pairs.
 CHANNELS = {
     "tvp1": "399697",
     "tvp2": "399698",
@@ -58,8 +54,66 @@ TVP_HEADERS = {
     "Accept": "application/json, */*",
 }
 
+URI_ATTRIBUTE_RE = re.compile(r'URI="([^"]+)"', re.IGNORECASE)
 
-def inspect_manifest(url: str) -> tuple[int, str] | None:
+
+def set_attribute(line: str, name: str, value: str) -> str:
+    pattern = re.compile(rf"(?i)(?:^|,){re.escape(name)}=[^,]*")
+    match = pattern.search(line)
+    replacement = f"{name}={value}"
+    if match:
+        prefix = "," if match.group(0).startswith(",") else ""
+        return line[:match.start()] + prefix + replacement + line[match.end():]
+    return line + "," + replacement
+
+
+def normalize_manifest(url: str, body: str) -> str:
+    """Make child URIs absolute and choose one default audio rendition."""
+    raw_lines = body.splitlines()
+    audio_indexes = [
+        index
+        for index, line in enumerate(raw_lines)
+        if line.upper().startswith("#EXT-X-MEDIA:")
+        and "TYPE=AUDIO" in line.upper()
+        and "URI=" in line.upper()
+    ]
+
+    preferred_audio = None
+    for index in audio_indexes:
+        upper = raw_lines[index].upper()
+        if 'LANGUAGE="POL"' in upper or 'LANGUAGE="PL"' in upper or "POLSK" in upper:
+            preferred_audio = index
+            break
+    if preferred_audio is None and audio_indexes:
+        preferred_audio = audio_indexes[0]
+
+    normalized: list[str] = []
+    for index, line in enumerate(raw_lines):
+        stripped = line.strip()
+        if not stripped:
+            normalized.append("")
+            continue
+
+        if stripped.startswith("#"):
+            def replace_uri(match: re.Match[str]) -> str:
+                return f'URI="{urllib.parse.urljoin(url, match.group(1))}"'
+
+            rewritten = URI_ATTRIBUTE_RE.sub(replace_uri, stripped)
+            if index in audio_indexes:
+                rewritten = set_attribute(
+                    rewritten,
+                    "DEFAULT",
+                    "YES" if index == preferred_audio else "NO",
+                )
+                rewritten = set_attribute(rewritten, "AUTOSELECT", "YES")
+            normalized.append(rewritten)
+        else:
+            normalized.append(urllib.parse.urljoin(url, stripped))
+
+    return "\n".join(normalized) + "\n"
+
+
+def inspect_manifest(url: str) -> tuple[int, str, str] | None:
     headers = {
         **TVP_HEADERS,
         "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, */*",
@@ -67,9 +121,10 @@ def inspect_manifest(url: str) -> tuple[int, str] | None:
     req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=8) as res:
+            final_url = res.geturl()
             body = res.read().decode("utf-8", errors="replace")
-    except (urllib.error.URLError, TimeoutError) as e:
-        print(f"manifest rejected: {e}", file=sys.stderr)
+    except (urllib.error.URLError, TimeoutError) as exc:
+        print(f"manifest rejected: {exc}", file=sys.stderr)
         return None
 
     if not body.lstrip().startswith("#EXTM3U"):
@@ -84,30 +139,33 @@ def inspect_manifest(url: str) -> tuple[int, str] | None:
         any(codec in line for codec in audio_codecs) and "AUDIO=" not in line
         for line in stream_lines
     )
-    separate_audio = any("TYPE=AUDIO" in line for line in media_lines)
-    audio_codec = any(codec in body.upper() for codec in audio_codecs)
+    separate_audio = any("TYPE=AUDIO" in line and "URI=" in line for line in media_lines)
+    default_audio = any(
+        "TYPE=AUDIO" in line and "DEFAULT=YES" in line for line in media_lines
+    )
     variants = len(stream_lines)
     segments = sum(line.startswith("#EXTINF:") for line in lines)
 
     if muxed_audio:
-        score, label = 300, "muxed audio"
+        score, label = 400, "declared muxed audio"
+    elif separate_audio and default_audio:
+        score, label = 300, "default alternate audio"
     elif separate_audio:
-        score, label = 200, "alternate audio"
-    elif audio_codec:
-        score, label = 150, "audio codec"
+        score, label = 250, "alternate audio normalized"
     else:
         score, label = 100, "audio unknown"
 
-    return score + variants + min(segments, 20), label
+    normalized = normalize_manifest(final_url, body)
+    return score + variants + min(segments, 20), label, normalized
 
 
-def fetch_hls(channel_id: str) -> str | None:
+def fetch_hls(channel_id: str) -> tuple[str, str] | None:
     req = urllib.request.Request(TVP_API_URL.format(id=channel_id), headers=TVP_HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=10) as res:
             data = json.load(res)
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
-        print(f"[{channel_id}] fetch failed: {e}", file=sys.stderr)
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        print(f"[{channel_id}] fetch failed: {exc}", file=sys.stderr)
         return None
 
     try:
@@ -116,7 +174,7 @@ def fetch_hls(channel_id: str) -> str | None:
         print(f"[{channel_id}] unexpected response shape: {data}", file=sys.stderr)
         return None
 
-    candidates: list[tuple[int, str, str, int]] = []
+    candidates: list[tuple[int, str, str, str, int]] = []
     seen: set[str] = set()
     for index, source in enumerate(sources, start=1):
         url = source.get("src") if isinstance(source, dict) else None
@@ -125,22 +183,22 @@ def fetch_hls(channel_id: str) -> str | None:
         seen.add(url)
         inspected = inspect_manifest(url)
         if inspected:
-            score, label = inspected
-            candidates.append((score, url, label, index))
+            score, label, manifest = inspected
+            candidates.append((score, url, label, manifest, index))
 
     if not candidates:
         print(f"[{channel_id}] no playable HLS manifest", file=sys.stderr)
         return None
 
-    _, url, label, index = max(candidates)
+    _, url, label, manifest, index = max(candidates)
     print(f"[{channel_id}] selected HLS {index}/{len(sources)} ({label})")
-    return url
+    return url, manifest
 
 
-def push(slug: str, url: str, token: str) -> bool:
+def push(slug: str, url: str, manifest: str, token: str) -> bool:
     req = urllib.request.Request(
         f"{WORKER_BASE}/push/{slug}",
-        data=json.dumps({"url": url}).encode(),
+        data=json.dumps({"url": url, "manifest": manifest}).encode(),
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
@@ -151,12 +209,12 @@ def push(slug: str, url: str, token: str) -> bool:
     try:
         with urllib.request.urlopen(req, timeout=10) as res:
             return res.status == 200
-    except urllib.error.HTTPError as e:
-        body = e.read().decode(errors="replace")
-        print(f"[{slug}] push rejected: {e.code} {body}", file=sys.stderr)
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode(errors="replace")
+        print(f"[{slug}] push rejected: {exc.code} {body}", file=sys.stderr)
         return False
-    except urllib.error.URLError as e:
-        print(f"[{slug}] push failed: {e}", file=sys.stderr)
+    except urllib.error.URLError as exc:
+        print(f"[{slug}] push failed: {exc}", file=sys.stderr)
         return False
 
 
@@ -166,11 +224,22 @@ def main() -> int:
         print("TVPI_PUSH_TOKEN not set", file=sys.stderr)
         return 1
 
+    default_dir = Path(__file__).resolve().parent.parent / "manifests"
+    manifest_dir = Path(os.environ.get("TVPI_MANIFEST_DIR", default_dir))
+    manifest_dir.mkdir(parents=True, exist_ok=True)
+
     ok = 0
     for slug, channel_id in CHANNELS.items():
-        hls = fetch_hls(channel_id)
-        if hls and push(slug, hls, token):
+        resolved = fetch_hls(channel_id)
+        if not resolved:
+            continue
+        url, manifest = resolved
+        output = manifest_dir / f"{slug}.m3u8"
+        output.write_text(manifest, encoding="utf-8")
+        print(f"[{slug}] wrote {output}")
+        if push(slug, url, manifest, token):
             ok += 1
+
     print(f"pushed {ok}/{len(CHANNELS)}")
     return 0 if ok else 1
 
