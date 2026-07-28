@@ -25,23 +25,64 @@ $managedV1 = $source.Contains("# TVPI managed logging v1")
 function Remove-LogRedirection {
     param([string]$Content)
 
-    $commandPrefix = '(?im)^(?<command>[^\r\n]*residential_push\.py[^\r\n]*?)'
-    $target = '(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)'
-    $updated = [regex]::Replace(
-        $Content,
-        "$commandPrefix[ \t]+\*>>[ \t]+$target[ \t]*(?<ending>\r?)$",
-        '${command}${ending}'
-    )
-    $updated = [regex]::Replace(
-        $updated,
-        "$commandPrefix[ \t]+>>[ \t]+$target[ \t]*(?<ending>\r?)$",
-        '${command}${ending}'
-    )
-    return [regex]::Replace(
-        $updated,
-        "$commandPrefix[ \t]+2>&1[ \t]*(?<ending>\r?)$",
-        '${command}${ending}'
-    )
+    $hasTrailingNewline = $Content -match '\r?\n$'
+    $lines = @($Content -split '\r?\n')
+    if ($hasTrailingNewline -and $lines.Count -gt 0 -and $lines[-1] -eq "") {
+        $lines = @($lines[0..($lines.Count - 2)])
+    }
+
+    $redirect = '[ \t]+(?:\*>>|>>)[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$'
+    $redirectOnly = '^[ \t]*(?:\*>>|>>)[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$'
+    $errorRedirect = '[ \t]+2>&1[ \t]*$'
+    $errorRedirectOnly = '^[ \t]*2>&1[ \t]*$'
+    $output = [System.Collections.Generic.List[string]]::new()
+    $index = 0
+
+    while ($index -lt $lines.Count) {
+        $blockEnd = $index
+        while (
+            $blockEnd -lt $lines.Count - 1 -and
+            $lines[$blockEnd].TrimEnd().EndsWith('`')
+        ) {
+            $blockEnd++
+        }
+
+        $block = @($lines[$index..$blockEnd])
+        if ($block -match 'residential_push\.py') {
+            $cleaned = [System.Collections.Generic.List[string]]::new()
+            foreach ($line in $block) {
+                $updated = [regex]::Replace($line, $redirect, "")
+                $updated = [regex]::Replace($updated, $redirectOnly, "")
+                $updated = [regex]::Replace($updated, $errorRedirect, "")
+                $updated = [regex]::Replace($updated, $errorRedirectOnly, "")
+                if (-not [string]::IsNullOrWhiteSpace($updated)) {
+                    $cleaned.Add($updated)
+                }
+            }
+            if ($cleaned.Count -gt 0) {
+                $last = $cleaned.Count - 1
+                $cleaned[$last] = [regex]::Replace(
+                    $cleaned[$last],
+                    '[ \t]*`[ \t]*$',
+                    ""
+                )
+            }
+            foreach ($line in $cleaned) {
+                $output.Add($line)
+            }
+        } else {
+            foreach ($line in $block) {
+                $output.Add($line)
+            }
+        }
+        $index = $blockEnd + 1
+    }
+
+    $updatedContent = $output -join "`r`n"
+    if ($hasTrailingNewline) {
+        $updatedContent += "`r`n"
+    }
+    return $updatedContent
 }
 
 if (-not $managedV2) {
@@ -114,14 +155,7 @@ function Write-LogLine {
     [System.IO.File]::AppendAllText($logPath, $line, $utf8)
 }
 
-function Test-BoundaryLine {
-    param([string]$Message)
-
-    return $Message.Trim() -match '^(?:\[[^\]]+\]\s*)?(?:start|exit=-?\d+)$'
-}
-
 Rotate-Log
-Write-LogLine "start"
 $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
 & $powerShell `
     -NoLogo `
@@ -129,13 +163,9 @@ $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
     -NonInteractive `
     -ExecutionPolicy Bypass `
     -File $commandRunner 2>&1 | ForEach-Object {
-        $message = [string]$_
-        if (-not (Test-BoundaryLine $message)) {
-            Write-LogLine $message
-        }
+        Write-LogLine ([string]$_)
     }
 $exitCode = $LASTEXITCODE
-Write-LogLine "exit=$exitCode"
 exit $exitCode
 '@
 
