@@ -7,17 +7,6 @@ param(
 
 $resolvedRunner = Resolve-Path -LiteralPath $RunnerPath -ErrorAction Stop
 $runnerDirectory = Split-Path -Parent $resolvedRunner.Path
-if ([string]::IsNullOrWhiteSpace($LauncherPath)) {
-    $LauncherPath = Join-Path $runnerDirectory "run-tvpi-hidden.exe"
-}
-$resolvedLauncher = [System.IO.Path]::GetFullPath($LauncherPath)
-$launcherDirectory = Split-Path -Parent $resolvedLauncher
-if (-not (Test-Path -LiteralPath $launcherDirectory -PathType Container)) {
-    throw "Launcher directory does not exist: $launcherDirectory"
-}
-if ([System.IO.Path]::GetExtension($resolvedLauncher) -ine ".exe") {
-    throw "Launcher path must use the .exe extension: $resolvedLauncher"
-}
 if ($PSVersionTable.PSEdition -ne "Desktop") {
     throw "Run this helper with Windows PowerShell 5.1 (powershell.exe)."
 }
@@ -91,22 +80,48 @@ internal static class Program
 }
 '@
 
-$temporaryLauncher = "$resolvedLauncher.$([guid]::NewGuid().ToString('N')).tmp.exe"
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
 try {
-    Add-Type `
-        -TypeDefinition $launcherSource `
-        -Language CSharp `
-        -OutputAssembly $temporaryLauncher `
-        -OutputType WindowsApplication `
-        -ErrorAction Stop
-    Move-Item `
-        -LiteralPath $temporaryLauncher `
-        -Destination $resolvedLauncher `
-        -Force `
-        -ErrorAction Stop
+    $sourceBytes = [System.Text.Encoding]::UTF8.GetBytes($launcherSource)
+    $launcherHash = ($sha256.ComputeHash($sourceBytes) | ForEach-Object {
+        $_.ToString("x2")
+    }) -join ""
 } finally {
-    if (Test-Path -LiteralPath $temporaryLauncher) {
-        Remove-Item -LiteralPath $temporaryLauncher -Force -ErrorAction SilentlyContinue
+    $sha256.Dispose()
+}
+$launcherTag = $launcherHash.Substring(0, 12)
+
+if ([string]::IsNullOrWhiteSpace($LauncherPath)) {
+    $LauncherPath = Join-Path $runnerDirectory "run-tvpi-hidden.exe"
+}
+$launcherBase = [System.IO.Path]::GetFullPath($LauncherPath)
+$launcherDirectory = Split-Path -Parent $launcherBase
+if (-not (Test-Path -LiteralPath $launcherDirectory -PathType Container)) {
+    throw "Launcher directory does not exist: $launcherDirectory"
+}
+if ([System.IO.Path]::GetExtension($launcherBase) -ine ".exe") {
+    throw "Launcher path must use the .exe extension: $launcherBase"
+}
+$launcherName = [System.IO.Path]::GetFileNameWithoutExtension($launcherBase)
+$resolvedLauncher = Join-Path $launcherDirectory "$launcherName-$launcherTag.exe"
+
+if (-not (Test-Path -LiteralPath $resolvedLauncher -PathType Leaf)) {
+    $temporaryLauncher = "$resolvedLauncher.$([guid]::NewGuid().ToString('N')).tmp.exe"
+    try {
+        Add-Type `
+            -TypeDefinition $launcherSource `
+            -Language CSharp `
+            -OutputAssembly $temporaryLauncher `
+            -OutputType WindowsApplication `
+            -ErrorAction Stop
+        Move-Item `
+            -LiteralPath $temporaryLauncher `
+            -Destination $resolvedLauncher `
+            -ErrorAction Stop
+    } finally {
+        if (Test-Path -LiteralPath $temporaryLauncher) {
+            Remove-Item -LiteralPath $temporaryLauncher -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
