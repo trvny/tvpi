@@ -12,7 +12,12 @@ $runner = $resolvedRunner.Path
 $runnerDirectory = Split-Path -Parent $runner
 $logPath = Join-Path $runnerDirectory "push.log"
 $backupPath = "$runner.bak"
-$commandRunner = Join-Path $runnerDirectory "run-tvpi-command.ps1"
+$commandRunner = [System.IO.Path]::GetFullPath(
+    (Join-Path $runnerDirectory "run-tvpi-command.ps1")
+)
+if ([System.StringComparer]::OrdinalIgnoreCase.Equals($runner, $commandRunner)) {
+    throw "Runner path must differ from '$commandRunner'."
+}
 $source = Get-Content -LiteralPath $runner -Raw -ErrorAction Stop
 $managedV2 = $source.Contains("# TVPI managed logging v2")
 $managedV1 = $source.Contains("# TVPI managed logging v1")
@@ -20,17 +25,23 @@ $managedV1 = $source.Contains("# TVPI managed logging v1")
 function Remove-LogRedirection {
     param([string]$Content)
 
+    $commandPrefix = '(?im)^(?<command>[^\r\n]*residential_push\.py[^\r\n]*?)'
+    $target = '(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)'
     $updated = [regex]::Replace(
         $Content,
-        '(?m)[ \t]+\*>>[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$',
-        ''
+        "$commandPrefix[ \t]+\*>>[ \t]+$target[ \t]*(?<ending>\r?)$",
+        '${command}${ending}'
     )
     $updated = [regex]::Replace(
         $updated,
-        '(?m)[ \t]+>>[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$',
-        ''
+        "$commandPrefix[ \t]+>>[ \t]+$target[ \t]*(?<ending>\r?)$",
+        '${command}${ending}'
     )
-    return [regex]::Replace($updated, '(?m)[ \t]+2>&1[ \t]*$', '')
+    return [regex]::Replace(
+        $updated,
+        "$commandPrefix[ \t]+2>&1[ \t]*(?<ending>\r?)$",
+        '${command}${ending}'
+    )
 }
 
 if (-not $managedV2) {
@@ -103,6 +114,12 @@ function Write-LogLine {
     [System.IO.File]::AppendAllText($logPath, $line, $utf8)
 }
 
+function Test-BoundaryLine {
+    param([string]$Message)
+
+    return $Message.Trim() -match '^(?:\[[^\]]+\]\s*)?(?:start|exit=-?\d+)$'
+}
+
 Rotate-Log
 Write-LogLine "start"
 $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
@@ -112,7 +129,10 @@ $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
     -NonInteractive `
     -ExecutionPolicy Bypass `
     -File $commandRunner 2>&1 | ForEach-Object {
-        Write-LogLine ([string]$_)
+        $message = [string]$_
+        if (-not (Test-BoundaryLine $message)) {
+            Write-LogLine $message
+        }
     }
 $exitCode = $LASTEXITCODE
 Write-LogLine "exit=$exitCode"
