@@ -86,13 +86,10 @@ function Write-LogLine {
 
 Rotate-Log
 Write-LogLine "start"
-$output = @(
-    __COMMAND__ 2>&1
-)
-$exitCode = $LASTEXITCODE
-foreach ($line in $output) {
-    Write-LogLine ([string]$line)
+__COMMAND__ 2>&1 | ForEach-Object {
+    Write-LogLine ([string]$_)
 }
+$exitCode = $LASTEXITCODE
 Write-LogLine "exit=$exitCode"
 exit $exitCode
 '@
