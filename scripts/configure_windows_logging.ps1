@@ -11,46 +11,65 @@ $resolvedRunner = Resolve-Path -LiteralPath $RunnerPath -ErrorAction Stop
 $runner = $resolvedRunner.Path
 $runnerDirectory = Split-Path -Parent $runner
 $logPath = Join-Path $runnerDirectory "push.log"
+$backupPath = "$runner.bak"
+$commandRunner = Join-Path $runnerDirectory "run-tvpi-command.ps1"
 $source = Get-Content -LiteralPath $runner -Raw -ErrorAction Stop
-$managed = $source.Contains("# TVPI managed logging v1")
+$managedV2 = $source.Contains("# TVPI managed logging v2")
+$managedV1 = $source.Contains("# TVPI managed logging v1")
 
-$environmentMatches = [regex]::Matches(
-    $source,
-    '(?m)^[ \t]*\$env:[A-Za-z_][A-Za-z0-9_]*[ \t]*=.*$'
-)
-$environmentLines = @($environmentMatches | ForEach-Object { $_.Value.Trim() })
-if (-not ($environmentLines -match '^\$env:TVPI_PUSH_TOKEN\s*=')) {
-    throw "TVPI_PUSH_TOKEN assignment was not found in '$runner'."
+function Remove-LogRedirection {
+    param([string]$Content)
+
+    $updated = [regex]::Replace(
+        $Content,
+        '(?m)[ \t]+\*>>[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$',
+        ''
+    )
+    $updated = [regex]::Replace(
+        $updated,
+        '(?m)[ \t]+>>[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$',
+        ''
+    )
+    return [regex]::Replace($updated, '(?m)[ \t]+2>&1[ \t]*$', '')
 }
 
-$commandMatch = [regex]::Match(
-    $source,
-    '(?m)^[ \t]*&[ \t]+.*residential_push\.py.*$'
-)
-if (-not $commandMatch.Success) {
-    throw "residential_push.py invocation was not found in '$runner'."
+if (-not $managedV2) {
+    if (Test-Path -LiteralPath $logPath -PathType Leaf) {
+        $legacyPath = "$logPath.legacy-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Move-Item -LiteralPath $logPath -Destination $legacyPath -ErrorAction Stop
+        Write-Host "Archived mixed-encoding log as '$legacyPath'."
+    }
+
+    if (-not (Test-Path -LiteralPath $backupPath)) {
+        Copy-Item -LiteralPath $runner -Destination $backupPath -ErrorAction Stop
+    }
+
+    $commandSource = if ($managedV1) {
+        Get-Content -LiteralPath $backupPath -Raw -ErrorAction Stop
+    } else {
+        $source
+    }
+    $commandSource = Remove-LogRedirection $commandSource
+    Set-Content -LiteralPath $commandRunner -Value $commandSource -Encoding UTF8 -NoNewline
+} elseif (-not (Test-Path -LiteralPath $commandRunner -PathType Leaf)) {
+    if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
+        throw "Original runner backup was not found at '$backupPath'."
+    }
+    $commandSource = Get-Content -LiteralPath $backupPath -Raw -ErrorAction Stop
+    $commandSource = Remove-LogRedirection $commandSource
+    Set-Content -LiteralPath $commandRunner -Value $commandSource -Encoding UTF8 -NoNewline
 }
 
-$commandLine = $commandMatch.Value.Trim()
-$commandLine = [regex]::Replace($commandLine, '\s+\*>>.*$', '')
-$commandLine = [regex]::Replace($commandLine, '\s+2>&1.*$', '')
-
-if (-not $managed -and (Test-Path -LiteralPath $logPath -PathType Leaf)) {
-    $legacyPath = "$logPath.legacy-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-    Move-Item -LiteralPath $logPath -Destination $legacyPath -ErrorAction Stop
-    Write-Host "Archived mixed-encoding log as '$legacyPath'."
-}
-
-$environmentBlock = $environmentLines -join "`r`n"
 $maxLogBytes = $MaxLogSizeMB * 1MB
+$escapedCommandRunner = $commandRunner.Replace("'", "''")
 $template = @'
-# TVPI managed logging v1
-__ENVIRONMENT__
-
+# TVPI managed logging v2
 $logPath = Join-Path $PSScriptRoot "push.log"
+$commandRunner = '__COMMAND_RUNNER__'
 $maxLogBytes = __MAX_LOG_BYTES__
 $logBackups = __LOG_BACKUPS__
 $utf8 = [System.Text.UTF8Encoding]::new($false)
+$env:PYTHONUNBUFFERED = "1"
 
 function Rotate-Log {
     if (-not (Test-Path -LiteralPath $logPath -PathType Leaf)) {
@@ -86,23 +105,23 @@ function Write-LogLine {
 
 Rotate-Log
 Write-LogLine "start"
-__COMMAND__ 2>&1 | ForEach-Object {
-    Write-LogLine ([string]$_)
-}
+$powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+& $powerShell `
+    -NoLogo `
+    -NoProfile `
+    -NonInteractive `
+    -ExecutionPolicy Bypass `
+    -File $commandRunner 2>&1 | ForEach-Object {
+        Write-LogLine ([string]$_)
+    }
 $exitCode = $LASTEXITCODE
 Write-LogLine "exit=$exitCode"
 exit $exitCode
 '@
 
-$updated = $template.Replace("__ENVIRONMENT__", $environmentBlock)
+$updated = $template.Replace("__COMMAND_RUNNER__", $escapedCommandRunner)
 $updated = $updated.Replace("__MAX_LOG_BYTES__", [string]$maxLogBytes)
 $updated = $updated.Replace("__LOG_BACKUPS__", [string]$LogBackups)
-$updated = $updated.Replace("__COMMAND__", $commandLine)
-
-$backupPath = "$runner.bak"
-if (-not (Test-Path -LiteralPath $backupPath)) {
-    Copy-Item -LiteralPath $runner -Destination $backupPath -ErrorAction Stop
-}
 Set-Content -LiteralPath $runner -Value $updated -Encoding UTF8 -NoNewline
 
 Write-Host "Updated '$runner': UTF-8 timestamps and $MaxLogSizeMB MB rotation enabled."
