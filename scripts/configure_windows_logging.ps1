@@ -88,12 +88,36 @@ function Remove-LogRedirection {
 function Test-ChildBoundaries {
     param([string]$Content)
 
+    $tokens = $null
+    $parseErrors = $null
+    [System.Management.Automation.Language.Parser]::ParseInput(
+        $Content,
+        [ref]$tokens,
+        [ref]$parseErrors
+    ) | Out-Null
+    $characters = $Content.ToCharArray()
+    foreach ($token in $tokens) {
+        if ($token.Kind -ne [System.Management.Automation.Language.TokenKind]::Comment) {
+            continue
+        }
+        for (
+            $offset = $token.Extent.StartOffset
+            $offset -lt $token.Extent.EndOffset
+            $offset++
+        ) {
+            if ($characters[$offset] -notin "`r", "`n") {
+                $characters[$offset] = ' '
+            }
+        }
+    }
+    $code = -join $characters
+
     $writer = '(?:Write-[A-Za-z]+|Add-Content|Set-Content|Out-File|Tee-Object|AppendAllText)'
-    $startPattern = "(?im)^(?![ \t]*#)(?=[^\r\n]*$writer)[^\r\n]*\bstart\b[^\r\n]*$"
-    $exitPattern = "(?im)^(?![ \t]*#)(?=[^\r\n]*$writer)[^\r\n]*exit\s*=[^\r\n]*$"
+    $startPattern = "(?im)^(?=[^\r\n]*$writer)[^\r\n]*\bstart\b[^\r\n]*$"
+    $exitPattern = "(?im)^(?=[^\r\n]*$writer)[^\r\n]*exit\s*=[^\r\n]*$"
     return (
-        [regex]::IsMatch($Content, $startPattern) -and
-        [regex]::IsMatch($Content, $exitPattern)
+        [regex]::IsMatch($code, $startPattern) -and
+        [regex]::IsMatch($code, $exitPattern)
     )
 }
 
