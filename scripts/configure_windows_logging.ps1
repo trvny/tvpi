@@ -14,7 +14,8 @@ $logPath = Join-Path $runnerDirectory "push.log"
 $backupPath = "$runner.bak"
 $commandRunner = Join-Path $runnerDirectory "run-tvpi-command.ps1"
 $source = Get-Content -LiteralPath $runner -Raw -ErrorAction Stop
-$managed = $source.Contains("# TVPI managed logging v2")
+$managedV2 = $source.Contains("# TVPI managed logging v2")
+$managedV1 = $source.Contains("# TVPI managed logging v1")
 
 function Remove-LogRedirection {
     param([string]$Content)
@@ -32,7 +33,7 @@ function Remove-LogRedirection {
     return [regex]::Replace($updated, '(?m)[ \t]+2>&1[ \t]*$', '')
 }
 
-if (-not $managed) {
+if (-not $managedV2) {
     if (Test-Path -LiteralPath $logPath -PathType Leaf) {
         $legacyPath = "$logPath.legacy-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
         Move-Item -LiteralPath $logPath -Destination $legacyPath -ErrorAction Stop
@@ -43,7 +44,12 @@ if (-not $managed) {
         Copy-Item -LiteralPath $runner -Destination $backupPath -ErrorAction Stop
     }
 
-    $commandSource = Remove-LogRedirection $source
+    $commandSource = if ($managedV1) {
+        Get-Content -LiteralPath $backupPath -Raw -ErrorAction Stop
+    } else {
+        $source
+    }
+    $commandSource = Remove-LogRedirection $commandSource
     Set-Content -LiteralPath $commandRunner -Value $commandSource -Encoding UTF8 -NoNewline
 } elseif (-not (Test-Path -LiteralPath $commandRunner -PathType Leaf)) {
     if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
