@@ -8,36 +8,113 @@ param(
 $resolvedRunner = Resolve-Path -LiteralPath $RunnerPath -ErrorAction Stop
 $runnerDirectory = Split-Path -Parent $resolvedRunner.Path
 if ([string]::IsNullOrWhiteSpace($LauncherPath)) {
-    $LauncherPath = Join-Path $runnerDirectory "run-tvpi-hidden.vbs"
+    $LauncherPath = Join-Path $runnerDirectory "run-tvpi-hidden.exe"
 }
 $resolvedLauncher = [System.IO.Path]::GetFullPath($LauncherPath)
 $launcherDirectory = Split-Path -Parent $resolvedLauncher
 if (-not (Test-Path -LiteralPath $launcherDirectory -PathType Container)) {
     throw "Launcher directory does not exist: $launcherDirectory"
 }
+if ([System.IO.Path]::GetExtension($resolvedLauncher) -ine ".exe") {
+    throw "Launcher path must use the .exe extension: $resolvedLauncher"
+}
+if ($PSVersionTable.PSEdition -ne "Desktop") {
+    throw "Run this helper with Windows PowerShell 5.1 (powershell.exe)."
+}
 
-$powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
-$powerShellArguments = @(
-    "-NoLogo"
-    "-NoProfile"
-    "-NonInteractive"
-    "-ExecutionPolicy Bypass"
-    "-File `"$($resolvedRunner.Path)`""
-) -join " "
-$command = "`"$powerShell`" $powerShellArguments"
-$escapedCommand = $command.Replace('"', '""')
-$launcher = @(
-    "Option Explicit"
-    "Dim shell, exitCode"
-    "Set shell = CreateObject(`"WScript.Shell`")"
-    "exitCode = shell.Run(`"$escapedCommand`", 0, True)"
-    "WScript.Quit exitCode"
-) -join "`r`n"
-Set-Content -LiteralPath $resolvedLauncher -Value $launcher -Encoding Unicode -NoNewline
+$launcherSource = @'
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
 
-$wscript = "$env:SystemRoot\System32\wscript.exe"
-$arguments = "//B //NoLogo `"$resolvedLauncher`""
-$action = New-ScheduledTaskAction -Execute $wscript -Argument $arguments
+internal static class Program
+{
+    [STAThread]
+    private static int Main(string[] args)
+    {
+        if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
+        {
+            return 64;
+        }
+
+        string runner = Path.GetFullPath(args[0]);
+        string runnerDirectory = Path.GetDirectoryName(runner);
+        string powerShell = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.System),
+            @"WindowsPowerShell\v1.0\powershell.exe"
+        );
+
+        try
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = powerShell,
+                Arguments = "-NoLogo -NoProfile -NonInteractive "
+                    + "-ExecutionPolicy Bypass -File \"" + runner + "\"",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = runnerDirectory
+            };
+
+            using (Process process = Process.Start(startInfo))
+            {
+                if (process == null)
+                {
+                    return 1;
+                }
+                process.WaitForExit();
+                return process.ExitCode;
+            }
+        }
+        catch (Exception exception)
+        {
+            try
+            {
+                string errorLog = Path.Combine(
+                    runnerDirectory ?? ".",
+                    "run-tvpi-launcher-error.log"
+                );
+                File.AppendAllText(
+                    errorLog,
+                    DateTime.Now.ToString("s") + " " + exception + Environment.NewLine,
+                    Encoding.UTF8
+                );
+            }
+            catch
+            {
+            }
+            return 1;
+        }
+    }
+}
+'@
+
+$temporaryLauncher = "$resolvedLauncher.$([guid]::NewGuid().ToString('N')).tmp.exe"
+try {
+    Add-Type `
+        -TypeDefinition $launcherSource `
+        -Language CSharp `
+        -OutputAssembly $temporaryLauncher `
+        -OutputType WindowsApplication `
+        -ErrorAction Stop
+    Move-Item `
+        -LiteralPath $temporaryLauncher `
+        -Destination $resolvedLauncher `
+        -Force `
+        -ErrorAction Stop
+} finally {
+    if (Test-Path -LiteralPath $temporaryLauncher) {
+        Remove-Item -LiteralPath $temporaryLauncher -Force -ErrorAction SilentlyContinue
+    }
+}
+
+$arguments = "`"$($resolvedRunner.Path)`""
+$action = New-ScheduledTaskAction `
+    -Execute $resolvedLauncher `
+    -Argument $arguments `
+    -WorkingDirectory $runnerDirectory
 $settings = New-ScheduledTaskSettingsSet `
     -Hidden `
     -StartWhenAvailable `
@@ -53,4 +130,4 @@ Set-ScheduledTask `
     -Settings $settings `
     -ErrorAction Stop | Out-Null
 
-Write-Host "Updated '$TaskName': wscript launcher enabled at '$resolvedLauncher'."
+Write-Host "Updated '$TaskName': no-console launcher enabled at '$resolvedLauncher'."
