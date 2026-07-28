@@ -2,9 +2,9 @@
 """Residential-IP push for tvpi.
 
 Run this on a machine with a Polish residential IP. It fetches each channel's
-live HLS URL directly from TVP's API, validates the available HLS masters,
-normalizes relative playlist references, and pushes the fresh URL into the
-Worker's cache/D1/R2 fallback stores.
+live HLS URL directly from TVP's API, validates a media segment behind each HLS
+master, normalizes relative playlist references, and pushes the fresh URL into
+the Worker's cache/D1/R2 fallback stores.
 
 The last working HLS candidate index is cached locally. Later runs validate that
 candidate first and only scan every alternative when it stops working, cutting
@@ -59,8 +59,10 @@ TVP_HEADERS = {
     "Accept": "application/json, */*",
 }
 
+HLS_ACCEPT = "application/vnd.apple.mpegurl, application/x-mpegURL, */*"
 URI_ATTRIBUTE_RE = re.compile(r'URI="([^"]+)"', re.IGNORECASE)
 GROUP_ID_RE = re.compile(r'(?:^|,)GROUP-ID="([^"]+)"', re.IGNORECASE)
+BANDWIDTH_RE = re.compile(r'(?:^|,)BANDWIDTH=(\d+)', re.IGNORECASE)
 
 
 def set_attribute(line: str, name: str, value: str) -> str:
@@ -141,16 +143,28 @@ def normalize_manifest(url: str, body: str) -> str:
     return "\n".join(normalized) + "\n"
 
 
-def inspect_manifest(url: str) -> tuple[int, str, str] | None:
-    headers = {
-        **TVP_HEADERS,
-        "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, */*",
-    }
+def default_audio_urls(base_url: str, body: str) -> list[str]:
+    urls: list[str] = []
+    for line in body.splitlines():
+        upper = line.upper()
+        if not (
+            upper.startswith("#EXT-X-MEDIA:")
+            and "TYPE=AUDIO" in upper
+            and "DEFAULT=YES" in upper
+        ):
+            continue
+        match = URI_ATTRIBUTE_RE.search(line)
+        if match:
+            urls.append(urllib.parse.urljoin(base_url, match.group(1)))
+    return urls
+
+
+def fetch_manifest(url: str) -> tuple[str, str] | None:
+    headers = {**TVP_HEADERS, "Accept": HLS_ACCEPT}
     req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=8) as res:
-            final_url = res.geturl()
-            body = res.read().decode("utf-8", errors="replace")
+            return res.geturl(), res.read().decode("utf-8", errors="replace")
     except (
         urllib.error.URLError,
         TimeoutError,
@@ -158,6 +172,99 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
     ) as exc:
         print(f"manifest rejected: {exc}", file=sys.stderr)
         return None
+
+
+def variant_urls(base_url: str, raw_lines: list[str]) -> list[str]:
+    variants: list[tuple[int, str]] = []
+    pending_bandwidth: int | None = None
+
+    for line in raw_lines:
+        upper = line.upper()
+        if upper.startswith("#EXT-X-STREAM-INF:"):
+            match = BANDWIDTH_RE.search(line)
+            pending_bandwidth = int(match.group(1)) if match else 0
+            continue
+        if pending_bandwidth is None or not line or line.startswith("#"):
+            continue
+        variants.append((pending_bandwidth, urllib.parse.urljoin(base_url, line)))
+        pending_bandwidth = None
+
+    variants.sort(reverse=True)
+    return [url for _, url in variants]
+
+
+def first_segment_url(base_url: str, raw_lines: list[str]) -> str | None:
+    for line in raw_lines:
+        if line and not line.startswith("#"):
+            return urllib.parse.urljoin(base_url, line)
+    return None
+
+
+def init_segment_url(base_url: str, raw_lines: list[str]) -> str | None:
+    for line in raw_lines:
+        if not line.upper().startswith("#EXT-X-MAP:"):
+            continue
+        match = URI_ATTRIBUTE_RE.search(line)
+        if match:
+            return urllib.parse.urljoin(base_url, match.group(1))
+    return None
+
+
+def probe_resource(url: str) -> bool:
+    headers = {**TVP_HEADERS, "Accept": "*/*", "Range": "bytes=0-0"}
+    req = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=8) as res:
+            return bool(res.read(1))
+    except (
+        urllib.error.URLError,
+        TimeoutError,
+        http.client.IncompleteRead,
+    ) as exc:
+        print(f"media probe rejected: {exc}", file=sys.stderr)
+        return False
+
+
+def probe_playlist(url: str, body: str | None = None, depth: int = 0) -> bool:
+    final_url = url
+    if body is None:
+        fetched = fetch_manifest(url)
+        if not fetched:
+            return False
+        final_url, body = fetched
+
+    if not body.lstrip().startswith("#EXTM3U"):
+        print("manifest rejected: response is not HLS", file=sys.stderr)
+        return False
+
+    raw_lines = [line.strip() for line in body.splitlines()]
+    variants = variant_urls(final_url, raw_lines)
+    if variants:
+        if depth >= 2:
+            print("manifest rejected: nested master is too deep", file=sys.stderr)
+            return False
+        for variant in variants:
+            if probe_playlist(variant, depth=depth + 1):
+                return True
+        print("manifest rejected: no variant reaches a media segment", file=sys.stderr)
+        return False
+
+    segment = first_segment_url(final_url, raw_lines)
+    if not segment:
+        print("manifest rejected: media playlist has no segment", file=sys.stderr)
+        return False
+
+    init_segment = init_segment_url(final_url, raw_lines)
+    if init_segment and not probe_resource(init_segment):
+        return False
+    return probe_resource(segment)
+
+
+def inspect_manifest(url: str) -> tuple[int, str, str] | None:
+    fetched = fetch_manifest(url)
+    if not fetched:
+        return None
+    final_url, body = fetched
 
     if not body.lstrip().startswith("#EXTM3U"):
         print("manifest rejected: response is not HLS", file=sys.stderr)
@@ -172,6 +279,15 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
     if not uri_lines or (not stream_lines and segments == 0):
         print("manifest rejected: no playable entries", file=sys.stderr)
         return None
+
+    if not probe_playlist(final_url, body):
+        return None
+
+    normalized = normalize_manifest(final_url, body)
+    for audio_url in default_audio_urls(final_url, normalized):
+        if not probe_playlist(audio_url):
+            print("manifest rejected: default audio is not playable", file=sys.stderr)
+            return None
 
     audio_codecs = ("MP4A", "AAC", "AC-3", "EC-3")
     muxed_audio = any(
@@ -195,8 +311,7 @@ def inspect_manifest(url: str) -> tuple[int, str, str] | None:
     else:
         score, label = 100, "audio unknown"
 
-    normalized = normalize_manifest(final_url, body)
-    return score + variants + min(segments, 20), label, normalized
+    return score + variants + min(segments, 20), f"{label}; media verified", normalized
 
 
 def source_candidates(sources: list[object]) -> list[tuple[int, str]]:
