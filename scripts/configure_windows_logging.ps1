@@ -85,6 +85,18 @@ function Remove-LogRedirection {
     return $updatedContent
 }
 
+function Test-ChildBoundaries {
+    param([string]$Content)
+
+    $writer = '(?:Write-[A-Za-z]+|Add-Content|Set-Content|Out-File|Tee-Object|AppendAllText)'
+    $startPattern = "(?im)^(?![ \t]*#)(?=[^\r\n]*$writer)[^\r\n]*\bstart\b[^\r\n]*$"
+    $exitPattern = "(?im)^(?![ \t]*#)(?=[^\r\n]*$writer)[^\r\n]*exit\s*=[^\r\n]*$"
+    return (
+        [regex]::IsMatch($Content, $startPattern) -and
+        [regex]::IsMatch($Content, $exitPattern)
+    )
+}
+
 if (-not $managedV2) {
     if (Test-Path -LiteralPath $logPath -PathType Leaf) {
         $legacyPath = "$logPath.legacy-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
@@ -112,12 +124,16 @@ if (-not $managedV2) {
     Set-Content -LiteralPath $commandRunner -Value $commandSource -Encoding UTF8 -NoNewline
 }
 
+$childSource = Get-Content -LiteralPath $commandRunner -Raw -ErrorAction Stop
+$writeBoundaries = -not (Test-ChildBoundaries $childSource)
+$boundaryLiteral = if ($writeBoundaries) { '$true' } else { '$false' }
 $maxLogBytes = $MaxLogSizeMB * 1MB
 $escapedCommandRunner = $commandRunner.Replace("'", "''")
 $template = @'
 # TVPI managed logging v2
 $logPath = Join-Path $PSScriptRoot "push.log"
 $commandRunner = '__COMMAND_RUNNER__'
+$writeBoundaries = __WRITE_BOUNDARIES__
 $maxLogBytes = __MAX_LOG_BYTES__
 $logBackups = __LOG_BACKUPS__
 $utf8 = [System.Text.UTF8Encoding]::new($false)
@@ -156,6 +172,9 @@ function Write-LogLine {
 }
 
 Rotate-Log
+if ($writeBoundaries) {
+    Write-LogLine "start"
+}
 $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
 & $powerShell `
     -NoLogo `
@@ -166,10 +185,14 @@ $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
         Write-LogLine ([string]$_)
     }
 $exitCode = $LASTEXITCODE
+if ($writeBoundaries) {
+    Write-LogLine "exit=$exitCode"
+}
 exit $exitCode
 '@
 
 $updated = $template.Replace("__COMMAND_RUNNER__", $escapedCommandRunner)
+$updated = $updated.Replace("__WRITE_BOUNDARIES__", $boundaryLiteral)
 $updated = $updated.Replace("__MAX_LOG_BYTES__", [string]$maxLogBytes)
 $updated = $updated.Replace("__LOG_BACKUPS__", [string]$LogBackups)
 Set-Content -LiteralPath $runner -Value $updated -Encoding UTF8 -NoNewline
