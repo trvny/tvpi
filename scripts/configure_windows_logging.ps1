@@ -12,7 +12,12 @@ $runner = $resolvedRunner.Path
 $runnerDirectory = Split-Path -Parent $runner
 $logPath = Join-Path $runnerDirectory "push.log"
 $backupPath = "$runner.bak"
-$commandRunner = Join-Path $runnerDirectory "run-tvpi-command.ps1"
+$commandRunner = [System.IO.Path]::GetFullPath(
+    (Join-Path $runnerDirectory "run-tvpi-command.ps1")
+)
+if ([System.StringComparer]::OrdinalIgnoreCase.Equals($runner, $commandRunner)) {
+    throw "Runner path must differ from '$commandRunner'."
+}
 $source = Get-Content -LiteralPath $runner -Raw -ErrorAction Stop
 $managedV2 = $source.Contains("# TVPI managed logging v2")
 $managedV1 = $source.Contains("# TVPI managed logging v1")
@@ -20,17 +25,100 @@ $managedV1 = $source.Contains("# TVPI managed logging v1")
 function Remove-LogRedirection {
     param([string]$Content)
 
-    $updated = [regex]::Replace(
+    $hasTrailingNewline = $Content -match '\r?\n$'
+    $lines = @($Content -split '\r?\n')
+    if ($hasTrailingNewline -and $lines.Count -gt 0 -and $lines[-1] -eq "") {
+        $lines = @($lines[0..($lines.Count - 2)])
+    }
+
+    $redirect = '[ \t]+(?:\*>>|>>)[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$'
+    $redirectOnly = '^[ \t]*(?:\*>>|>>)[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$'
+    $errorRedirect = '[ \t]+2>&1[ \t]*$'
+    $errorRedirectOnly = '^[ \t]*2>&1[ \t]*$'
+    $output = [System.Collections.Generic.List[string]]::new()
+    $index = 0
+
+    while ($index -lt $lines.Count) {
+        $blockEnd = $index
+        while (
+            $blockEnd -lt $lines.Count - 1 -and
+            $lines[$blockEnd].TrimEnd().EndsWith('`')
+        ) {
+            $blockEnd++
+        }
+
+        $block = @($lines[$index..$blockEnd])
+        if ($block -match 'residential_push\.py') {
+            $cleaned = [System.Collections.Generic.List[string]]::new()
+            foreach ($line in $block) {
+                $updated = [regex]::Replace($line, $redirect, "")
+                $updated = [regex]::Replace($updated, $redirectOnly, "")
+                $updated = [regex]::Replace($updated, $errorRedirect, "")
+                $updated = [regex]::Replace($updated, $errorRedirectOnly, "")
+                if (-not [string]::IsNullOrWhiteSpace($updated)) {
+                    $cleaned.Add($updated)
+                }
+            }
+            if ($cleaned.Count -gt 0) {
+                $last = $cleaned.Count - 1
+                $cleaned[$last] = [regex]::Replace(
+                    $cleaned[$last],
+                    '[ \t]*`[ \t]*$',
+                    ""
+                )
+            }
+            foreach ($line in $cleaned) {
+                $output.Add($line)
+            }
+        } else {
+            foreach ($line in $block) {
+                $output.Add($line)
+            }
+        }
+        $index = $blockEnd + 1
+    }
+
+    $updatedContent = $output -join "`r`n"
+    if ($hasTrailingNewline) {
+        $updatedContent += "`r`n"
+    }
+    return $updatedContent
+}
+
+function Test-ChildBoundaries {
+    param([string]$Content)
+
+    $tokens = $null
+    $parseErrors = $null
+    [System.Management.Automation.Language.Parser]::ParseInput(
         $Content,
-        '(?m)[ \t]+\*>>[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$',
-        ''
+        [ref]$tokens,
+        [ref]$parseErrors
+    ) | Out-Null
+    $characters = $Content.ToCharArray()
+    foreach ($token in $tokens) {
+        if ($token.Kind -ne [System.Management.Automation.Language.TokenKind]::Comment) {
+            continue
+        }
+        for (
+            $offset = $token.Extent.StartOffset
+            $offset -lt $token.Extent.EndOffset
+            $offset++
+        ) {
+            if ($characters[$offset] -notin "`r", "`n") {
+                $characters[$offset] = ' '
+            }
+        }
+    }
+    $code = -join $characters
+
+    $writer = '(?:Write-[A-Za-z]+|Add-Content|Set-Content|Out-File|Tee-Object|AppendAllText)'
+    $startPattern = "(?im)^(?=[^\r\n]*$writer)[^\r\n]*\bstart\b[^\r\n]*$"
+    $exitPattern = "(?im)^(?=[^\r\n]*$writer)[^\r\n]*exit\s*=[^\r\n]*$"
+    return (
+        [regex]::IsMatch($code, $startPattern) -and
+        [regex]::IsMatch($code, $exitPattern)
     )
-    $updated = [regex]::Replace(
-        $updated,
-        '(?m)[ \t]+>>[ \t]+(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s\r\n]+)[ \t]*$',
-        ''
-    )
-    return [regex]::Replace($updated, '(?m)[ \t]+2>&1[ \t]*$', '')
 }
 
 if (-not $managedV2) {
@@ -60,12 +148,16 @@ if (-not $managedV2) {
     Set-Content -LiteralPath $commandRunner -Value $commandSource -Encoding UTF8 -NoNewline
 }
 
+$childSource = Get-Content -LiteralPath $commandRunner -Raw -ErrorAction Stop
+$writeBoundaries = -not (Test-ChildBoundaries $childSource)
+$boundaryLiteral = if ($writeBoundaries) { '$true' } else { '$false' }
 $maxLogBytes = $MaxLogSizeMB * 1MB
 $escapedCommandRunner = $commandRunner.Replace("'", "''")
 $template = @'
 # TVPI managed logging v2
 $logPath = Join-Path $PSScriptRoot "push.log"
 $commandRunner = '__COMMAND_RUNNER__'
+$writeBoundaries = __WRITE_BOUNDARIES__
 $maxLogBytes = __MAX_LOG_BYTES__
 $logBackups = __LOG_BACKUPS__
 $utf8 = [System.Text.UTF8Encoding]::new($false)
@@ -104,7 +196,9 @@ function Write-LogLine {
 }
 
 Rotate-Log
-Write-LogLine "start"
+if ($writeBoundaries) {
+    Write-LogLine "start"
+}
 $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
 & $powerShell `
     -NoLogo `
@@ -115,11 +209,14 @@ $powerShell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
         Write-LogLine ([string]$_)
     }
 $exitCode = $LASTEXITCODE
-Write-LogLine "exit=$exitCode"
+if ($writeBoundaries) {
+    Write-LogLine "exit=$exitCode"
+}
 exit $exitCode
 '@
 
 $updated = $template.Replace("__COMMAND_RUNNER__", $escapedCommandRunner)
+$updated = $updated.Replace("__WRITE_BOUNDARIES__", $boundaryLiteral)
 $updated = $updated.Replace("__MAX_LOG_BYTES__", [string]$maxLogBytes)
 $updated = $updated.Replace("__LOG_BACKUPS__", [string]$LogBackups)
 Set-Content -LiteralPath $runner -Value $updated -Encoding UTF8 -NoNewline
