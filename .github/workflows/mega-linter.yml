@@ -6,6 +6,8 @@ name: MegaLinter
 on: # yamllint disable-line rule:truthy
   push:
     branches: [main]
+    paths-ignore:
+      - "streams/**"
   pull_request: null
 
 concurrency:
