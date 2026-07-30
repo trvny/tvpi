@@ -7,10 +7,9 @@
   "workers_dev": true,
   "preview_urls": false,
 
-  // Global last-known-good store (L3a). WRITTEN ONLY BY THE CRON (see
-  // scheduled()). Replaces the former KV namespace: D1's free tier is ~100k
-  // row-writes/day vs KV's ~1k, so the cron can refresh the LKG every run
-  // (576/day at */20) and the row stays a trusted, genuinely-fresh fallback.
+  // Global last-known-good store (L3a). The Polish residential pusher writes
+  // fresh URLs here through /push; request-time resolution only reads them.
+  // D1's free tier leaves ample room for the nine-channel push cadence.
   // Read-path freshness is enforced in code (LKG_MAX_AGE_MS), since D1 has no
   // native TTL. DB created + migration 0001 applied to the remote already.
   "d1_databases": [
@@ -22,20 +21,15 @@
     }
   ],
 
-  // L3c mirror. WRITTEN ONLY BY THE CRON (see scheduled()). Survives the repo
-  // going private, unlike the raw.githubusercontent.com fallback. R2 free tier
-  // is 1M Class-A writes/month; 72 runs/day × 8 channels ≈ 17.3k/month.
+  // Manifest and playlist mirror written by the residential pusher. R2 keeps
+  // the latest pushed material available independently of the git mirror.
   "r2_buckets": [
     { "binding": "MIRROR", "bucket_name": "tvpi-mirror" }
   ],
 
-  // */20 = every 20 min. The D1 free tier lets the cron run this often (576
-  // row-writes/day) where the old KV cap (1k/day) held it to */30. Fresher cron
-  // ⇒ fresher last-known-good token (TVP tokens die in ~15–30 min). Distinct
-  // from the */15 GitHub Actions mirror cron in refresh.yml.
-  "triggers": {
-    "crons": ["*/20 * * * *"]
-  },
+  // No Worker cron: Cloudflare infrastructure is geo-blocked for almost every
+  // TVP channel, so scheduled refreshes mostly generated guaranteed failures.
+  // Residential push is the writer; TVP Info can still resolve live on request.
 
   "observability": {
     "enabled": true,
