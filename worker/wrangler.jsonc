@@ -27,9 +27,11 @@
     { "binding": "MIRROR", "bucket_name": "tvpi-mirror" }
   ],
 
-  // No Worker cron: Cloudflare infrastructure is geo-blocked for almost every
-  // TVP channel, so scheduled refreshes mostly generated guaranteed failures.
+  // An explicit empty list removes the already-deployed */20 schedule.
   // Residential push is the writer; TVP Info can still resolve live on request.
+  "triggers": {
+    "crons": []
+  },
 
   "observability": {
     "enabled": true,
