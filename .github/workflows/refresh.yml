@@ -4,16 +4,13 @@ on:
   schedule:
     # Every 15 min. TVP signs HLS tokens with a ~15–30 min lifetime, so a
     # 30-min cadence guarantees a dead window near the end of each cycle.
-    # 15 min keeps tokens fresh; note GitHub throttles frequent schedules and
-    # may still delay runs under load, so this narrows the gap rather than
-    # eliminating it. The Cloudflare Worker (request-time resolution) is the
-    # fully self-healing path — see README.
-    - cron: "*/15 * * * *"
+    # GitHub may delay scheduled runs under load; using off-peak minutes
+    # reduces contention without changing the cadence.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: refresh-tvp
@@ -25,16 +22,6 @@ jobs:
     timeout-minutes: 10
 
     steps:
-
-      - name: Keep workflow alive
-        # Scheduled workflows are auto-disabled after 60 days of repo
-        # inactivity; re-enabling on every run prevents that.
-        run: |
-          curl -s -X PUT \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/refresh.yml/enable"
-
       - name: Checkout repo
         # zizmor: ignore[artipacked] this job commits & pushes refreshed streams, so it needs persisted creds
         uses: actions/checkout@v7
