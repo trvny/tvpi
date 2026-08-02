@@ -20,15 +20,6 @@ jobs:
     runs-on: ubuntu-slim
     timeout-minutes: 5
     steps:
-      - name: Keep workflow alive
-        # Scheduled workflows are auto-disabled after 60 days of repo
-        # inactivity; re-enabling on every run prevents that.
-        run: |
-          curl -s -X PUT \
-            -H "Authorization: Bearer ${{ github.token }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/refresh.yml/enable"
-
       - name: Disable Pages previews
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
