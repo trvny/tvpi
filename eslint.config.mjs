@@ -12,25 +12,30 @@
 // in .github/workflows/deploy.yml already type-checks it against its own
 // tsconfig — a second, weaker opinion would only add noise.
 
-const workerGlobals = {
-  // Fetch/runtime API exposed to Cloudflare Workers and Pages Functions
-  Response: "readonly",
-  Request: "readonly",
-  Headers: "readonly",
-  URL: "readonly",
-  URLSearchParams: "readonly",
-  fetch: "readonly",
-  HTMLRewriter: "readonly",
-  AbortController: "readonly",
-  TextEncoder: "readonly",
-  TextDecoder: "readonly",
-  crypto: "readonly",
-  caches: "readonly",
-  console: "readonly",
-  setTimeout: "readonly",
-  clearTimeout: "readonly",
-  addEventListener: "readonly",
-};
+// The list is deliberately broader than what functions/ uses today. With
+// no-undef on and no `globals` package to import, a Function added later that
+// reaches for a standard Workers API would otherwise fail lint with a
+// misleading "X is not defined" instead of a real correctness signal.
+const workerGlobals = Object.fromEntries(
+  [
+    // Fetch / HTTP
+    "Response", "Request", "Headers", "URL", "URLSearchParams", "fetch",
+    "FormData", "Blob", "File",
+    // Cloudflare-specific
+    "HTMLRewriter", "WebSocketPair", "caches",
+    // Streams
+    "ReadableStream", "WritableStream", "TransformStream",
+    // Encoding
+    "TextEncoder", "TextDecoder", "atob", "btoa", "crypto",
+    // Timers and scheduling
+    "setTimeout", "clearTimeout", "setInterval", "clearInterval",
+    "queueMicrotask", "scheduler",
+    // Events and misc
+    "AbortController", "AbortSignal", "Event", "EventTarget", "WebSocket",
+    "DOMException", "structuredClone", "performance", "navigator", "console",
+    "addEventListener", "removeEventListener",
+  ].map((name) => [name, "readonly"]),
+);
 
 export default [
   {
