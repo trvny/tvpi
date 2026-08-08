@@ -17,10 +17,3 @@ updates:
     groups:
       worker-toolchain:
         patterns: ["*"]
-
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule: { interval: weekly }
-    groups:
-      pip:
-        patterns: ["*"]
