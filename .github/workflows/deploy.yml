@@ -21,7 +21,8 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  check-deploy:
+    name: Check and deploy Worker
     runs-on: ubuntu-slim
     timeout-minutes: 5
     steps:
