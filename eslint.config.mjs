@@ -38,7 +38,10 @@ export default [
     ignores: ["worker/**", "streams/**", "site/**", "node_modules/**"],
   },
   {
-    files: ["functions/**/*.js"],
+    // This config file is matched too. eslint 9 warns "no matching
+    // configuration" for any file it is handed but no block covers, and
+    // MegaLinter hands it over whenever it changes.
+    files: ["functions/**/*.js", "*.mjs"],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: "module",

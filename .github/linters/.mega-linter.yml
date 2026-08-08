@@ -39,9 +39,14 @@ DISABLE_LINTERS:
   - JSX_ESLINT
   - TSX_ESLINT
 
-# Activates JAVASCRIPT_PRETTIER. The default (`standard`) skips it entirely,
-# which is half of why no JavaScript linter ran here at all.
-JAVASCRIPT_DEFAULT_STYLE: prettier
+# JAVASCRIPT_PRETTIER is deliberately NOT switched on (it would need
+#   JAVASCRIPT_DEFAULT_STYLE: prettier). 34 lines across functions/ are longer
+#   than prettier's default 80-column width and there is no .prettierrc here to
+#   pin a wider one, so enabling it would turn a formatting preference into a
+#   red main - the exact thing this commit is clearing. Correctness is what was
+#   actually missing, and JAVASCRIPT_ES covers that. If the formatting pass is
+#   wanted later, add a .prettierrc with the width this code is really written
+#   to and flip the style in the same commit.
 
 # djlint waivers, each one measured against this site rather than assumed:
 # H020 "empty tag pair" - the 14 hits are placeholders (#tvchips, #rows,
