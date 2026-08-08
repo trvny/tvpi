@@ -69,4 +69,8 @@ ACTION_ZIZMOR_ARGUMENTS:
   - "--offline"
   - "--min-severity=low"
 
-FILTER_REGEX_EXCLUDE: "(package-lock\\.json|streams/.*\\.m3u|favicon\\.ico)"
+# favicon is anchored with $ on purpose. Unanchored it also matched
+# functions/favicon.ico.js, so that Pages Function was being skipped by every
+# linter — the first eslint run on main analysed 3 of the 4 files in functions/
+# and nobody would have noticed the fourth was simply never looked at.
+FILTER_REGEX_EXCLUDE: "(package-lock\\.json|streams/.*\\.m3u|favicon\\.ico$)"
