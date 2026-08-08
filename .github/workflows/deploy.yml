@@ -6,10 +6,15 @@ on:
     paths:
       - "worker/**"
       - ".github/workflows/deploy.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 concurrency:
-  group: deploy-tvpi-worker
+  group: deploy-tvpi-worker-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -21,6 +26,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Disable Pages previews
+        if: github.event_name != 'pull_request'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -51,6 +57,7 @@ jobs:
         working-directory: worker
 
       - name: Deploy
+        if: github.event_name != 'pull_request'
         run: npx wrangler deploy
         working-directory: worker
         env:
