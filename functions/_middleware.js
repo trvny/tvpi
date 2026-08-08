@@ -13,6 +13,16 @@ const CHANNELS = [
 const TV_WORKER = "https://tvpi.travny.workers.dev";
 const WEATHER_STATE = "https://weather.travny.workers.dev/state.json";
 
+// The hub moved from tvpi.pages.dev to travny.pages.dev on 2026-08-08. Both
+// Pages projects build from this same repository and the same site/ output, so
+// the old host cannot be retired with a _redirects file — that file would apply
+// to the new site too. Matching on the Host header keeps one codebase serving
+// both: the old project answers only with a redirect, the new one serves pages.
+// Matching is exact, so per-deployment aliases (<hash>.tvpi.pages.dev) are left
+// alone; redirecting those would point at a hash that does not exist elsewhere.
+const LEGACY_HOST = "tvpi.pages.dev";
+const CANONICAL_HOST = "travny.pages.dev";
+
 const PAGE_META = {
   home: {
     title: "TRAVNY: TVP IPTV, pogoda Chrzanów i feedy RSS",
@@ -24,7 +34,7 @@ const PAGE_META = {
       "@type": "WebSite",
       name: "TRAVNY",
       alternateName: "TRAVNY Telegazeta",
-      url: "https://tvpi.pages.dev/",
+      url: "https://travny.pages.dev/",
       inLanguage: "pl-PL",
       description:
         "Hub z playlistami TVP IPTV, pogodą dla Chrzanowa i Kościelca oraz feedami RSS.",
@@ -39,7 +49,7 @@ const PAGE_META = {
       "@context": "https://schema.org",
       "@type": "WebApplication",
       name: "TVPI",
-      url: "https://tvpi.pages.dev/tv/",
+      url: "https://travny.pages.dev/tv/",
       applicationCategory: "MultimediaApplication",
       operatingSystem: "Any",
       inLanguage: "pl-PL",
@@ -258,6 +268,15 @@ function identifyPage(pathname) {
 
 export async function onRequest(context) {
   const url = new URL(context.request.url);
+
+  // Permanent, path- and query-preserving move. 301 (not 302) is what lets
+  // Search Console transfer ranking signals to the new host; Google asks for
+  // these redirects to stay up at least a year after the move.
+  if (url.hostname === LEGACY_HOST) {
+    url.hostname = CANONICAL_HOST;
+    return Response.redirect(url.toString(), 301);
+  }
+
   const page = identifyPage(url.pathname);
 
   if (context.request.method !== "GET" || !page) {

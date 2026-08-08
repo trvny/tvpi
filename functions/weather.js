@@ -1,6 +1,6 @@
 // GET /weather  →  proxies weather.travny.workers.dev/state.json
 // The upstream worker sends no CORS header, so a browser fetch from
-// tvpi.pages.dev is blocked. This same-origin Pages Function re-serves the
+// travny.pages.dev is blocked. This same-origin Pages Function re-serves the
 // JSON with Access-Control-Allow-Origin:* and a short edge cache.
 //
 // NOTE: this file must live at repo-root /functions/, NOT /site/functions/.
