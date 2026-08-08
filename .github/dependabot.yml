@@ -18,9 +18,9 @@ updates:
       worker-toolchain:
         patterns: ["*"]
 
-  - package-ecosystem: "uv"
+  - package-ecosystem: "pip"
     directory: "/"
     schedule: { interval: weekly }
     groups:
-      uv:
+      pip:
         patterns: ["*"]
