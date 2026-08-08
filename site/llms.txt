@@ -1,13 +1,13 @@
 # TRAVNY hub / TVP Live IPTV
 
-> TVPI is the landing hub for a small family of public tools: live Polish public television, a local weather dashboard, self-updating feeds, and two browser-based workbenches. The hub itself also publishes ready-to-use TVP M3U/HLS playlists.
+> TRAVNY is the landing hub for a small family of public tools: live Polish public television, a local weather dashboard, self-updating feeds, and two browser-based workbenches. The hub itself also publishes ready-to-use TVP M3U/HLS playlists.
 
 Use the sections below to choose the right service instead of treating the homepage as only an IPTV player.
 
 ## Hub map
 
-- [TVPI homepage](https://tvpi.pages.dev/): visual hub and TVP channel directory
-- [TV player](https://tvpi.pages.dev/tv/): browser playback for the current TVP streams
+- [TRAVNY homepage](https://travny.pages.dev/): visual hub and TVP channel directory
+- [TV player](https://travny.pages.dev/tv/): browser playback for the current TVP streams
 - [Weather](https://weather.travny.workers.dev/): multi-source local weather ensemble for Kościelec in Chrzanów, including temperature, wind, humidity, air quality and pollen
 - [Feeds](https://trvny.github.io/feeds/): self-updating Atom/RSS directory with 55+ feeds regenerated every two hours; [LLM guide](https://trvny.github.io/feeds/llms.txt)
 - [Streambench](https://streambench.travny.workers.dev/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.travny.workers.dev/llms.txt)
@@ -44,9 +44,9 @@ Use for creating and scanning QR codes and barcodes. Processing is designed to s
 
 ## Discovery files
 
-- [Sitemap](https://tvpi.pages.dev/sitemap.xml)
-- [Robots policy](https://tvpi.pages.dev/robots.txt)
-- [Web manifest](https://tvpi.pages.dev/site.webmanifest)
+- [Sitemap](https://travny.pages.dev/sitemap.xml)
+- [Robots policy](https://travny.pages.dev/robots.txt)
+- [Web manifest](https://travny.pages.dev/site.webmanifest)
 
 ## Source and documentation
 

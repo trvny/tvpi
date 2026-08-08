@@ -26,6 +26,10 @@ jobs:
     runs-on: ubuntu-slim
     timeout-minutes: 5
     steps:
+      # Only the live project is asserted here. The retired tvpi project still
+      # builds from this repo so it keeps serving the 301, but its config is
+      # already final — naming it would only turn its eventual deletion into a
+      # workflow failure.
       - name: Disable Pages previews
         if: github.event_name != 'pull_request'
         env:
@@ -35,7 +39,7 @@ jobs:
           curl --fail-with-body --silent --show-error \
             --retry 3 --retry-all-errors \
             --request PATCH \
-            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/tvpi" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/travny" \
             --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             --header "Content-Type: application/json" \
             --data '{"source":{"type":"github","config":{"owner":"trvny","owner_id":"120686325","repo_name":"tvpi","repo_id":"1248425876","production_branch":"main","production_deployments_enabled":true,"preview_deployment_setting":"none","pr_comments_enabled":false,"path_includes":["site/*","functions/*"],"path_excludes":[]}}}'

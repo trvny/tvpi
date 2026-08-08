@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tvpi.pages.dev/sitemap.xml
+Sitemap: https://travny.pages.dev/sitemap.xml
