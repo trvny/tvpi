@@ -30,16 +30,28 @@ $credentialPath = Join-Path $installDirectory "push-token.clixml"
 $runnerPath = Join-Path $installDirectory "run-tvpi.ps1"
 $launcherPath = Join-Path $installDirectory "run-tvpi-hidden.exe"
 
+$existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+if ($existingTask -and $existingTask.State -eq "Running") {
+    Stop-ScheduledTask -TaskName $TaskName -ErrorAction Stop
+    for ($attempt = 0; $attempt -lt 20; $attempt++) {
+        Start-Sleep -Milliseconds 250
+        $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction Stop
+        if ($existingTask.State -ne "Running") {
+            break
+        }
+    }
+}
+
 Copy-Item -LiteralPath $exeSource -Destination $exePath -Force
 Copy-Item -LiteralPath $configureSource -Destination $configurePath -Force
 
 Write-Host "TVPI residential push installer"
 Write-Host "The push token is encrypted for this Windows user with DPAPI."
 $secureToken = Read-Host "TVPI push token" -AsSecureString
-$credential = New-Object System.Management.Automation.PSCredential("tvpi", $secureToken)
-if ([string]::IsNullOrWhiteSpace($credential.GetNetworkCredential().Password)) {
+if ($secureToken.Length -eq 0) {
     throw "Push token cannot be empty."
 }
+$credential = New-Object System.Management.Automation.PSCredential("tvpi", $secureToken)
 $credential | Export-Clixml -LiteralPath $credentialPath -Force
 
 $runnerContent = @'
@@ -50,13 +62,21 @@ $env:TVPI_PUSH_TOKEN = $credential.GetNetworkCredential().Password
 $env:TVPI_STATE_FILE = Join-Path $baseDirectory "state.json"
 $logPath = Join-Path $baseDirectory "last-run.log"
 $exePath = Join-Path $baseDirectory "tvpi-residential-push.exe"
+$exitCode = 1
+$previousPreference = $ErrorActionPreference
 
 try {
+    $ErrorActionPreference = "Continue"
+    $LASTEXITCODE = $null
     & $exePath *> $logPath
-    exit $LASTEXITCODE
+    if ($null -ne $LASTEXITCODE) {
+        $exitCode = $LASTEXITCODE
+    }
 } finally {
+    $ErrorActionPreference = $previousPreference
     Remove-Item Env:\TVPI_PUSH_TOKEN -ErrorAction SilentlyContinue
 }
+exit $exitCode
 '@
 Set-Content -LiteralPath $runnerPath -Value $runnerContent -Encoding UTF8
 
