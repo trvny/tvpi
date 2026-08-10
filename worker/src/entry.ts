@@ -69,16 +69,18 @@ async function credentialId(token: string): Promise<string> {
 }
 
 async function authorizeVolunteer(request: Request, env: Env): Promise<Request> {
-  const auth = request.headers.get("Authorization") ?? "";
+  const headers = new Headers(request.headers);
+  headers.delete("X-TVPI-Volunteer");
+
+  const auth = headers.get("Authorization") ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length) : "";
-  if (!token) return request;
+  if (!token.startsWith("v1_")) return new Request(request, { headers });
 
   const id = await credentialId(token);
-  if (!APPROVED_VOLUNTEER_IDS.has(id) || !env.PUSH_TOKEN) return request;
-
-  const headers = new Headers(request.headers);
-  headers.set("Authorization", `Bearer ${env.PUSH_TOKEN}`);
-  headers.set("X-TVPI-Volunteer", id);
+  if (APPROVED_VOLUNTEER_IDS.has(id) && env.PUSH_TOKEN) {
+    headers.set("Authorization", `Bearer ${env.PUSH_TOKEN}`);
+    headers.set("X-TVPI-Volunteer", id);
+  }
   return new Request(request, { headers });
 }
 
