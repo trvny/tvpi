@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/residential_push.py"
+      - "scripts/residential_volunteer.py"
       - "scripts/configure_windows_task.ps1"
       - "scripts/install_residential_push.ps1"
       - "scripts/install_residential_push.cmd"
@@ -32,7 +33,7 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install --disable-pip-version-check pyinstaller
-          pyinstaller --clean --onefile --name tvpi-residential-push scripts/residential_push.py
+          pyinstaller --clean --onefile --name tvpi-residential-push scripts/residential_volunteer.py
 
       - name: Package
         shell: pwsh
@@ -58,9 +59,9 @@ jobs:
         run: |
           $tag = "residential-push-latest"
           $notes = @'
-          Windows x64 residential push helper.
+          Windows x64 residential volunteer for TVPI.
 
-          Extract the ZIP, double-click `install.cmd`, and enter a valid `TVPI_PUSH_TOKEN` once. The installer stores it with Windows DPAPI for the current user and creates a hidden scheduled task that refreshes TVPI every 12 minutes.
+          Extract the ZIP and double-click `install.cmd`. No TVPI token or account is required. The installer creates a hidden scheduled task that refreshes TVPI from your residential connection every 12 minutes.
           '@
           Set-Content -Path release-notes.md -Value $notes -Encoding UTF8
 
@@ -78,5 +79,5 @@ jobs:
           gh release create $tag `
             tvpi-residential-push-windows-x64.zip `
             --target $env:GITHUB_SHA `
-            --title "TVPI residential push" `
+            --title "TVPI residential volunteer" `
             --notes-file release-notes.md
