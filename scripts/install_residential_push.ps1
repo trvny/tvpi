@@ -7,6 +7,18 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Get-VolunteerId([string]$Token) {
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($Token)
+        return ($sha256.ComputeHash($tokenBytes) | ForEach-Object {
+            $_.ToString("x2")
+        }) -join ""
+    } finally {
+        $sha256.Dispose()
+    }
+}
+
 if ($PSVersionTable.PSEdition -ne "Desktop") {
     throw "Run this installer with Windows PowerShell 5.1 (powershell.exe)."
 }
@@ -28,6 +40,7 @@ $exePath = Join-Path $installDirectory "tvpi-residential-push.exe"
 $configurePath = Join-Path $installDirectory "configure_windows_task.ps1"
 $credentialPath = Join-Path $installDirectory "push-token.clixml"
 $volunteerIdPath = Join-Path $installDirectory "volunteer-id.txt"
+$volunteerMarkerPath = Join-Path $installDirectory "volunteer-v1.marker"
 $runnerPath = Join-Path $installDirectory "run-tvpi.ps1"
 $launcherPath = Join-Path $installDirectory "run-tvpi-hidden.exe"
 
@@ -61,16 +74,22 @@ if ($newCredential) {
     $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential("tvpi", $secureToken)
     $credential | Export-Clixml -LiteralPath $credentialPath -Force
-
-    $sha256 = [System.Security.Cryptography.SHA256]::Create()
-    try {
-        $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($token)
-        $volunteerId = ($sha256.ComputeHash($tokenBytes) | ForEach-Object {
-            $_.ToString("x2")
-        }) -join ""
-    } finally {
-        $sha256.Dispose()
+    Set-Content -LiteralPath $volunteerMarkerPath -Value "v1" -Encoding ASCII
+    $volunteerId = Get-VolunteerId $token
+    $token = $null
+} elseif (
+    (Test-Path -LiteralPath $volunteerMarkerPath -PathType Leaf) -and
+    -not (Test-Path -LiteralPath $volunteerIdPath -PathType Leaf)
+) {
+    $credential = Import-Clixml -LiteralPath $credentialPath
+    $token = $credential.GetNetworkCredential().Password
+    if ($token.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
+        $volunteerId = Get-VolunteerId $token
     }
+    $token = $null
+}
+
+if ($volunteerId) {
     Set-Content -LiteralPath $volunteerIdPath -Value $volunteerId -Encoding ASCII
     try {
         Set-Clipboard -Value $volunteerId
@@ -78,7 +97,6 @@ if ($newCredential) {
     } catch {
         # Clipboard is optional; the ID is also saved to volunteer-id.txt.
     }
-    $token = $null
 }
 
 $runnerContent = @'
@@ -118,7 +136,7 @@ Start-ScheduledTask -TaskName $TaskName -ErrorAction Stop
 Write-Host ""
 Write-Host "Installed in: $installDirectory"
 Write-Host "Scheduled every $IntervalMinutes minutes and started once now."
-if ($newCredential) {
+if ($volunteerId) {
     Write-Host ""
     if ($clipboardCopied) {
         Write-Host "Volunteer ID (copied to clipboard):"
