@@ -80,6 +80,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           tag="residential-push-latest"
           cat > release-notes.md <<'EOF'
