@@ -21,6 +21,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v6
         with:
@@ -65,7 +67,7 @@ jobs:
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release delete $tag --yes
-            git push origin ":refs/tags/$tag"
+            gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/tags/$tag"
           }
 
           gh release create $tag `
