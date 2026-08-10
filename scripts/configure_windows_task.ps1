@@ -2,7 +2,9 @@
 param(
     [string]$TaskName = "TVPI residential push",
     [string]$RunnerPath = "C:\tvpi\run-tvpi.ps1",
-    [string]$LauncherPath = ""
+    [string]$LauncherPath = "",
+    [ValidateRange(5, 1440)]
+    [int]$IntervalMinutes = 12
 )
 
 $resolvedRunner = Resolve-Path -LiteralPath $RunnerPath -ErrorAction Stop
@@ -130,6 +132,11 @@ $action = New-ScheduledTaskAction `
     -Execute $resolvedLauncher `
     -Argument $arguments `
     -WorkingDirectory $runnerDirectory
+$trigger = New-ScheduledTaskTrigger `
+    -Once `
+    -At (Get-Date).AddMinutes(1) `
+    -RepetitionInterval (New-TimeSpan -Minutes $IntervalMinutes) `
+    -RepetitionDuration (New-TimeSpan -Days 3650)
 $settings = New-ScheduledTaskSettingsSet `
     -Hidden `
     -StartWhenAvailable `
@@ -139,10 +146,24 @@ $settings = New-ScheduledTaskSettingsSet `
     -RestartCount 1 `
     -RestartInterval (New-TimeSpan -Minutes 1)
 
-Set-ScheduledTask `
-    -TaskName $TaskName `
-    -Action $action `
-    -Settings $settings `
-    -ErrorAction Stop | Out-Null
+$existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+if ($existing) {
+    Set-ScheduledTask `
+        -TaskName $TaskName `
+        -Action $action `
+        -Trigger $trigger `
+        -Settings $settings `
+        -ErrorAction Stop | Out-Null
+    $verb = "Updated"
+} else {
+    Register-ScheduledTask `
+        -TaskName $TaskName `
+        -Action $action `
+        -Trigger $trigger `
+        -Settings $settings `
+        -Description "Refresh TVPI stream manifests from a residential connection." `
+        -ErrorAction Stop | Out-Null
+    $verb = "Created"
+}
 
-Write-Host "Updated '$TaskName': no-console launcher enabled at '$resolvedLauncher'."
+Write-Host "$verb '$TaskName': every $IntervalMinutes minutes via '$resolvedLauncher'."
