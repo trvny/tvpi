@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - "scripts/residential_push.py"
-      - "scripts/residential_volunteer.py"
       - "scripts/configure_windows_task.ps1"
       - "scripts/install_residential_push.ps1"
       - "scripts/install_residential_push.cmd"
@@ -14,7 +13,6 @@ on:
     branches: [main]
     paths:
       - "scripts/residential_push.py"
-      - "scripts/residential_volunteer.py"
       - "scripts/configure_windows_task.ps1"
       - "scripts/install_residential_push.ps1"
       - "scripts/install_residential_push.cmd"
@@ -42,7 +40,7 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install --disable-pip-version-check pyinstaller
-          pyinstaller --clean --onefile --name tvpi-residential-push scripts/residential_volunteer.py
+          pyinstaller --clean --onefile --name tvpi-residential-push scripts/residential_push.py
 
       - name: Package
         shell: pwsh
@@ -70,7 +68,7 @@ jobs:
           $notes = @'
           Windows x64 residential volunteer for TVPI.
 
-          Extract the ZIP and double-click `install.cmd`. No TVPI token or account is required. The installer creates a hidden scheduled task that refreshes TVPI from your residential connection every 12 minutes.
+          Extract the ZIP and double-click `install.cmd`. New installations generate a unique local credential and show a public `Volunteer ID`; send that ID for one-time approval. The private credential stays DPAPI-protected on that PC. Existing installations keep their credential. The scheduled task refreshes every 12 minutes.
           '@
           Set-Content -Path release-notes.md -Value $notes -Encoding UTF8
 
