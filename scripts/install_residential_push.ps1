@@ -26,9 +26,10 @@ New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
 
 $exePath = Join-Path $installDirectory "tvpi-residential-push.exe"
 $configurePath = Join-Path $installDirectory "configure_windows_task.ps1"
+$credentialPath = Join-Path $installDirectory "push-token.clixml"
+$volunteerIdPath = Join-Path $installDirectory "volunteer-id.txt"
 $runnerPath = Join-Path $installDirectory "run-tvpi.ps1"
 $launcherPath = Join-Path $installDirectory "run-tvpi-hidden.exe"
-$oldCredentialPath = Join-Path $installDirectory "push-token.clixml"
 
 $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 if ($existingTask -and $existingTask.State -eq "Running") {
@@ -44,11 +45,47 @@ if ($existingTask -and $existingTask.State -eq "Running") {
 
 Copy-Item -LiteralPath $exeSource -Destination $exePath -Force
 Copy-Item -LiteralPath $configureSource -Destination $configurePath -Force
-Remove-Item -LiteralPath $oldCredentialPath -Force -ErrorAction SilentlyContinue
+
+$newCredential = -not (Test-Path -LiteralPath $credentialPath -PathType Leaf)
+if ($newCredential) {
+    $bytes = New-Object byte[] 32
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $rng.GetBytes($bytes)
+    } finally {
+        $rng.Dispose()
+    }
+    $token = [Convert]::ToBase64String($bytes)
+    $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential("tvpi", $secureToken)
+    $credential | Export-Clixml -LiteralPath $credentialPath -Force
+} else {
+    $credential = Import-Clixml -LiteralPath $credentialPath
+    $token = $credential.GetNetworkCredential().Password
+}
+
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+try {
+    $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($token)
+    $volunteerId = ($sha256.ComputeHash($tokenBytes) | ForEach-Object {
+        $_.ToString("x2")
+    }) -join ""
+} finally {
+    $sha256.Dispose()
+}
+Set-Content -LiteralPath $volunteerIdPath -Value $volunteerId -Encoding ASCII
+try {
+    Set-Clipboard -Value $volunteerId
+} catch {
+    # Clipboard is optional; the ID is also saved to volunteer-id.txt.
+}
+$token = $null
 
 $runnerContent = @'
 $ErrorActionPreference = "Stop"
 $baseDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$credential = Import-Clixml -LiteralPath (Join-Path $baseDirectory "push-token.clixml")
+$env:TVPI_PUSH_TOKEN = $credential.GetNetworkCredential().Password
 $env:TVPI_STATE_FILE = Join-Path $baseDirectory "state.json"
 $logPath = Join-Path $baseDirectory "last-run.log"
 $exePath = Join-Path $baseDirectory "tvpi-residential-push.exe"
@@ -64,6 +101,7 @@ try {
     }
 } finally {
     $ErrorActionPreference = $previousPreference
+    Remove-Item Env:\TVPI_PUSH_TOKEN -ErrorAction SilentlyContinue
 }
 exit $exitCode
 '@
@@ -78,8 +116,15 @@ Set-Content -LiteralPath $runnerPath -Value $runnerContent -Encoding UTF8
 Start-ScheduledTask -TaskName $TaskName -ErrorAction Stop
 
 Write-Host ""
-Write-Host "TVPI residential volunteer installed in: $installDirectory"
-Write-Host "No TVPI token is required. Scheduled every $IntervalMinutes minutes and started once now."
+Write-Host "Installed in: $installDirectory"
+Write-Host "Scheduled every $IntervalMinutes minutes and started once now."
+if ($newCredential) {
+    Write-Host ""
+    Write-Host "Volunteer ID (copied to clipboard):"
+    Write-Host $volunteerId
+    Write-Host "Send this ID for one-time approval. The private credential never leaves this PC."
+}
+Write-Host "Volunteer ID file: $volunteerIdPath"
 Write-Host "Last run log: $(Join-Path $installDirectory 'last-run.log')"
 Write-Host ""
 Read-Host "Press Enter to close" | Out-Null
