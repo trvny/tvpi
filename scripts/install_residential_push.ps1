@@ -20,6 +20,19 @@ function Get-VolunteerId([string]$Token) {
     }
 }
 
+function New-VolunteerCredential {
+    $bytes = New-Object byte[] 32
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $rng.GetBytes($bytes)
+    } finally {
+        $rng.Dispose()
+    }
+    $token = "v1_" + [Convert]::ToBase64String($bytes)
+    $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
+    return New-Object System.Management.Automation.PSCredential($volunteerUserName, $secureToken)
+}
+
 if ($PSVersionTable.PSEdition -ne "Desktop") {
     throw "Run this installer with Windows PowerShell 5.1 (powershell.exe)."
 }
@@ -59,30 +72,37 @@ if ($existingTask -and $existingTask.State -eq "Running") {
 Copy-Item -LiteralPath $exeSource -Destination $exePath -Force
 Copy-Item -LiteralPath $configureSource -Destination $configurePath -Force
 
-$newCredential = -not (Test-Path -LiteralPath $credentialPath -PathType Leaf)
-$volunteerId = $null
-$clipboardCopied = $false
-if ($newCredential) {
-    $bytes = New-Object byte[] 32
-    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$credential = $null
+if (Test-Path -LiteralPath $credentialPath -PathType Leaf) {
     try {
-        $rng.GetBytes($bytes)
-    } finally {
-        $rng.Dispose()
+        $credential = Import-Clixml -LiteralPath $credentialPath
+        if (-not ($credential -is [System.Management.Automation.PSCredential])) {
+            throw "Stored credential has an unexpected type."
+        }
+        if ($credential.UserName -eq $volunteerUserName) {
+            $savedToken = $credential.GetNetworkCredential().Password
+            if (-not $savedToken.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
+                throw "Stored volunteer credential has an invalid format."
+            }
+            $savedToken = $null
+        }
+    } catch {
+        $backupPath = "$credentialPath.invalid.$(Get-Date -Format 'yyyyMMddHHmmss')"
+        Move-Item -LiteralPath $credentialPath -Destination $backupPath -Force
+        Write-Warning "Existing credential could not be used and was preserved at: $backupPath"
+        $credential = $null
     }
-    $token = "v1_" + [Convert]::ToBase64String($bytes)
-    $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential($volunteerUserName, $secureToken)
-    $credential | Export-Clixml -LiteralPath $credentialPath -Force
-} else {
-    $credential = Import-Clixml -LiteralPath $credentialPath
 }
 
+if (-not $credential) {
+    $credential = New-VolunteerCredential
+    $credential | Export-Clixml -LiteralPath $credentialPath -Force
+}
+
+$volunteerId = $null
+$clipboardCopied = $false
 if ($credential.UserName -eq $volunteerUserName) {
     $token = $credential.GetNetworkCredential().Password
-    if (-not $token.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
-        throw "Invalid volunteer credential format."
-    }
     $volunteerId = Get-VolunteerId $token
     $token = $null
     Set-Content -LiteralPath $volunteerIdPath -Value $volunteerId -Encoding ASCII
