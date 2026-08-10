@@ -24,7 +24,7 @@ jobs:
   check-deploy:
     name: Check and deploy Worker
     runs-on: ubuntu-slim
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       # Only the live project is asserted here. The retired tvpi project still
       # builds from this repo so it keeps serving the 301, but its config is
