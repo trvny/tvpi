@@ -21,10 +21,10 @@ on:
 
 concurrency:
   group: residential-push-release-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -62,33 +62,39 @@ jobs:
           path: tvpi-residential-push-windows-x64.zip
           if-no-files-found: error
 
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: tvpi-residential-push-windows-x64
+          path: .
+
       - name: Publish rolling release
-        if: github.ref == 'refs/heads/main'
-        shell: pwsh
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "residential-push-latest"
-          $notes = @'
+          tag="residential-push-latest"
+          cat > release-notes.md <<'EOF'
           Windows x64 residential volunteer for TVPI.
 
           Extract the ZIP and double-click `install.cmd`. New installations generate a unique local credential and show a public `Volunteer ID`; send that ID for one-time approval. The private credential stays DPAPI-protected on that PC. Existing installations keep their credential. The scheduled task refreshes every 12 minutes.
-          '@
-          Set-Content -Path release-notes.md -Value $notes -Encoding UTF8
+          EOF
 
-          $previousPreference = $ErrorActionPreference
-          $ErrorActionPreference = "Continue"
-          gh release view $tag --json tagName 2>$null | Out-Null
-          $releaseExists = $LASTEXITCODE -eq 0
-          $ErrorActionPreference = $previousPreference
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release delete "$tag" --yes
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag"
+          fi
 
-          if ($releaseExists) {
-            gh release delete $tag --yes
-            gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/tags/$tag"
-          }
-
-          gh release create $tag `
-            tvpi-residential-push-windows-x64.zip `
-            --target $env:GITHUB_SHA `
-            --title "TVPI residential volunteer" `
+          gh release create "$tag" \
+            tvpi-residential-push-windows-x64.zip \
+            --target "$GITHUB_SHA" \
+            --title "TVPI residential volunteer" \
             --notes-file release-notes.md
