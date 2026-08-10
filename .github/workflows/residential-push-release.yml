@@ -1,0 +1,75 @@
+name: Residential push release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/residential_push.py"
+      - "scripts/configure_windows_task.ps1"
+      - "scripts/install_residential_push.ps1"
+      - "scripts/install_residential_push.cmd"
+      - ".github/workflows/residential-push-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Build helper
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check pyinstaller
+          pyinstaller --clean --onefile --name tvpi-residential-push scripts/residential_push.py
+
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path package | Out-Null
+          Copy-Item dist/tvpi-residential-push.exe package/
+          Copy-Item scripts/install_residential_push.cmd package/install.cmd
+          Copy-Item scripts/install_residential_push.ps1 package/
+          Copy-Item scripts/configure_windows_task.ps1 package/
+          Compress-Archive -Path package/* -DestinationPath tvpi-residential-push-windows-x64.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tvpi-residential-push-windows-x64
+          path: tvpi-residential-push-windows-x64.zip
+          if-no-files-found: error
+
+      - name: Publish rolling release
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "residential-push-latest"
+          $notes = @"
+          Windows x64 residential push helper.
+
+          Extract the ZIP, double-click `install.cmd`, and enter a valid `TVPI_PUSH_TOKEN` once. The installer stores it with Windows DPAPI for the current user and creates a hidden scheduled task that refreshes TVPI every 12 minutes.
+          "@
+          Set-Content -Path release-notes.md -Value $notes -Encoding UTF8
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release delete $tag --yes
+            git push origin ":refs/tags/$tag"
+          }
+
+          gh release create $tag `
+            tvpi-residential-push-windows-x64.zip `
+            --target $env:GITHUB_SHA `
+            --title "TVPI residential push" `
+            --notes-file release-notes.md
