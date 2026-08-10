@@ -10,6 +10,15 @@ on:
       - "scripts/install_residential_push.ps1"
       - "scripts/install_residential_push.cmd"
       - ".github/workflows/residential-push-release.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/residential_push.py"
+      - "scripts/residential_volunteer.py"
+      - "scripts/configure_windows_task.ps1"
+      - "scripts/install_residential_push.ps1"
+      - "scripts/install_residential_push.cmd"
+      - ".github/workflows/residential-push-release.yml"
   workflow_dispatch:
 
 permissions:
