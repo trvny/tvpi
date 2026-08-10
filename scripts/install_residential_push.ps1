@@ -47,6 +47,8 @@ Copy-Item -LiteralPath $exeSource -Destination $exePath -Force
 Copy-Item -LiteralPath $configureSource -Destination $configurePath -Force
 
 $newCredential = -not (Test-Path -LiteralPath $credentialPath -PathType Leaf)
+$volunteerId = $null
+$clipboardCopied = $false
 if ($newCredential) {
     $bytes = New-Object byte[] 32
     $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
@@ -55,31 +57,29 @@ if ($newCredential) {
     } finally {
         $rng.Dispose()
     }
-    $token = [Convert]::ToBase64String($bytes)
+    $token = "v1_" + [Convert]::ToBase64String($bytes)
     $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential("tvpi", $secureToken)
     $credential | Export-Clixml -LiteralPath $credentialPath -Force
-} else {
-    $credential = Import-Clixml -LiteralPath $credentialPath
-    $token = $credential.GetNetworkCredential().Password
-}
 
-$sha256 = [System.Security.Cryptography.SHA256]::Create()
-try {
-    $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($token)
-    $volunteerId = ($sha256.ComputeHash($tokenBytes) | ForEach-Object {
-        $_.ToString("x2")
-    }) -join ""
-} finally {
-    $sha256.Dispose()
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($token)
+        $volunteerId = ($sha256.ComputeHash($tokenBytes) | ForEach-Object {
+            $_.ToString("x2")
+        }) -join ""
+    } finally {
+        $sha256.Dispose()
+    }
+    Set-Content -LiteralPath $volunteerIdPath -Value $volunteerId -Encoding ASCII
+    try {
+        Set-Clipboard -Value $volunteerId
+        $clipboardCopied = $true
+    } catch {
+        # Clipboard is optional; the ID is also saved to volunteer-id.txt.
+    }
+    $token = $null
 }
-Set-Content -LiteralPath $volunteerIdPath -Value $volunteerId -Encoding ASCII
-try {
-    Set-Clipboard -Value $volunteerId
-} catch {
-    # Clipboard is optional; the ID is also saved to volunteer-id.txt.
-}
-$token = $null
 
 $runnerContent = @'
 $ErrorActionPreference = "Stop"
@@ -120,11 +120,17 @@ Write-Host "Installed in: $installDirectory"
 Write-Host "Scheduled every $IntervalMinutes minutes and started once now."
 if ($newCredential) {
     Write-Host ""
-    Write-Host "Volunteer ID (copied to clipboard):"
+    if ($clipboardCopied) {
+        Write-Host "Volunteer ID (copied to clipboard):"
+    } else {
+        Write-Host "Volunteer ID:"
+    }
     Write-Host $volunteerId
     Write-Host "Send this ID for one-time approval. The private credential never leaves this PC."
+    Write-Host "Volunteer ID file: $volunteerIdPath"
+} elseif (Test-Path -LiteralPath $volunteerIdPath -PathType Leaf) {
+    Write-Host "Volunteer ID file: $volunteerIdPath"
 }
-Write-Host "Volunteer ID file: $volunteerIdPath"
 Write-Host "Last run log: $(Join-Path $installDirectory 'last-run.log')"
 Write-Host ""
 Read-Host "Press Enter to close" | Out-Null
