@@ -166,4 +166,8 @@ if ($existing) {
     $verb = "Created"
 }
 
+Get-ChildItem -LiteralPath $launcherDirectory -Filter "$launcherName-*.exe" -File |
+    Where-Object { $_.FullName -ne $resolvedLauncher } |
+    Remove-Item -Force -ErrorAction SilentlyContinue
+
 Write-Host "$verb '$TaskName': every $IntervalMinutes minutes via '$resolvedLauncher'."
