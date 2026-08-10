@@ -57,15 +57,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "residential-push-latest"
-          $notes = @"
+          $notes = @'
           Windows x64 residential push helper.
 
           Extract the ZIP, double-click `install.cmd`, and enter a valid `TVPI_PUSH_TOKEN` once. The installer stores it with Windows DPAPI for the current user and creates a hidden scheduled task that refreshes TVPI every 12 minutes.
-          "@
+          '@
           Set-Content -Path release-notes.md -Value $notes -Encoding UTF8
 
-          gh release view $tag *> $null
-          if ($LASTEXITCODE -eq 0) {
+          $previousPreference = $ErrorActionPreference
+          $ErrorActionPreference = "Continue"
+          gh release view $tag --json tagName 2>$null | Out-Null
+          $releaseExists = $LASTEXITCODE -eq 0
+          $ErrorActionPreference = $previousPreference
+
+          if ($releaseExists) {
             gh release delete $tag --yes
             gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/tags/$tag"
           }
