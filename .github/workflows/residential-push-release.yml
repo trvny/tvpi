@@ -19,6 +19,10 @@ on:
       - ".github/workflows/residential-push-release.yml"
   workflow_dispatch:
 
+concurrency:
+  group: residential-push-release-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
