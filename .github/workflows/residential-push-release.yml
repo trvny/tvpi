@@ -95,10 +95,15 @@ jobs:
               --target "$GITHUB_SHA" \
               --title "TVPI residential volunteer" \
               --notes-file release-notes.md
-            gh api --method PATCH \
+            if ! gh api --method PATCH \
               "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
               -f sha="$GITHUB_SHA" \
-              -F force=true >/dev/null
+              -F force=true >/dev/null; then
+              gh api --method POST \
+                "repos/$GITHUB_REPOSITORY/git/refs" \
+                -f ref="refs/tags/$tag" \
+                -f sha="$GITHUB_SHA" >/dev/null
+            fi
           else
             gh release create "$tag" \
               tvpi-residential-push-windows-x64.zip \
