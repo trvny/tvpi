@@ -6,6 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$volunteerUserName = "tvpi-volunteer-v1"
 
 function Get-VolunteerId([string]$Token) {
     $sha256 = [System.Security.Cryptography.SHA256]::Create()
@@ -40,7 +41,6 @@ $exePath = Join-Path $installDirectory "tvpi-residential-push.exe"
 $configurePath = Join-Path $installDirectory "configure_windows_task.ps1"
 $credentialPath = Join-Path $installDirectory "push-token.clixml"
 $volunteerIdPath = Join-Path $installDirectory "volunteer-id.txt"
-$volunteerMarkerPath = Join-Path $installDirectory "volunteer-v1.marker"
 $runnerPath = Join-Path $installDirectory "run-tvpi.ps1"
 $launcherPath = Join-Path $installDirectory "run-tvpi-hidden.exe"
 
@@ -72,21 +72,23 @@ if ($newCredential) {
     }
     $token = "v1_" + [Convert]::ToBase64String($bytes)
     $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential("tvpi", $secureToken)
+    $credential = New-Object System.Management.Automation.PSCredential($volunteerUserName, $secureToken)
     $credential | Export-Clixml -LiteralPath $credentialPath -Force
-    Set-Content -LiteralPath $volunteerMarkerPath -Value "v1" -Encoding ASCII
     $volunteerId = Get-VolunteerId $token
     $token = $null
-} elseif (
-    (Test-Path -LiteralPath $volunteerMarkerPath -PathType Leaf) -and
-    -not (Test-Path -LiteralPath $volunteerIdPath -PathType Leaf)
-) {
+} else {
     $credential = Import-Clixml -LiteralPath $credentialPath
-    $token = $credential.GetNetworkCredential().Password
-    if ($token.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
-        $volunteerId = Get-VolunteerId $token
+    if ($credential.UserName -eq $volunteerUserName) {
+        if (Test-Path -LiteralPath $volunteerIdPath -PathType Leaf) {
+            $volunteerId = (Get-Content -LiteralPath $volunteerIdPath -Raw).Trim()
+        } else {
+            $token = $credential.GetNetworkCredential().Password
+            if ($token.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
+                $volunteerId = Get-VolunteerId $token
+            }
+            $token = $null
+        }
     }
-    $token = $null
 }
 
 if ($volunteerId) {
@@ -145,8 +147,6 @@ if ($volunteerId) {
     }
     Write-Host $volunteerId
     Write-Host "Send this ID for one-time approval. The private credential never leaves this PC."
-    Write-Host "Volunteer ID file: $volunteerIdPath"
-} elseif (Test-Path -LiteralPath $volunteerIdPath -PathType Leaf) {
     Write-Host "Volunteer ID file: $volunteerIdPath"
 }
 Write-Host "Last run log: $(Join-Path $installDirectory 'last-run.log')"
