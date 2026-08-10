@@ -74,24 +74,17 @@ if ($newCredential) {
     $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($volunteerUserName, $secureToken)
     $credential | Export-Clixml -LiteralPath $credentialPath -Force
-    $volunteerId = Get-VolunteerId $token
-    $token = $null
 } else {
     $credential = Import-Clixml -LiteralPath $credentialPath
-    if ($credential.UserName -eq $volunteerUserName) {
-        if (Test-Path -LiteralPath $volunteerIdPath -PathType Leaf) {
-            $volunteerId = (Get-Content -LiteralPath $volunteerIdPath -Raw).Trim()
-        } else {
-            $token = $credential.GetNetworkCredential().Password
-            if ($token.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
-                $volunteerId = Get-VolunteerId $token
-            }
-            $token = $null
-        }
-    }
 }
 
-if ($volunteerId) {
+if ($credential.UserName -eq $volunteerUserName) {
+    $token = $credential.GetNetworkCredential().Password
+    if (-not $token.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
+        throw "Invalid volunteer credential format."
+    }
+    $volunteerId = Get-VolunteerId $token
+    $token = $null
     Set-Content -LiteralPath $volunteerIdPath -Value $volunteerId -Encoding ASCII
     try {
         Set-Clipboard -Value $volunteerId
