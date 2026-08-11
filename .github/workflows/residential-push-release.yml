@@ -8,6 +8,7 @@ on:
       - "scripts/configure_windows_task.ps1"
       - "scripts/install_residential_push.ps1"
       - "scripts/install_residential_push.cmd"
+      - "scripts/install_residential_push_linux.sh"
       - ".github/workflows/residential-push-release.yml"
   pull_request:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - "scripts/configure_windows_task.ps1"
       - "scripts/install_residential_push.ps1"
       - "scripts/install_residential_push.cmd"
+      - "scripts/install_residential_push_linux.sh"
       - ".github/workflows/residential-push-release.yml"
   workflow_dispatch:
 
@@ -27,7 +29,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
     timeout-minutes: 20
 
@@ -62,9 +64,61 @@ jobs:
           path: tvpi-residential-push-windows-x64.zip
           if-no-files-found: error
 
+  build-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            arch: x64
+          - runner: ubuntu-22.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Build helper
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check pyinstaller
+          pyinstaller --clean --onefile --name tvpi-residential-push scripts/residential_push.py
+
+      - name: Smoke test
+        shell: bash
+        run: |
+          bash -n scripts/install_residential_push_linux.sh
+          set +e
+          output="$(./dist/tvpi-residential-push 2>&1)"
+          status=$?
+          set -e
+          test "$status" -eq 1
+          grep -q "TVPI_PUSH_TOKEN not set" <<< "$output"
+
+      - name: Package
+        shell: bash
+        run: |
+          mkdir package
+          install -m 0755 dist/tvpi-residential-push package/tvpi-residential-push
+          install -m 0755 scripts/install_residential_push_linux.sh package/install.sh
+          tar -C package -czf "tvpi-residential-push-linux-${{ matrix.arch }}.tar.gz" .
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tvpi-residential-push-linux-${{ matrix.arch }}
+          path: tvpi-residential-push-linux-${{ matrix.arch }}.tar.gz
+          if-no-files-found: error
+
   publish:
     if: github.ref == 'refs/heads/main'
-    needs: build
+    needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -76,6 +130,16 @@ jobs:
           name: tvpi-residential-push-windows-x64
           path: .
 
+      - uses: actions/download-artifact@v8
+        with:
+          name: tvpi-residential-push-linux-x64
+          path: .
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: tvpi-residential-push-linux-arm64
+          path: .
+
       - name: Publish rolling release
         shell: bash
         env:
@@ -83,6 +147,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           tag="residential-push-latest"
+          assets=(
+            tvpi-residential-push-windows-x64.zip
+            tvpi-residential-push-linux-x64.tar.gz
+            tvpi-residential-push-linux-arm64.tar.gz
+          )
           set_tag_ref() {
             if ! gh api --method PATCH \
               "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
@@ -95,14 +164,17 @@ jobs:
             fi
           }
 
-          cat > release-notes.md <<'EOF'
-          Windows x64 residential volunteer for TVPI.
+          cat > release-notes.md <<'EOF_NOTES'
+          Residential volunteer for TVPI.
 
-          Extract the ZIP and double-click `install.cmd`. New installations generate a unique local credential and show a public `Volunteer ID`; send that ID for one-time approval. The private credential stays DPAPI-protected on that PC. Existing installations keep their credential. The scheduled task refreshes every 12 minutes.
-          EOF
+          Windows x64: extract the ZIP and double-click `install.cmd`.
+          Linux x64/arm64: extract the tarball and run `./install.sh` as your normal user.
+
+          New installations generate a unique local credential and show a public `Volunteer ID`; send that ID for one-time approval. The private credential stays on the machine. Existing installations keep their credential. The scheduled refresh runs every 12 minutes.
+          EOF_NOTES
 
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" tvpi-residential-push-windows-x64.zip --clobber
+            gh release upload "$tag" "${assets[@]}" --clobber
             gh release edit "$tag" \
               --target "$GITHUB_SHA" \
               --title "TVPI residential volunteer" \
@@ -111,7 +183,7 @@ jobs:
           else
             set_tag_ref
             gh release create "$tag" \
-              tvpi-residential-push-windows-x64.zip \
+              "${assets[@]}" \
               --verify-tag \
               --title "TVPI residential volunteer" \
               --notes-file release-notes.md
