@@ -73,6 +73,7 @@ Copy-Item -LiteralPath $exeSource -Destination $exePath -Force
 Copy-Item -LiteralPath $configureSource -Destination $configurePath -Force
 
 $credential = $null
+$credentialReplaced = $false
 if (Test-Path -LiteralPath $credentialPath -PathType Leaf) {
     try {
         $credential = Import-Clixml -LiteralPath $credentialPath
@@ -91,6 +92,7 @@ if (Test-Path -LiteralPath $credentialPath -PathType Leaf) {
         Move-Item -LiteralPath $credentialPath -Destination $backupPath -Force
         Write-Warning "Existing credential could not be used and was preserved at: $backupPath"
         $credential = $null
+        $credentialReplaced = $true
     }
 }
 
@@ -159,7 +161,11 @@ if ($volunteerId) {
         Write-Host "Volunteer ID:"
     }
     Write-Host $volunteerId
-    Write-Host "Send this ID for one-time approval. The private credential never leaves this PC."
+    if ($credentialReplaced) {
+        Write-Warning "A replacement credential was generated. Any previously approved Volunteer ID is no longer valid; send this new ID for approval."
+    } else {
+        Write-Host "Send this ID for one-time approval. The private credential never leaves this PC."
+    }
     Write-Host "Volunteer ID file: $volunteerIdPath"
 }
 Write-Host "Last run log: $(Join-Path $installDirectory 'last-run.log')"
