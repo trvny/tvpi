@@ -168,7 +168,7 @@ jobs:
           Residential volunteer for TVPI.
 
           Windows x64: extract the ZIP and double-click `install.cmd`.
-          Linux x64/arm64: extract the tarball and run `./install.sh` as your normal user.
+          Linux x64/arm64: extract the tarball and run `./install.sh` as your normal user. Linux binaries require glibc 2.35+.
 
           New installations generate a unique local credential and show a public `Volunteer ID`; send that ID for one-time approval. The private credential stays on the machine. Existing installations keep their credential. The scheduled refresh runs every 12 minutes.
           EOF_NOTES
