@@ -9,10 +9,22 @@ on:
       - "scripts/install_residential_push.ps1"
       - "scripts/install_residential_push.cmd"
       - ".github/workflows/residential-push-release.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/residential_push.py"
+      - "scripts/configure_windows_task.ps1"
+      - "scripts/install_residential_push.ps1"
+      - "scripts/install_residential_push.cmd"
+      - ".github/workflows/residential-push-release.yml"
   workflow_dispatch:
 
+concurrency:
+  group: residential-push-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -44,39 +56,63 @@ jobs:
           Copy-Item scripts/configure_windows_task.ps1 package/
           Compress-Archive -Path package/* -DestinationPath tvpi-residential-push-windows-x64.zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: tvpi-residential-push-windows-x64
           path: tvpi-residential-push-windows-x64.zip
           if-no-files-found: error
 
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: tvpi-residential-push-windows-x64
+          path: .
+
       - name: Publish rolling release
-        if: github.ref == 'refs/heads/main'
-        shell: pwsh
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          $tag = "residential-push-latest"
-          $notes = @'
-          Windows x64 residential push helper.
-
-          Extract the ZIP, double-click `install.cmd`, and enter a valid `TVPI_PUSH_TOKEN` once. The installer stores it with Windows DPAPI for the current user and creates a hidden scheduled task that refreshes TVPI every 12 minutes.
-          '@
-          Set-Content -Path release-notes.md -Value $notes -Encoding UTF8
-
-          $previousPreference = $ErrorActionPreference
-          $ErrorActionPreference = "Continue"
-          gh release view $tag --json tagName 2>$null | Out-Null
-          $releaseExists = $LASTEXITCODE -eq 0
-          $ErrorActionPreference = $previousPreference
-
-          if ($releaseExists) {
-            gh release delete $tag --yes
-            gh api --method DELETE "repos/$env:GITHUB_REPOSITORY/git/refs/tags/$tag"
+          tag="residential-push-latest"
+          set_tag_ref() {
+            if ! gh api --method PATCH \
+              "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
+              -f sha="$GITHUB_SHA" \
+              -F force=true >/dev/null 2>&1; then
+              gh api --method POST \
+                "repos/$GITHUB_REPOSITORY/git/refs" \
+                -f ref="refs/tags/$tag" \
+                -f sha="$GITHUB_SHA" >/dev/null
+            fi
           }
 
-          gh release create $tag `
-            tvpi-residential-push-windows-x64.zip `
-            --target $env:GITHUB_SHA `
-            --title "TVPI residential push" `
-            --notes-file release-notes.md
+          cat > release-notes.md <<'EOF'
+          Windows x64 residential volunteer for TVPI.
+
+          Extract the ZIP and double-click `install.cmd`. New installations generate a unique local credential and show a public `Volunteer ID`; send that ID for one-time approval. The private credential stays DPAPI-protected on that PC. Existing installations keep their credential. The scheduled task refreshes every 12 minutes.
+          EOF
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" tvpi-residential-push-windows-x64.zip --clobber
+            gh release edit "$tag" \
+              --target "$GITHUB_SHA" \
+              --title "TVPI residential volunteer" \
+              --notes-file release-notes.md
+            set_tag_ref
+          else
+            set_tag_ref
+            gh release create "$tag" \
+              tvpi-residential-push-windows-x64.zip \
+              --verify-tag \
+              --title "TVPI residential volunteer" \
+              --notes-file release-notes.md
+          fi

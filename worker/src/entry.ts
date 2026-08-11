@@ -4,6 +4,10 @@ const MANIFEST_MAX_AGE_MS = 15 * 60_000;
 const MANIFEST_MAX_BYTES = 512 * 1024;
 const manifestKey = (slug: string): string => `manifests/${slug}.m3u8`;
 
+// SHA-256 IDs of per-runner volunteer credentials. IDs are safe to publish;
+// the random bearer credentials themselves stay DPAPI-protected on each runner.
+const APPROVED_VOLUNTEER_IDS = new Set<string>([]);
+
 const TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
 const PLAYLIST_CHANNELS = [
   { id: "399697", slug: "tvp1", name: "TVP 1 HD", logo: TVP_LOGO, group: "Polska" },
@@ -57,6 +61,29 @@ function pushedManifest(value: unknown): string | null {
   return value.trimStart().startsWith("#EXTM3U") ? value : null;
 }
 
+async function credentialId(token: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function authorizeVolunteer(request: Request, env: Env): Promise<Request> {
+  const headers = new Headers(request.headers);
+  headers.delete("X-TVPI-Volunteer");
+
+  const auth = headers.get("Authorization") ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length) : "";
+  if (!token.startsWith("v1_")) return new Request(request, { headers });
+
+  const id = await credentialId(token);
+  if (APPROVED_VOLUNTEER_IDS.has(id) && env.PUSH_TOKEN) {
+    headers.set("Authorization", `Bearer ${env.PUSH_TOKEN}`);
+    headers.set("X-TVPI-Volunteer", id);
+  }
+  return new Request(request, { headers });
+}
+
 async function readManifest(env: Env, slug: string): Promise<string | null> {
   try {
     const object = await env.MIRROR.get(manifestKey(slug));
@@ -98,15 +125,16 @@ export default {
     const path = url.pathname.replace(/\/$/, "") || "/";
 
     if (request.method === "POST" && path.startsWith("/push/")) {
+      const forwarded = await authorizeVolunteer(request, env);
       let manifest: string | null = null;
       try {
-        const body = (await request.clone().json()) as { manifest?: unknown };
+        const body = (await forwarded.clone().json()) as { manifest?: unknown };
         manifest = pushedManifest(body.manifest);
       } catch {
         // The base Worker returns the canonical invalid-JSON response.
       }
 
-      const response = await worker.fetch(request, env, ctx);
+      const response = await worker.fetch(forwarded, env, ctx);
       if (response.ok) {
         await syncManifest(env, path.slice("/push/".length), manifest);
       }

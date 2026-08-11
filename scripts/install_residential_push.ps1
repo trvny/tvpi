@@ -6,6 +6,32 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$volunteerUserName = "tvpi-volunteer-v1"
+
+function Get-VolunteerId([string]$Token) {
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $tokenBytes = [System.Text.Encoding]::UTF8.GetBytes($Token)
+        return ($sha256.ComputeHash($tokenBytes) | ForEach-Object {
+            $_.ToString("x2")
+        }) -join ""
+    } finally {
+        $sha256.Dispose()
+    }
+}
+
+function New-VolunteerCredential {
+    $bytes = New-Object byte[] 32
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $rng.GetBytes($bytes)
+    } finally {
+        $rng.Dispose()
+    }
+    $token = "v1_" + [Convert]::ToBase64String($bytes)
+    $secureToken = ConvertTo-SecureString $token -AsPlainText -Force
+    return New-Object System.Management.Automation.PSCredential($volunteerUserName, $secureToken)
+}
 
 if ($PSVersionTable.PSEdition -ne "Desktop") {
     throw "Run this installer with Windows PowerShell 5.1 (powershell.exe)."
@@ -27,6 +53,7 @@ New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
 $exePath = Join-Path $installDirectory "tvpi-residential-push.exe"
 $configurePath = Join-Path $installDirectory "configure_windows_task.ps1"
 $credentialPath = Join-Path $installDirectory "push-token.clixml"
+$volunteerIdPath = Join-Path $installDirectory "volunteer-id.txt"
 $runnerPath = Join-Path $installDirectory "run-tvpi.ps1"
 $launcherPath = Join-Path $installDirectory "run-tvpi-hidden.exe"
 
@@ -45,14 +72,49 @@ if ($existingTask -and $existingTask.State -eq "Running") {
 Copy-Item -LiteralPath $exeSource -Destination $exePath -Force
 Copy-Item -LiteralPath $configureSource -Destination $configurePath -Force
 
-Write-Host "TVPI residential push installer"
-Write-Host "The push token is encrypted for this Windows user with DPAPI."
-$secureToken = Read-Host "TVPI push token" -AsSecureString
-if ($secureToken.Length -eq 0) {
-    throw "Push token cannot be empty."
+$credential = $null
+$credentialReplaced = $false
+if (Test-Path -LiteralPath $credentialPath -PathType Leaf) {
+    try {
+        $credential = Import-Clixml -LiteralPath $credentialPath
+        if (-not ($credential -is [System.Management.Automation.PSCredential])) {
+            throw "Stored credential has an unexpected type."
+        }
+        if ($credential.UserName -eq $volunteerUserName) {
+            $savedToken = $credential.GetNetworkCredential().Password
+            if (-not $savedToken.StartsWith("v1_", [System.StringComparison]::Ordinal)) {
+                throw "Stored volunteer credential has an invalid format."
+            }
+            $savedToken = $null
+        }
+    } catch {
+        $backupPath = "$credentialPath.invalid.$(Get-Date -Format 'yyyyMMddHHmmss')"
+        Move-Item -LiteralPath $credentialPath -Destination $backupPath -Force
+        Write-Warning "Existing credential could not be used and was preserved at: $backupPath"
+        $credential = $null
+        $credentialReplaced = $true
+    }
 }
-$credential = New-Object System.Management.Automation.PSCredential("tvpi", $secureToken)
-$credential | Export-Clixml -LiteralPath $credentialPath -Force
+
+if (-not $credential) {
+    $credential = New-VolunteerCredential
+    $credential | Export-Clixml -LiteralPath $credentialPath -Force
+}
+
+$volunteerId = $null
+$clipboardCopied = $false
+if ($credential.UserName -eq $volunteerUserName) {
+    $token = $credential.GetNetworkCredential().Password
+    $volunteerId = Get-VolunteerId $token
+    $token = $null
+    Set-Content -LiteralPath $volunteerIdPath -Value $volunteerId -Encoding ASCII
+    try {
+        Set-Clipboard -Value $volunteerId
+        $clipboardCopied = $true
+    } catch {
+        # Clipboard is optional; the ID is also saved to volunteer-id.txt.
+    }
+}
 
 $runnerContent = @'
 $ErrorActionPreference = "Stop"
@@ -91,6 +153,21 @@ Start-ScheduledTask -TaskName $TaskName -ErrorAction Stop
 Write-Host ""
 Write-Host "Installed in: $installDirectory"
 Write-Host "Scheduled every $IntervalMinutes minutes and started once now."
+if ($volunteerId) {
+    Write-Host ""
+    if ($clipboardCopied) {
+        Write-Host "Volunteer ID (copied to clipboard):"
+    } else {
+        Write-Host "Volunteer ID:"
+    }
+    Write-Host $volunteerId
+    if ($credentialReplaced) {
+        Write-Warning "A replacement credential was generated. Any previously approved Volunteer ID is no longer valid; send this new ID for approval."
+    } else {
+        Write-Host "Send this ID for one-time approval. The private credential never leaves this PC."
+    }
+    Write-Host "Volunteer ID file: $volunteerIdPath"
+}
 Write-Host "Last run log: $(Join-Path $installDirectory 'last-run.log')"
 Write-Host ""
 Read-Host "Press Enter to close" | Out-Null
