@@ -83,6 +83,18 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           tag="residential-push-latest"
+          set_tag_ref() {
+            if ! gh api --method PATCH \
+              "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
+              -f sha="$GITHUB_SHA" \
+              -F force=true >/dev/null 2>&1; then
+              gh api --method POST \
+                "repos/$GITHUB_REPOSITORY/git/refs" \
+                -f ref="refs/tags/$tag" \
+                -f sha="$GITHUB_SHA" >/dev/null
+            fi
+          }
+
           cat > release-notes.md <<'EOF'
           Windows x64 residential volunteer for TVPI.
 
@@ -95,19 +107,12 @@ jobs:
               --target "$GITHUB_SHA" \
               --title "TVPI residential volunteer" \
               --notes-file release-notes.md
-            if ! gh api --method PATCH \
-              "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
-              -f sha="$GITHUB_SHA" \
-              -F force=true >/dev/null; then
-              gh api --method POST \
-                "repos/$GITHUB_REPOSITORY/git/refs" \
-                -f ref="refs/tags/$tag" \
-                -f sha="$GITHUB_SHA" >/dev/null
-            fi
+            set_tag_ref
           else
+            set_tag_ref
             gh release create "$tag" \
               tvpi-residential-push-windows-x64.zip \
-              --target "$GITHUB_SHA" \
+              --verify-tag \
               --title "TVPI residential volunteer" \
               --notes-file release-notes.md
           fi
