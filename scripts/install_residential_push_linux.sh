@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 SERVICE_NAME="tvpi-residential-push.service"
 TIMER_NAME="tvpi-residential-push.timer"
 INSTALL_DIR="$HOME/.local/share/tvpi/residential-push"
-USER_UNIT_DIR="$HOME/.config/systemd/user"
+USER_UNIT_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 TOKEN_PATH="$INSTALL_DIR/push-token"
 VOLUNTEER_ID_PATH="$INSTALL_DIR/volunteer-id.txt"
 
@@ -66,7 +67,9 @@ base_directory="$HOME/.local/share/tvpi/residential-push"
 token_path="$base_directory/push-token"
 log_path="$base_directory/last-run.log"
 
-if ! IFS= read -r token < "$token_path" || [[ -z "$token" ]]; then
+token=""
+IFS= read -r token < "$token_path" || true
+if [[ -z "$token" ]]; then
   printf '%s\n' "TVPI volunteer credential is missing" > "$log_path"
   exit 1
 fi
@@ -118,17 +121,15 @@ fi
 printf 'Volunteer ID file: %s\n' "$VOLUNTEER_ID_PATH"
 printf 'Last run log: %s\n' "$INSTALL_DIR/last-run.log"
 
+user_name="$(id -un)"
 if command -v loginctl >/dev/null 2>&1; then
-  linger="$(loginctl show-user "$USER" -p Linger --value 2>/dev/null || true)"
+  linger="$(loginctl show-user "$user_name" -p Linger --value 2>/dev/null || true)"
   if [[ "$linger" != "yes" ]]; then
     echo ""
     echo "Note: this user does not have systemd lingering enabled. The timer works while your user manager is running; for unattended operation after logout, enable lingering with:"
-    printf '  sudo loginctl enable-linger %q\n' "$USER"
+    printf '  sudo loginctl enable-linger %q\n' "$user_name"
   fi
 fi
 
-if systemctl --user start "$SERVICE_NAME"; then
-  echo "Started one refresh now."
-else
-  echo "Initial refresh did not succeed yet (expected until this Volunteer ID is approved); the timer will keep retrying." >&2
-fi
+systemctl --user start --no-block "$SERVICE_NAME"
+echo "Started one refresh now in the background; before approval it may fail and the timer will keep retrying."
