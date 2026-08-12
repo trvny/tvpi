@@ -44,7 +44,7 @@ jobs:
             --header "Content-Type: application/json" \
             --data '{"source":{"type":"github","config":{"owner":"trvny","owner_id":"120686325","repo_name":"tvpi","repo_id":"1248425876","production_branch":"main","production_deployments_enabled":true,"preview_deployment_setting":"none","pr_comments_enabled":false,"path_includes":["site/*","functions/*"],"path_excludes":[]}}}'
 
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 

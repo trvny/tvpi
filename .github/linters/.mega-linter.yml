@@ -20,8 +20,6 @@ DISABLE:
 # ACTION_ZIZMOR: now enabled and green (see below + .github/zizmor.yml).
 #   Runs offline; unpinned-uses waived to ref-pin; artipacked fixed via
 #   persist-credentials (deploy) or waived inline where the job pushes (refresh).
-# SQL_TSQLLINT: MegaLinter's only SQL linter defaults to T-SQL (MSSQL)
-#   dialect - worker/migrations is SQLite (D1), every "fix" it wants is wrong.
 # TYPESCRIPT_STANDARD: can't locate worker/tsconfig.json from repo root;
 #   revisit with an explicit --project arg if you want this back.
 # JAVASCRIPT_STANDARD: standardjs mandates semicolon-free style; this codebase
@@ -32,7 +30,6 @@ DISABLE:
 #   these too, and they would lint worker/*.ts with a weaker opinion than the
 #   `npm run typecheck` that deploy.yml already runs against worker/tsconfig.json.
 DISABLE_LINTERS:
-  - SQL_TSQLLINT
   - TYPESCRIPT_STANDARD
   - JAVASCRIPT_STANDARD
   - TYPESCRIPT_ES
