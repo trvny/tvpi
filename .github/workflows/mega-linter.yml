@@ -35,7 +35,7 @@ jobs:
 
       - name: MegaLinter
         id: megalinter
-        uses: oxsecurity/megalinter/flavors/cupcake@v9
+        uses: oxsecurity/megalinter/flavors/cupcake@v10
         env:
           MEGALINTER_CONFIG: .github/linters/.mega-linter.yml
           VALIDATE_ALL_CODEBASE: >-
