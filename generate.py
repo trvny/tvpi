@@ -127,6 +127,7 @@ def get_tvp_stream_url(channel_id):
 # M3U helpers
 # ---------------------------------------------------------------------------
 
+
 def extinf(ch):
     # Use tvg-id if present (TVP channels), otherwise fall back to slug
     tvg_id = ch.get("id", ch["slug"])
@@ -138,18 +139,33 @@ def extinf(ch):
     )
 
 
+def write_atomic(filename, content):
+    tmp = filename + ".tmp"
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(content)
+        os.replace(tmp, filename)
+    except Exception:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def write_m3u(filename, entries):
     lines = ["#EXTM3U"]
     for ch, url in entries:
         lines.append(f"{extinf(ch)}\n{url}")
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("\n\n".join(lines) + "\n")
+    write_atomic(filename, "\n\n".join(lines) + "\n")
     print(f"  → {filename}", file=sys.stderr)
 
 
 def write_placeholder(filename, channel_name):
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(f"#EXTM3U\n# {channel_name} stream unavailable — will retry next run\n")
+    write_atomic(
+        filename,
+        f"#EXTM3U\n# {channel_name} stream unavailable — will retry next run\n",
+    )
 
 
 def read_existing_url(filename):
@@ -187,6 +203,7 @@ def resolve_url(fresh_url, filename):
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main():
     os.makedirs(STREAMS_DIR, exist_ok=True)
     all_ok_entries = []
@@ -207,7 +224,9 @@ def main():
             print("  ~ fetch failed — reusing last-known-good URL", file=sys.stderr)
             all_ok_entries.append((ch, url))
             reused += 1
-            # Leave the existing file untouched (it already holds this URL).
+            # Re-write the per-channel file so its metadata (tvg-name,
+            # tvg-logo, group-title) stays in sync with TVP_CHANNELS.
+            write_m3u(filename, [(ch, url)])
         else:
             print("  ✗ no fresh or cached URL — writing placeholder", file=sys.stderr)
             write_placeholder(filename, ch["name"])
