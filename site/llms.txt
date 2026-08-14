@@ -9,7 +9,7 @@ Use the sections below to choose the right service instead of treating the homep
 - [TRAVNY homepage](https://travny.pages.dev/): visual hub and TVP channel directory
 - [TV player](https://travny.pages.dev/tv/): browser playback for the current TVP streams
 - [Weather](https://weather.travny.workers.dev/): multi-source local weather ensemble for Kościelec in Chrzanów, including temperature, wind, humidity, air quality and pollen
-- [Feeds](https://trvny.github.io/feeds/): self-updating Atom/RSS directory with 55+ feeds regenerated every two hours; [LLM guide](https://trvny.github.io/feeds/llms.txt)
+- [Feeds](https://trvny.github.io/feedseek/): self-updating Atom/RSS directory with 55+ feeds regenerated every two hours; [LLM guide](https://trvny.github.io/feedseek/llms.txt)
 - [Streambench](https://streambench.travny.workers.dev/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.travny.workers.dev/llms.txt)
 - [Codebench](https://codebench.travny.workers.dev/): local QR and barcode studio for generating, reading and exporting machine-readable codes
 

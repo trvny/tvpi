@@ -242,11 +242,11 @@
       <span class="go">OTWÓRZ ›</span>
     </a>
     <section class="panel fd">
-      <a class="phead" href="https://trvny.github.io/feeds/">
+      <a class="phead" href="https://trvny.github.io/feedseek/">
         <span class="blk">P300</span> FEEDY <span class="en">NAJNOWSZE ›</span>
       </a>
       <ul class="feedlist" id="feedlist"><li class="fdload">Najnowsze wpisy z Reuters, TVP, OpenAI i innych źródeł.</li></ul>
-      <a class="pgo" href="https://trvny.github.io/feeds/reader/">▶ OTWÓRZ CZYTNIK</a>
+      <a class="pgo" href="https://trvny.github.io/feedseek/reader/">▶ OTWÓRZ CZYTNIK</a>
     </section>
   </div>
   <section class="lab" aria-labelledby="labHeading">
@@ -274,8 +274,8 @@
   <nav class="fastext" aria-label="Skróty do narzędzi TRAVNY">
     <a class="ft cyan" href="/tv/">TVP IPTV<small>9 kanałów</small></a>
     <a class="ft yellow" href="https://weather.travny.workers.dev/">POGODA<small>Chrzanów</small></a>
-    <a class="ft green" href="https://trvny.github.io/feeds/">FEEDY<small>wszystkie źródła</small></a>
-    <a class="ft red" href="https://trvny.github.io/feeds/reader/">READER<small>czytnik</small></a>
+    <a class="ft green" href="https://trvny.github.io/feedseek/">FEEDY<small>wszystkie źródła</small></a>
+    <a class="ft red" href="https://trvny.github.io/feedseek/reader/">READER<small>czytnik</small></a>
     <a class="ft magenta" href="https://streambench.travny.workers.dev/">STREAMBENCH<small>streamy i playlisty</small></a>
     <a class="ft blue" href="https://codebench.travny.workers.dev/">CODEBENCH<small>QR i kody</small></a>
   </nav>
@@ -363,7 +363,7 @@ const FEEDS=[
   {file:"anthropic",  src:"CLAUDE",  col:"var(--b)"},
   {file:"steam",      src:"STEAM",   col:"var(--r)"},
 ];
-const FBASE="https://trvny.github.io/feeds/feed_";
+const FBASE="https://trvny.github.io/feedseek/feed_";
 function rel(d){const s=(Date.now()-d)/1000; return s<3600?Math.max(1,Math.round(s/60))+"m":s<86400?Math.round(s/3600)+"h":Math.round(s/86400)+"d";}
 function clean(t){const x=document.createElement("textarea");x.innerHTML=t;return x.value.replace(/\s+[-\u2013\u2014]\s+[^-\u2013\u2014]{2,30}$/g,"").trim();}
 async function grabFeed(f){
