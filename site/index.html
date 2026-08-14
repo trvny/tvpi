@@ -41,6 +41,7 @@
     --k:#04060a; --scr:#070a10;
     --w:#e6e8ea; --dim:#6f7886; --faint:#3a4150;
     --y:#f5e94e; --c:#46e0e0; --g:#54e06a; --m:#e85ad0; --r:#ff5147; --b:#6f8cff;
+    --o:#ff9f43; --v:#b98cff; --n:#8fa3b8;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth; overflow-x:hidden}
@@ -356,12 +357,15 @@ function aqiClass(a){ if(a==null) return ["mid","?"]; if(a<=40) return ["good",a
   }
 })();
 const FEEDS=[
-  {file:"reuters",    src:"REUTERS", col:"var(--c)"},
-  {file:"tvp",        src:"TVP",     col:"var(--y)"},
-  {file:"govpl_news", src:"GOV.PL",  col:"var(--m)"},
-  {file:"openai",     src:"OPENAI",  col:"var(--g)"},
-  {file:"anthropic",  src:"CLAUDE",  col:"var(--b)"},
-  {file:"steam",      src:"STEAM",   col:"var(--r)"},
+  {file:"reuters",     src:"REUTERS", col:"var(--c)"},
+  {file:"pap",         src:"PAP",     col:"var(--o)"},
+  {file:"tvp",         src:"TVP",     col:"var(--y)"},
+  {file:"govpl_news",  src:"GOV.PL",  col:"var(--m)"},
+  {file:"geopolitics", src:"GEOPOL",  col:"var(--n)"},
+  {file:"openai",      src:"OPENAI",  col:"var(--g)"},
+  {file:"anthropic",   src:"CLAUDE",  col:"var(--b)"},
+  {file:"steam",       src:"STEAM",   col:"var(--r)"},
+  {file:"jbzd",        src:"JBZD",    col:"var(--v)"},
 ];
 const FBASE="https://trvny.github.io/feedseek/feed_";
 function rel(d){const s=(Date.now()-d)/1000; return s<3600?Math.max(1,Math.round(s/60))+"m":s<86400?Math.round(s/3600)+"h":Math.round(s/86400)+"d";}
@@ -381,19 +385,35 @@ async function grabFeed(f){
     }).filter(x=>x.title&&x.href);
   }catch(_){return[];}
 }
+// Rank by a date clamped to now. A timestamp ahead of the clock is sometimes
+// deliberate - a forecast, a scheduled announcement - and sometimes a source
+// typo: gov.pl carries a 2026 article stamped 2028. Either way it must not own
+// the top of the list forever, and neither deserves to be thrown away, so the
+// entry stays and only its sort key is capped.
+const NOW=Date.now();
+function rank(x){return Math.min(x.ts,NOW);}
 (window.requestIdleCallback||(fn=>setTimeout(fn,200)))(async()=>{
   const settled=await Promise.allSettled(FEEDS.map(grabFeed));
-  const seen=new Set();
-  const all=settled.flatMap(r=>r.status==="fulfilled"?r.value:[])
-    .filter(x=>x.ts>0&&!seen.has(x.href)&&seen.add(x.href))
-    .sort((a,b)=>b.ts-a.ts).slice(0,7);
+  // One headline per source. Sorting the pooled entries by date meant the
+  // three or four busiest feeds filled every slot and the rest never appeared.
+  const seen=new Set(),best=new Map();
+  for(const r of settled){
+    if(r.status!=="fulfilled")continue;
+    for(const x of r.value){
+      if(!(x.ts>0)||seen.has(x.href))continue;
+      seen.add(x.href);
+      const cur=best.get(x.src);
+      if(!cur||rank(x)>rank(cur))best.set(x.src,x);
+    }
+  }
+  const all=[...best.values()].sort((a,b)=>rank(b)-rank(a)).slice(0,7);
   const el=document.getElementById("feedlist");
   if(!all.length){el.innerHTML='<li class="fdload">feedy chwilowo niedost\u0119pne \u2014 otw\u00f3rz reader &rsaquo;</li>';return;}
   el.innerHTML=all.map(x=>
     `<li><a href="${x.href}" target="_blank" rel="noopener">`
     +`<span class="src" style="background:${x.col}">${x.src}</span>`
     +`<span class="ttl">${x.title.replace(/</g,"&lt;")}</span>`
-    +`<span class="ago">${rel(x.ts)}</span></a></li>`).join("");
+    +`<span class="ago">${rel(rank(x))}</span></a></li>`).join("");
 });
 </script>
 </body>
