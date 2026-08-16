@@ -6,18 +6,18 @@ Use the sections below to choose the right service instead of treating the homep
 
 ## Hub map
 
-- [TRAVNY homepage](https://travny.pages.dev/): visual hub and TVP channel directory
-- [TV player](https://travny.pages.dev/tv/): browser playback for the current TVP streams
-- [Weather](https://weather.travny.workers.dev/): multi-source local weather ensemble for Kościelec in Chrzanów, including temperature, wind, humidity, air quality and pollen
+- [TRAVNY homepage](https://trfny.com/): visual hub and TVP channel directory
+- [TV player](https://trfny.com/tv/): browser playback for the current TVP streams
+- [Weather](https://weather.trfny.com/): multi-source local weather ensemble for Kościelec in Chrzanów, including temperature, wind, humidity, air quality and pollen
 - [Feeds](https://trvny.github.io/feedseek/): self-updating Atom/RSS directory with 55+ feeds regenerated every two hours; [LLM guide](https://trvny.github.io/feedseek/llms.txt)
-- [Streambench](https://streambench.travny.workers.dev/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.travny.workers.dev/llms.txt)
-- [Codebench](https://codebench.travny.workers.dev/): local QR and barcode studio for generating, reading and exporting machine-readable codes
+- [Streambench](https://streambench.trfny.com/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.trfny.com/llms.txt)
+- [Codebench](https://codebench.trfny.com/): local QR and barcode studio for generating, reading and exporting machine-readable codes
 
 ## TVP playlists
 
 TVP stream URLs use short-lived signatures, so the Worker endpoint is preferred. The raw GitHub mirror is a periodically refreshed fallback.
 
-- [Combined playlist — Worker](https://tvpi.travny.workers.dev/playlist.m3u): all channels as stable `.m3u8` entries; each channel resolves or serves its fresh manifest when opened
+- [Combined playlist — Worker](https://tvpi.trfny.com/playlist.m3u): all channels as stable `.m3u8` entries; each channel resolves or serves its fresh manifest when opened
 - [Combined playlist — raw mirror](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u): static snapshot refreshed every 15 minutes
 
 ## Project roles
@@ -44,9 +44,9 @@ Use for creating and scanning QR codes and barcodes. Processing is designed to s
 
 ## Discovery files
 
-- [Sitemap](https://travny.pages.dev/sitemap.xml)
-- [Robots policy](https://travny.pages.dev/robots.txt)
-- [Web manifest](https://travny.pages.dev/site.webmanifest)
+- [Sitemap](https://trfny.com/sitemap.xml)
+- [Robots policy](https://trfny.com/robots.txt)
+- [Web manifest](https://trfny.com/site.webmanifest)
 
 ## Source and documentation
 
