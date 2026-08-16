@@ -17,7 +17,7 @@ Use the sections below to choose the right service instead of treating the homep
 
 TVP stream URLs use short-lived signatures, so the Worker endpoint is preferred. The raw GitHub mirror is a periodically refreshed fallback.
 
-- [Combined playlist — Worker](https://tvpi.trfny.com/playlist.m3u): all channels as stable `.m3u8` entries; each channel resolves or serves its fresh manifest when opened
+- [Combined playlist — Worker](https://tvpi.travny.workers.dev/playlist.m3u): all channels as stable `.m3u8` entries; each channel resolves or serves its fresh manifest when opened
 - [Combined playlist — raw mirror](https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u): static snapshot refreshed every 15 minutes
 
 ## Project roles
