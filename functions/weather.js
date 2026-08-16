@@ -1,7 +1,8 @@
 // GET /weather  →  proxies weather.travny.workers.dev/state.json
-// The upstream worker sends no CORS header, so a browser fetch from
-// travny.pages.dev is blocked. This same-origin Pages Function re-serves the
-// JSON with Access-Control-Allow-Origin:* and a short edge cache.
+// The upstream worker sends no CORS header, so a browser fetch straight from
+// the hub is blocked whichever host it answers on. This same-origin Pages
+// Function re-serves the JSON with Access-Control-Allow-Origin:* and a short
+// edge cache.
 //
 // NOTE: this file must live at repo-root /functions/, NOT /site/functions/.
 // Cloudflare Pages discovers Functions relative to the project's root_dir,
