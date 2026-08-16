@@ -13,15 +13,26 @@ const CHANNELS = [
 const TV_WORKER = "https://tvpi.travny.workers.dev";
 const WEATHER_STATE = "https://weather.travny.workers.dev/state.json";
 
-// The hub moved from tvpi.pages.dev to travny.pages.dev on 2026-08-08. Both
-// Pages projects build from this same repository and the same site/ output, so
-// the old host cannot be retired with a _redirects file — that file would apply
-// to the new site too. Matching on the Host header keeps one codebase serving
-// both: the old project answers only with a redirect, the new one serves pages.
-// Matching is exact, so per-deployment aliases (<hash>.tvpi.pages.dev) are left
-// alone; redirecting those would point at a hash that does not exist elsewhere.
+// Three hosts reach this same site/ output, and they are treated differently.
+//
+// trfny.com is the canonical address since 2026-08-16, when the domain was
+// registered. Every absolute URL in the markup — canonical, og:url, sitemap,
+// robots — points there, so search engines consolidate on the domain we own
+// rather than on a pages.dev subdomain we merely rent.
+//
+// travny.pages.dev keeps SERVING, deliberately without a redirect. Its pages
+// carry a canonical pointing at trfny.com, which is enough for consolidation,
+// and it means the site never goes dark if the domain ever lapses: reverting
+// CANONICAL_HOST below is then the whole rollback.
+//
+// tvpi.pages.dev answers only with a redirect. Both Pages projects build from
+// this same repository and the same site/ output, so the old host cannot be
+// retired with a _redirects file — that file would apply to the new site too.
+// Matching on the Host header keeps one codebase serving both. Matching is
+// exact, so per-deployment aliases (<hash>.tvpi.pages.dev) are left alone;
+// redirecting those would point at a hash that does not exist elsewhere.
 const LEGACY_HOST = "tvpi.pages.dev";
-const CANONICAL_HOST = "travny.pages.dev";
+const CANONICAL_HOST = "trfny.com";
 
 const PAGE_META = {
   home: {
@@ -34,7 +45,7 @@ const PAGE_META = {
       "@type": "WebSite",
       name: "TRAVNY",
       alternateName: "TRAVNY Telegazeta",
-      url: "https://travny.pages.dev/",
+      url: "https://trfny.com/",
       inLanguage: "pl-PL",
       description:
         "Hub z playlistami TVP IPTV, pogodą dla Chrzanowa i Kościelca oraz feedami RSS.",
@@ -49,7 +60,7 @@ const PAGE_META = {
       "@context": "https://schema.org",
       "@type": "WebApplication",
       name: "TVPI",
-      url: "https://travny.pages.dev/tv/",
+      url: "https://trfny.com/tv/",
       applicationCategory: "MultimediaApplication",
       operatingSystem: "Any",
       inLanguage: "pl-PL",
