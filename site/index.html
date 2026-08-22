@@ -330,9 +330,10 @@ const COND = {
 function aqiClass(a){ if(a==null) return ["mid","?"]; if(a<=40) return ["good",a]; if(a<=80) return ["mid",a]; return ["bad",a]; }
 (async()=>{
   try{
-    const r = await fetch("/weather",{cache:"no-store"});
+    const ac=new AbortController(); const wt=setTimeout(()=>ac.abort(), 6000);
+    const r = await fetch("/weather",{cache:"no-store",signal:ac.signal});
     if(!r.ok) throw 0;
-    const s = await r.json();
+    const s = await r.json(); clearTimeout(wt);
     const e = s.ensemble||{};
     const t = e.tempC && e.tempC.median!=null ? Math.round(e.tempC.median) : null;
     document.getElementById("wxtemp").innerHTML = (t!=null?t:"&mdash;") + "&deg;";
