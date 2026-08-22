@@ -104,11 +104,17 @@ function aqiClass(value) {
   return ["bad", String(Math.round(aqi))];
 }
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = 4500) {
+// Returns the body already read, because the abort signal has to stay armed
+// until then: a server that answers with headers immediately and then drips
+// the body would otherwise hold the page render open with no bound at all.
+// The timeout covers the whole exchange, not just the wait for headers.
+async function fetchWithTimeout(url, options = {}, timeoutMs = 4500, parse = "text") {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    if (!response.ok) return { ok: false, body: null };
+    return { ok: true, body: parse === "json" ? await response.json() : await response.text() };
   } finally {
     clearTimeout(timer);
   }
@@ -116,12 +122,11 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 4500) {
 
 async function getWeather() {
   try {
-    const response = await fetchWithTimeout(WEATHER_STATE, {
+    const { ok, body } = await fetchWithTimeout(WEATHER_STATE, {
       cf: { cacheTtl: 300, cacheEverything: true },
       headers: { accept: "application/json" },
-    });
-    if (!response.ok) return null;
-    return await response.json();
+    }, 4500, "json");
+    return ok ? body : null;
   } catch {
     return null;
   }
@@ -131,14 +136,13 @@ async function getChannels() {
   try {
     // One combined request is much cheaper than nine separate channel probes.
     // The playlist contains only channels for which the Worker found a usable URL.
-    const response = await fetchWithTimeout(`${TV_WORKER}/playlist.m3u`, {
+    const { ok, body: playlist } = await fetchWithTimeout(`${TV_WORKER}/playlist.m3u`, {
       cf: { cacheTtl: 120, cacheEverything: true },
       headers: { accept: "audio/x-mpegurl,text/plain;q=0.9,*/*;q=0.1" },
     }, 3000);
-    if (!response.ok) {
+    if (!ok) {
       return CHANNELS.map((channel) => ({ ...channel, status: false }));
     }
-    const playlist = await response.text();
     return CHANNELS.map((channel) => ({
       ...channel,
       status: playlist.includes(`tvg-id="${channel.id}"`),
