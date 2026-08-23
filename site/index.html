@@ -306,13 +306,26 @@ const CH = [
   {no:"108", slug:"tvphistoria", tag:"HIST"},
   {no:"109", slug:"tvpmuzyka",   tag:"MUZ"},
 ];
-document.getElementById("tvchips").innerHTML = CH.map(c=>
-  `<span class="chip" id="c-${c.slug}"><span class="d">${c.no}</span>${c.tag}</span>`).join("");
+// The chips are already in the static markup above, and on Cloudflare the
+// middleware injects their on/off classes from one combined Worker request.
+// Rebuilding them through innerHTML threw that away on every load: the server's
+// answer flashed up and was erased, and the browser still fired nine probes --
+// the exact cost the edge path exists to avoid.
 function check(url, ms=5000){
   const ac=new AbortController(); const t=setTimeout(()=>ac.abort(), ms);
   return fetch(url,{cache:"no-store",signal:ac.signal}).then(r=>r.ok).catch(()=>false).finally(()=>clearTimeout(t));
 }
 (async()=>{
+  // An on/off class on every chip means the edge already resolved them, so the
+  // page is showing fresh server truth and there is nothing to re-probe. Probe
+  // only when that is missing -- on GitHub Pages, or when the Worker did not
+  // answer. The middleware itself describes the browser checks as a fallback.
+  const resolved = CH.every(c=>{
+    const el = document.getElementById("c-"+c.slug);
+    return el && (el.classList.contains("on") || el.classList.contains("off"));
+  });
+  if (resolved) return;
+
   const res = await Promise.all(CH.map(async c=>{
     const ok = await check(`${WORKER}/${c.slug}.m3u`);
     document.getElementById("c-"+c.slug).classList.add(ok?"on":"off");
