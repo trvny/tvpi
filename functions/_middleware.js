@@ -132,25 +132,24 @@ async function getWeather() {
   }
 }
 
-async function getChannels() {
-  try {
-    // One combined request is much cheaper than nine separate channel probes.
-    // The playlist contains only channels for which the Worker found a usable URL.
-    const { ok, body: playlist } = await fetchWithTimeout(`${TV_WORKER}/playlist.m3u`, {
-      cf: { cacheTtl: 120, cacheEverything: true },
-      headers: { accept: "audio/x-mpegurl,text/plain;q=0.9,*/*;q=0.1" },
-    }, 3000);
-    if (!ok) {
-      return CHANNELS.map((channel) => ({ ...channel, status: false }));
-    }
-    return CHANNELS.map((channel) => ({
-      ...channel,
-      status: playlist.includes(`tvg-id="${channel.id}"`),
-    }));
-  } catch {
-    // Unknown is intentional: the existing browser-side checks remain the fallback.
-    return CHANNELS.map((channel) => ({ ...channel, status: null }));
-  }
+// The edge cannot know which channels are actually up, so it says so.
+//
+// This used to derive availability from membership in /playlist.m3u, on the
+// stated assumption that "the playlist contains only channels for which the
+// Worker found a usable URL". That assumption is false against the deployed
+// Worker: buildStablePlaylist (worker/src/entry.ts:48) emits all nine channels
+// unconditionally from a static array, and advertises exactly that in its
+// X-Playlist-Type: stable-channel-endpoints header. A stream is resolved only
+// when its own .m3u8 endpoint is opened. So every channel matched, every chip
+// rendered "on", and the page reported 9/9 ON AIR whatever the real state was.
+//
+// Returning null renders the chips without a status class and the /tv rows as
+// SPRAWDZ, which the browser checks then resolve for real. Slower to a truthful
+// number, but it is a truthful number. Giving the edge a real answer means
+// teaching the Worker to report per-channel availability; until then, it has
+// nothing to say.
+function getChannels() {
+  return CHANNELS.map((channel) => ({ ...channel, status: null }));
 }
 
 function channelClass(status) {

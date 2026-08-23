@@ -306,8 +306,10 @@ const CH = [
   {no:"108", slug:"tvphistoria", tag:"HIST"},
   {no:"109", slug:"tvpmuzyka",   tag:"MUZ"},
 ];
-document.getElementById("tvchips").innerHTML = CH.map(c=>
-  `<span class="chip" id="c-${c.slug}"><span class="d">${c.no}</span>${c.tag}</span>`).join("");
+// The chips are already in the static markup above, with the same ids, so this
+// script only adds status classes to them. It used to rebuild the whole
+// container through innerHTML first, which recreated markup that was already
+// in the document and wiped whatever the middleware had injected into it.
 function check(url, ms=5000){
   const ac=new AbortController(); const t=setTimeout(()=>ac.abort(), ms);
   return fetch(url,{cache:"no-store",signal:ac.signal}).then(r=>r.ok).catch(()=>false).finally(()=>clearTimeout(t));
