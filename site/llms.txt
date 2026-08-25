@@ -1,6 +1,6 @@
 # TRAVNY hub / TVP Live IPTV
 
-> TRAVNY is the landing hub for a small family of public tools: live Polish public television, a local weather dashboard, self-updating feeds, and two browser-based workbenches. The hub itself also publishes ready-to-use TVP M3U/HLS playlists.
+> TRAVNY is the landing hub for a small family of public tools: live Polish public television, a local weather dashboard, self-updating feeds, and three browser-based workbenches. The hub itself also publishes ready-to-use TVP M3U/HLS playlists.
 
 Use the sections below to choose the right service instead of treating the homepage as only an IPTV player.
 
@@ -12,6 +12,7 @@ Use the sections below to choose the right service instead of treating the homep
 - [Feeds](https://trvny.github.io/feedseek/): self-updating Atom/RSS directory with 55+ feeds regenerated every two hours; [LLM guide](https://trvny.github.io/feedseek/llms.txt)
 - [Streambench](https://streambench.trfny.com/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.trfny.com/llms.txt)
 - [Codebench](https://codebench.trfny.com/): local QR and barcode studio for generating, reading and exporting machine-readable codes
+- [Doc Bench](https://docbench.travny.workers.dev/): local-first document and PDF studio for editing, previews, validation, merge, page organization, bookmarks and optimization; [LLM guide](https://docbench.travny.workers.dev/llms.txt)
 
 ## TVP playlists
 
@@ -41,6 +42,10 @@ Use for testing or editing stream URLs and playlists locally in the browser. It 
 ### Codebench
 
 Use for creating and scanning QR codes and barcodes. Processing is designed to stay in the browser where supported.
+
+### Doc Bench
+
+Use for editing and inspecting TXT, Markdown, JSON, YAML and XML or for local PDF work such as merge, page reordering/deletion, bookmark editing and optimization. User files stay in the browser.
 
 ## Discovery files
 

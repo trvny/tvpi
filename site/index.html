@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TRAVNY: IPTV, Streambench, Codebench, pogoda i feedy</title>
-<meta name="description" content="Telegazetowy hub narzędzi TRAVNY: playlisty TVP IPTV, Streambench, Codebench, pogoda dla Chrzanowa i Kościelca oraz feedy RSS.">
+<title>TRAVNY: IPTV, Streambench, Codebench, Docbench, pogoda i feedy</title>
+<meta name="description" content="Telegazetowy hub narzędzi TRAVNY: TVP IPTV, Streambench, Codebench, Docbench, pogoda dla Chrzanowa i Kościelca oraz feedy RSS.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta property="og:title" content="TRAVNY: IPTV, benche, pogoda i feedy">
-<meta property="og:description" content="TVP IPTV, Streambench, Codebench, lokalna pogoda i feedy RSS w jednym telegazetowym hubie.">
+<meta property="og:description" content="TVP IPTV, Streambench, Codebench, Docbench, lokalna pogoda i feedy RSS w jednym telegazetowym hubie.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://trfny.com/">
 <meta property="og:image" content="https://trfny.com/assets/og.png">
@@ -15,7 +15,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="TRAVNY: IPTV, benche, pogoda i feedy">
-<meta name="twitter:description" content="TVP IPTV, dwa specjalistyczne benche, pogoda i feedy RSS w jednym retro hubie.">
+<meta name="twitter:description" content="TVP IPTV, trzy specjalistyczne benche, pogoda i feedy RSS w jednym retro hubie.">
 <meta name="twitter:image" content="https://trfny.com/assets/og.png">
 <meta name="theme-color" content="#04060a">
 <meta name="google-site-verification" content="GNRW9My8O_IdeadkT_TDeq9zaNW8axruvvOdk3-aZ2I">
@@ -34,6 +34,7 @@
 <link rel="dns-prefetch" href="https://weather.travny.workers.dev">
 <link rel="dns-prefetch" href="https://streambench.travny.workers.dev">
 <link rel="dns-prefetch" href="https://codebench.travny.workers.dev">
+<link rel="dns-prefetch" href="https://docbench.travny.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
@@ -157,16 +158,16 @@
     border-bottom:1px solid var(--faint);padding-bottom:7px;color:var(--m)}
   .labhead h2{font-family:"Silkscreen";font-size:17px;letter-spacing:.04em}
   .labhead span{color:var(--dim);font-size:19px}
-  .benchgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .benchgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
   .bench{position:relative;min-width:0;min-height:186px;padding:15px 16px 38px;border-top:6px solid;
     background:#0b0f16;color:var(--w);text-decoration:none;transition:background .12s,transform .12s}
   .bench:hover,.bench:focus-visible{background:#111826;transform:translateY(-1px);outline:none}
-  .bench.stream{border-color:var(--c)} .bench.code{border-color:var(--b)}
+  .bench.stream{border-color:var(--c)} .bench.code{border-color:var(--b)} .bench.doc{border-color:var(--o)}
   .benchtop{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .benchno{font-family:"Silkscreen";font-size:11px;text-shadow:none;padding:3px 7px;color:var(--k)}
-  .stream .benchno{background:var(--c)} .code .benchno{background:var(--b)}
+  .stream .benchno{background:var(--c)} .code .benchno{background:var(--b)} .doc .benchno{background:var(--o)}
   .benchicon{font-family:"Silkscreen";font-size:30px;line-height:1;text-shadow:0 0 12px}
-  .stream .benchicon,.stream h3{color:var(--c)} .code .benchicon,.code h3{color:var(--b)}
+  .stream .benchicon,.stream h3{color:var(--c)} .code .benchicon,.code h3{color:var(--b)} .doc .benchicon,.doc h3{color:var(--o)}
   .bench h3{font-family:"Silkscreen";font-size:20px;margin-top:13px;letter-spacing:.025em}
   .bench p{font-size:21px;color:var(--w);margin-top:9px;line-height:1.18}
   .benchtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
@@ -180,7 +181,7 @@
   .ft small{display:block; color:var(--dim); font-family:"VT323"; font-size:15px; letter-spacing:0; margin-top:3px}
   .ft.red{border-color:var(--r)} .ft.green{border-color:var(--g)}
   .ft.yellow{border-color:var(--y)} .ft.cyan{border-color:var(--c)}
-  .ft.blue{border-color:var(--b)} .ft.magenta{border-color:var(--m)}
+  .ft.blue{border-color:var(--b)} .ft.magenta{border-color:var(--m)} .ft.orange{border-color:var(--o)}
   footer{margin-top:26px; padding-top:12px; border-top:1px solid var(--faint);
     display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
     font-size:19px; color:var(--dim); letter-spacing:.05em}
@@ -214,7 +215,7 @@
   </div>
   <p class="tagline">Jeden ekran w stylu telegazety: <b>aktualne playlisty TVP IPTV</b>,
     <b>pogoda dla Chrzanowa i Kościelca</b>, najnowsze <b>feedy RSS</b> i specjalistyczne
-    narzędzia do <b>streamów oraz kodów</b>.</p>
+    narzędzia do <b>streamów, kodów i dokumentów</b>.</p>
   <div class="grid">
     <a class="panel tv" href="/tv/">
       <div class="phead"><span class="blk">P101</span> TVP ✕ IPTV <span class="en" id="tvcount">—/9 ON AIR</span></div>
@@ -254,7 +255,7 @@
   <section class="lab" aria-labelledby="labHeading">
     <div class="labhead">
       <h2 id="labHeading">P400 · BENCH LAB</h2>
-      <span>dwa wyspecjalizowane warsztaty</span>
+      <span>trzy wyspecjalizowane warsztaty</span>
     </div>
     <div class="benchgrid">
       <a class="bench stream" href="https://streambench.trfny.com/">
@@ -271,6 +272,13 @@
         <div class="benchtags"><span>QR</span><span>BARCODE</span><span>EXPORT</span><span>LOCAL</span></div>
         <span class="go">URUCHOM ›</span>
       </a>
+      <a class="bench doc" href="https://docbench.travny.workers.dev/">
+        <div class="benchtop"><span class="benchno">P403</span><span class="benchicon" aria-hidden="true">▤✎</span></div>
+        <h3>DOCBENCH</h3>
+        <p>Lokalny warsztat dokumentów i PDF: edycja, podgląd, walidacja, merge, strony i zakładki.</p>
+        <div class="benchtags"><span>TXT</span><span>PDF</span><span>MARKDOWN</span><span>LOCAL</span></div>
+        <span class="go">URUCHOM ›</span>
+      </a>
     </div>
   </section>
   <nav class="fastext" aria-label="Skróty do narzędzi TRAVNY">
@@ -280,6 +288,7 @@
     <a class="ft red" href="https://trvny.github.io/feedseek/reader/">READER<small>czytnik</small></a>
     <a class="ft magenta" href="https://streambench.trfny.com/">STREAMBENCH<small>streamy i playlisty</small></a>
     <a class="ft blue" href="https://codebench.trfny.com/">CODEBENCH<small>QR i kody</small></a>
+    <a class="ft orange" href="https://docbench.travny.workers.dev/">DOCBENCH<small>dokumenty i PDF</small></a>
   </nav>
   <footer>
     <span>TRAVNY · TELEGAZETA <span class="pg">P100</span></span>
