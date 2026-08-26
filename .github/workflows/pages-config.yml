@@ -1,0 +1,36 @@
+name: Pages configuration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "functions/**"
+      - ".github/workflows/pages-config.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: pages-config-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  assert:
+    name: Assert production Pages settings
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
+    steps:
+      - name: Disable previews and scope build paths
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-all-errors \
+            --request PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/travny" \
+            --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data '{"source":{"type":"github","config":{"owner":"trvny","owner_id":"120686325","repo_name":"tvpi","repo_id":"1248425876","production_branch":"main","production_deployments_enabled":true,"preview_deployment_setting":"none","pr_comments_enabled":false,"path_includes":["site/*","functions/*"],"path_excludes":[]}}}'
