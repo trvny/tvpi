@@ -35,6 +35,10 @@ const REDIRECT_HOSTS = new Set(["tvpi.pages.dev", "www.trfny.com"]);
 const FALLBACK_HOST = "travny.pages.dev";
 const CANONICAL_HOST = "trfny.com";
 
+function isFallbackHost(hostname) {
+  return hostname === FALLBACK_HOST || hostname.endsWith(`.${FALLBACK_HOST}`);
+}
+
 const CONDITIONS = {
   clear: ["Słonecznie", "☀"],
   clouds: ["Pochmurno", "☁"],
@@ -276,7 +280,7 @@ export async function onRequest(context) {
   const headers = new Headers(transformed.headers);
   headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=300");
   headers.set("content-language", "pl");
-  if (url.hostname === FALLBACK_HOST) headers.set("x-robots-tag", "noindex, follow");
+  if (isFallbackHost(url.hostname)) headers.set("x-robots-tag", "noindex, follow");
   headers.delete("content-length");
   headers.delete("etag");
 
