@@ -13,17 +13,17 @@ const CHANNELS = [
 const TV_WORKER = "https://tvpi.travny.workers.dev";
 const WEATHER_STATE = "https://weather.travny.workers.dev/state.json";
 
-// Three hosts reach this same site/ output, and they are treated differently.
+// Several hosts reach this same site/ output, and they are treated differently.
 //
 // trfny.com is the canonical address since 2026-08-16, when the domain was
 // registered. Every absolute URL in the markup — canonical, og:url, sitemap,
 // robots — points there, so search engines consolidate on the domain we own
 // rather than on a pages.dev subdomain we merely rent.
 //
-// travny.pages.dev keeps SERVING, deliberately without a redirect. Its pages
-// carry a canonical pointing at trfny.com, which is enough for consolidation,
-// and it means the site never goes dark if the domain ever lapses: reverting
-// CANONICAL_HOST below is then the whole rollback.
+// travny.pages.dev keeps serving as an emergency fallback, but HTML responses
+// are marked noindex so the fallback cannot compete with trfny.com in search.
+// If the custom domain ever needs to be retired, promote the fallback explicitly
+// by changing the canonical host and removing that response directive.
 //
 // tvpi.pages.dev answers only with a redirect. Both Pages projects build from
 // this same repository and the same site/ output, so the old host cannot be
@@ -31,43 +31,9 @@ const WEATHER_STATE = "https://weather.travny.workers.dev/state.json";
 // Matching on the Host header keeps one codebase serving both. Matching is
 // exact, so per-deployment aliases (<hash>.tvpi.pages.dev) are left alone;
 // redirecting those would point at a hash that does not exist elsewhere.
-const LEGACY_HOST = "tvpi.pages.dev";
+const REDIRECT_HOSTS = new Set(["tvpi.pages.dev", "www.trfny.com"]);
+const FALLBACK_HOST = "travny.pages.dev";
 const CANONICAL_HOST = "trfny.com";
-
-const PAGE_META = {
-  home: {
-    title: "TRAVNY: TVP IPTV, pogoda Chrzanów i feedy RSS",
-    description:
-      "Telegazetowy hub: aktualne playlisty TVP IPTV, pogoda dla Kościelca i Chrzanowa oraz najnowsze wpisy z własnego czytnika RSS.",
-    h1: 'TRAVNY<small class="h1seo">TVP IPTV · POGODA CHRZANÓW · FEEDY RSS</small>',
-    schema: {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "TRAVNY",
-      alternateName: "TRAVNY Telegazeta",
-      url: "https://trfny.com/",
-      inLanguage: "pl-PL",
-      description:
-        "Hub z playlistami TVP IPTV, pogodą dla Chrzanowa i Kościelca oraz feedami RSS.",
-    },
-  },
-  tv: {
-    title: "TVPI: aktualne playlisty TVP IPTV M3U",
-    description:
-      "Aktualne playlisty IPTV M3U dla kanałów TVP. Stabilne adresy do VLC, Kodi, TiviMate i innych odtwarzaczy, odświeżane przez Cloudflare Worker.",
-    h1: 'TVPI<small class="h1seo">AKTUALNE PLAYLISTY TVP IPTV M3U</small>',
-    schema: {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      name: "TVPI",
-      url: "https://trfny.com/tv/",
-      applicationCategory: "MultimediaApplication",
-      operatingSystem: "Any",
-      inLanguage: "pl-PL",
-      description: "Aktualne playlisty IPTV M3U dla kanałów Telewizji Polskiej.",
-    },
-  },
-};
 
 const CONDITIONS = {
   clear: ["Słonecznie", "☀"],
@@ -242,38 +208,6 @@ class SetText {
   }
 }
 
-class SetMetaContent {
-  constructor(value) {
-    this.value = value;
-  }
-  element(element) {
-    element.setAttribute("content", this.value);
-  }
-}
-
-class HeadExtras {
-  constructor(page, meta) {
-    this.page = page;
-    this.meta = meta;
-  }
-  element(element) {
-    const twitter =
-      this.page === "tv"
-        ? `<meta name="twitter:title" content="${escapeHtml(this.meta.title)}">` +
-          `<meta name="twitter:description" content="${escapeHtml(this.meta.description)}">`
-        : "";
-
-    element.append(
-      `<meta property="og:locale" content="pl_PL">${twitter}` +
-        `<style>h1 .h1seo{display:block;margin-top:9px;font-family:"VT323",monospace;` +
-        `font-size:clamp(16px,2.6vw,22px);font-weight:400;line-height:1.1;letter-spacing:.055em;` +
-        `color:var(--c);text-shadow:0 0 5px}</style>` +
-        `<script type="application/ld+json">${JSON.stringify(this.meta.schema).replaceAll("<", "\\u003c")}</script>`,
-      { html: true },
-    );
-  }
-}
-
 function identifyPage(pathname) {
   if (pathname === "/" || pathname === "/index.html") return "home";
   if (pathname === "/tv" || pathname === "/tv/" || pathname === "/tv/index.html") return "tv";
@@ -286,7 +220,7 @@ export async function onRequest(context) {
   // Permanent, path- and query-preserving move. 301 (not 302) is what lets
   // Search Console transfer ranking signals to the new host; Google asks for
   // these redirects to stay up at least a year after the move.
-  if (url.hostname === LEGACY_HOST) {
+  if (REDIRECT_HOSTS.has(url.hostname)) {
     url.hostname = CANONICAL_HOST;
     return Response.redirect(url.toString(), 301);
   }
@@ -308,22 +242,11 @@ export async function onRequest(context) {
   if (!assetResponse.ok || !contentType.includes("text/html")) {
     return assetResponse;
   }
-
-  const meta = PAGE_META[page];
   const online = channels.filter((channel) => channel.status === true).length;
   const known = channels.some((channel) => channel.status !== null);
   const countText = known ? `${online}/${channels.length}` : `—/${channels.length}`;
 
-  let rewriter = new HTMLRewriter()
-    .on("html", new SetAttribute("lang", "pl"))
-    .on("title", new SetText(meta.title))
-    .on('meta[name="description"]', new SetMetaContent(meta.description))
-    .on('meta[property="og:title"]', new SetMetaContent(meta.title))
-    .on('meta[property="og:description"]', new SetMetaContent(meta.description))
-    .on('meta[name="twitter:title"]', new SetMetaContent(meta.title))
-    .on('meta[name="twitter:description"]', new SetMetaContent(meta.description))
-    .on("head", new HeadExtras(page, meta))
-    .on("h1", new SetText(meta.h1, true));
+  let rewriter = new HTMLRewriter().on("html", new SetAttribute("lang", "pl"));
 
   if (page === "home") {
     rewriter = rewriter
@@ -353,6 +276,7 @@ export async function onRequest(context) {
   const headers = new Headers(transformed.headers);
   headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=300");
   headers.set("content-language", "pl");
+  if (url.hostname === FALLBACK_HOST) headers.set("x-robots-tag", "noindex, follow");
   headers.delete("content-length");
   headers.delete("etag");
 
