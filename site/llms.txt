@@ -9,9 +9,9 @@ Use the sections below to choose the right service instead of treating the homep
 - [TRAVNY homepage](https://trfny.com/): visual hub and TVP channel directory
 - [TV player](https://trfny.com/tv/): browser playback for the current TVP streams
 - [Weather](https://weather.trfny.com/): multi-source local weather ensemble for Kościelec in Chrzanów, including temperature, wind, humidity, air quality and pollen
-- [Feeds](https://trvny.github.io/feedseek/): self-updating Atom/RSS directory with 55+ feeds regenerated every two hours; [LLM guide](https://trvny.github.io/feedseek/llms.txt)
+- [Feeds](https://trvny.github.io/feedseek/): self-updating Atom/RSS directory with JSON Feed sidecars, OPML and a browser Reader; [LLM guide](https://trvny.github.io/feedseek/llms.txt); WebMCP tools are exposed by the directory and Reader on supported browser hosts
 - [Streambench](https://streambench.trfny.com/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.trfny.com/llms.txt)
-- [Codebench](https://codebench.trfny.com/): local QR and barcode studio for generating, reading and exporting machine-readable codes
+- [Codebench](https://codebench.trfny.com/): local QR and barcode studio for generating, reading and exporting machine-readable codes; [LLM guide](https://codebench.trfny.com/llms.txt)
 - [Doc Bench](https://docbench.travny.workers.dev/): local-first document and PDF studio for editing, previews, validation, merge, page organization, bookmarks and optimization; [LLM guide](https://docbench.travny.workers.dev/llms.txt)
 
 ## TVP playlists
@@ -25,7 +25,7 @@ TVP stream URLs use short-lived signatures, so the Worker endpoint is preferred.
 
 ### TVPI
 
-Use for discovering and watching TVP channels or obtaining the combined M3U playlist. At present, 8 of 9 channels are degraded because TVP rejects the server-side API requests made by both the Worker and GitHub Actions; the hosted endpoints therefore return stale fallbacks even to viewers in Poland.
+Use for discovering and watching TVP channels or obtaining the combined M3U playlist. TVP still rejects most server-side refreshes from GitHub Actions and Cloudflare with `GEOIP_FILTER_FAILED`, but the Polish residential push path has been verified end to end for 9/9 channels. Hosted freshness therefore depends on a Polish residential pusher running roughly every 10 minutes; temporary stale fallbacks remain possible when no such runner is online.
 
 ### Weather
 
@@ -33,7 +33,7 @@ Use for the local Chrzanów/Kościelec forecast and environmental readings. It c
 
 ### Feeds
 
-Use when a site lacks a convenient native feed. The directory publishes Atom/RSS files, an OPML bundle, a browser reader, a sitemap and its own `llms.txt`.
+Use when a site lacks a convenient native feed or when its existing feed can be improved. The directory publishes enhanced Atom/RSS feeds with JSON Feed sidecars, an OPML bundle, a browser Reader, a sitemap and its own `llms.txt`. On supported browser hosts, WebMCP exposes feed search/filter tools plus Reader article, source-filter, refresh and open-article tools.
 
 ### Streambench
 
@@ -45,7 +45,7 @@ Use for creating and scanning QR codes and barcodes. Processing is designed to s
 
 ### Doc Bench
 
-Use for editing and inspecting TXT, Markdown, JSON, YAML and XML or for local PDF work such as merge, page reordering/deletion, bookmark editing and optimization. User files stay in the browser.
+Use for editing and inspecting TXT, Markdown, JSON, YAML and XML or for local PDF work such as merge, page reordering/deletion, bookmark editing and optimization. User files stay in the browser. On supported browser hosts, WebMCP can read, replace, validate, format and inspect the current local document state.
 
 ## Discovery files
 
