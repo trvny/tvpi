@@ -133,7 +133,7 @@ uruchamia zwykłą ścieżkę cache/live/fallback dopiero przy otwarciu kanału.
 
 ## Inne rzeczy
 
-[![feeds](https://github.com/trvny/.github/blob/main/assets/profile/pin-feeds.svg)](https://github.com/trvny/feedseek) [![wam](https://github.com/trvny/.github/blob/main/assets/profile/pin-wambridge.svg)](https://github.com/trvny/wambridge)
+[![feeds](https://github.com/trvny/.github/blob/main/assets/profile/pin-feeds.svg)](https://github.com/trvny/feedseek) [![wam](https://github.com/trvny/.github/blob/main/assets/profile/pin-wambridge.svg)](https://github.com/twojstar/wambridge)
 
 ## 💬 Cytat z szuflady
 

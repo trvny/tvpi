@@ -100,7 +100,7 @@ Worker 的合并播放列表不会提前解析 token，而是列出稳定频道�
 
 ## 其他项目
 
-[![feeds](https://github.com/trvny/.github/blob/main/assets/profile/pin-feeds.svg)](https://github.com/trvny/feedseek) [![wam](https://github.com/trvny/.github/blob/main/assets/profile/pin-wambridge.svg)](https://github.com/trvny/wambridge)
+[![feeds](https://github.com/trvny/.github/blob/main/assets/profile/pin-feeds.svg)](https://github.com/trvny/feedseek) [![wam](https://github.com/trvny/.github/blob/main/assets/profile/pin-wambridge.svg)](https://github.com/twojstar/wambridge)
 
 ## 💬 抽屉里的引语
 
