@@ -1,0 +1,45 @@
+# TRAVNY full documentation
+
+Source: https://trfny.com/
+
+Description: Complete LLM-oriented map of the public TRAVNY web services.
+
+## TRAVNY hub
+
+The canonical hub is https://trfny.com/. It groups public TV, weather, feed and browser-tool projects. `travny.pages.dev` is an emergency noindex fallback; `tvpi.pages.dev` redirects to the canonical host.
+
+### TVPI
+
+The TV page is https://trfny.com/tv/. Stable playlist endpoints are served from https://tvpi.trfny.com/. The combined playlist is `/playlist.m3u`; per-channel `.m3u8` endpoints are stable URLs that resolve or serve fresh HLS manifests. Do not persist short-lived upstream tokenized URLs as durable endpoints.
+
+### Weather
+
+https://weather.trfny.com/ combines multiple weather sources for Koscielec in Chrzanow and publishes current state JSON plus Atom feeds for weather changes and IMGW warnings.
+
+### Feedseek
+
+https://trvny.github.io/feedseek/ publishes enhanced Atom/RSS feeds, JSON Feed 1.1 sidecars, OPML, a browser Reader and source-aware WebMCP tools where supported.
+
+### Streambench
+
+https://streambench.trfny.com/ is a local-first IPTV/radio/HLS/M3U/XMLTV workshop. Local playlists, edits and history remain in the browser; constrained public provider APIs support the catalog UI.
+
+### Code Bench
+
+https://codebench.trfny.com/ creates, styles and scans QR codes and barcodes. User payloads are processed in browser state.
+
+### Doc Bench
+
+https://docbench.travny.workers.dev/ edits text/structured documents and performs PDF operations locally in the browser, including merge, page work, bookmarks and optimization.
+
+## Markdown pages
+
+- [Hub page](https://trfny.com/index.md)
+- [TVPI page](https://trfny.com/tv/index.md)
+
+## Discovery and source
+
+- [Concise guide](https://trfny.com/llms.txt)
+- [Sitemap](https://trfny.com/sitemap.xml)
+- [Robots policy](https://trfny.com/robots.txt)
+- [Repository](https://github.com/trvny/tvpi)

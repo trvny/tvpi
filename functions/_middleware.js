@@ -218,6 +218,17 @@ function identifyPage(pathname) {
   return null;
 }
 
+function withFallbackNoindex(response, hostname) {
+  if (!isFallbackHost(hostname)) return response;
+  const headers = new Headers(response.headers);
+  headers.set("x-robots-tag", "noindex, follow");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
 
@@ -232,7 +243,7 @@ export async function onRequest(context) {
   const page = identifyPage(url.pathname);
 
   if (context.request.method !== "GET" || !page) {
-    return context.next();
+    return withFallbackNoindex(await context.next(), url.hostname);
   }
 
   const needsWeather = page === "home";
@@ -280,6 +291,11 @@ export async function onRequest(context) {
   const headers = new Headers(transformed.headers);
   headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=300");
   headers.set("content-language", "pl");
+  const markdownPath = page === "home" ? "/index.md" : "/tv/index.md";
+  headers.set(
+    "link",
+    `<${markdownPath}>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"`,
+  );
   if (isFallbackHost(url.hostname)) headers.set("x-robots-tag", "noindex, follow");
   headers.delete("content-length");
   headers.delete("etag");

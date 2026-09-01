@@ -6,8 +6,8 @@ Use the sections below to choose the right service instead of treating the homep
 
 ## Hub map
 
-- [TRAVNY homepage](https://trfny.com/): visual hub and TVP channel directory
-- [TV player](https://trfny.com/tv/): browser playback for the current TVP streams
+- [TRAVNY homepage](https://trfny.com/index.md): Markdown version of the visual hub and TVP channel directory
+- [TV player](https://trfny.com/tv/index.md): Markdown description of browser playback and current TVP streams
 - [Weather](https://weather.trfny.com/): multi-source local weather ensemble for Kościelec in Chrzanów, including temperature, wind, humidity, air quality and pollen
 - [Feeds](https://trvny.github.io/feedseek/): self-updating Atom/RSS directory with JSON Feed sidecars, OPML and a browser Reader; [LLM guide](https://trvny.github.io/feedseek/llms.txt); WebMCP tools are exposed by the directory and Reader on supported browser hosts
 - [Streambench](https://streambench.trfny.com/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.trfny.com/llms.txt)
@@ -49,6 +49,7 @@ Use for editing and inspecting TXT, Markdown, JSON, YAML and XML or for local PD
 
 ## Discovery files
 
+- [Full LLM guide](https://trfny.com/llms-full.txt): all hub/service context in one file
 - [Sitemap](https://trfny.com/sitemap.xml)
 - [Robots policy](https://trfny.com/robots.txt)
 - [Web manifest](https://trfny.com/site.webmanifest)
