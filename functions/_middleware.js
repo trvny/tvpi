@@ -280,6 +280,11 @@ export async function onRequest(context) {
   const headers = new Headers(transformed.headers);
   headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=300");
   headers.set("content-language", "pl");
+  const markdownPath = page === "home" ? "/index.md" : "/tv/index.md";
+  headers.set(
+    "link",
+    `<${markdownPath}>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"`,
+  );
   if (isFallbackHost(url.hostname)) headers.set("x-robots-tag", "noindex, follow");
   headers.delete("content-length");
   headers.delete("etag");

@@ -9,6 +9,63 @@ const manifestKey = (slug: string): string => `manifests/${slug}.m3u8`;
 const APPROVED_VOLUNTEER_IDS = new Set<string>([]);
 
 const TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
+const WORKER_ORIGIN = "https://tvpi.trfny.com";
+const WORKER_ROBOTS = `User-agent: *
+Allow: /index.md
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /
+`;
+const WORKER_INDEX_MD = `# TVPI streaming Worker
+
+> Stable M3U and HLS entry points for the TVP channels exposed by TRAVNY.
+
+- [Combined playlist](${WORKER_ORIGIN}/playlist.m3u)
+- [Human TV page](https://trfny.com/tv/)
+- [Concise LLM guide](${WORKER_ORIGIN}/llms.txt)
+- [Full LLM guide](${WORKER_ORIGIN}/llms-full.txt)
+- [Source](https://github.com/trvny/tvpi/tree/main/worker)
+
+Resolved upstream stream URLs are short-lived. Use the stable Worker endpoints instead of storing tokenized HLS URLs.
+`;
+const WORKER_LLMS = `# TVPI streaming Worker
+
+> Stable public M3U/HLS gateway for TRAVNY's TVP channel list.
+
+## Resources
+
+- [Worker overview](${WORKER_ORIGIN}/index.md): Markdown description of the Worker.
+- [Combined playlist](${WORKER_ORIGIN}/playlist.m3u): stable M3U containing all channel endpoints.
+- [Human TV page](https://trfny.com/tv/index.md): Markdown page for the browser UI.
+- [Full LLM guide](${WORKER_ORIGIN}/llms-full.txt): complete Worker guide.
+- [Source](https://github.com/trvny/tvpi/tree/main/worker): implementation and deployment files.
+`;
+const WORKER_LLMS_FULL = `# TVPI streaming Worker full documentation
+
+Source: ${WORKER_ORIGIN}/
+
+Description: Complete LLM-oriented guide to the public TVPI streaming Worker.
+
+## Stable playlist model
+
+GET / or GET /playlist.m3u returns a stable combined M3U. Its entries point to per-channel .m3u8 endpoints on the same Worker. Those endpoints serve a recently pushed manifest where available or fall through to the normal TVPI resolution stack.
+
+## Freshness
+
+TVP upstream signatures are short-lived. Clients should store the stable Worker endpoint, not a resolved tokenized upstream URL. The project can use a Polish residential refresh path because TVP geo-filtering prevents some server-side environments from refreshing every channel directly.
+
+## Public resources
+
+- [Combined playlist](${WORKER_ORIGIN}/playlist.m3u)
+- [Markdown Worker overview](${WORKER_ORIGIN}/index.md)
+- [Human TV page](https://trfny.com/tv/index.md)
+- [Source](https://github.com/trvny/tvpi/tree/main/worker)
+
+## Non-public operation
+
+POST /push/<slug> is an authenticated maintenance path. Discovery documentation intentionally does not expose credentials or operational secrets.
+`;
+
 const PLAYLIST_CHANNELS = [
   { id: "399697", slug: "tvp1", name: "TVP 1 HD", logo: TVP_LOGO, group: "Polska" },
   { id: "399698", slug: "tvp2", name: "TVP 2 HD", logo: TVP_LOGO, group: "Polska" },
@@ -141,6 +198,22 @@ export default {
       return response;
     }
 
+    const discovery = new Map<string, [string, string, number]>([
+      ["/robots.txt", [WORKER_ROBOTS, "text/plain; charset=utf-8", 86400]],
+      ["/index.md", [WORKER_INDEX_MD, "text/markdown; charset=utf-8", 3600]],
+      ["/llms.txt", [WORKER_LLMS, "text/plain; charset=utf-8", 3600]],
+      ["/llms-full.txt", [WORKER_LLMS_FULL, "text/plain; charset=utf-8", 3600]],
+    ]).get(path);
+    if (discovery && (request.method === "GET" || request.method === "HEAD")) {
+      const [body, contentType, maxAge] = discovery;
+      return new Response(request.method === "HEAD" ? null : body, {
+        headers: {
+          "Content-Type": contentType,
+          "Cache-Control": `public, max-age=${maxAge}`,
+        },
+      });
+    }
+
     if (request.method === "GET" && (path === "/" || path === "/playlist.m3u")) {
       return new Response(buildStablePlaylist(url.origin), {
         headers: {
@@ -148,6 +221,8 @@ export default {
           "Cache-Control": "no-store",
           "Access-Control-Allow-Origin": "*",
           "X-Playlist-Type": "stable-channel-endpoints",
+          "X-Robots-Tag": "noindex, nofollow",
+          "Link": '</index.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"',
         },
       });
     }
@@ -163,6 +238,8 @@ export default {
             "Access-Control-Allow-Origin": "*",
             "X-Source": "push-manifest",
             "X-Manifest": "normalized",
+            "X-Robots-Tag": "noindex, nofollow",
+            "Link": '</index.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"',
           },
         });
       }
