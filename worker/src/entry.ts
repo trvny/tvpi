@@ -11,10 +11,8 @@ const APPROVED_VOLUNTEER_IDS = new Set<string>([]);
 const TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
 const WORKER_ORIGIN = "https://tvpi.trfny.com";
 const WORKER_ROBOTS = `User-agent: *
-Allow: /index.md
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /
+Allow: /
+Disallow: /push/
 `;
 const WORKER_INDEX_MD = `# TVPI streaming Worker
 
@@ -157,6 +155,26 @@ async function readManifest(env: Env, slug: string): Promise<string | null> {
   }
 }
 
+function withStreamDiscovery(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set("X-Robots-Tag", "noindex, nofollow");
+  headers.set(
+    "Link",
+    '</index.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"',
+  );
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function isPublicStreamPath(path: string): boolean {
+  return path === "/"
+    || path === "/playlist.m3u"
+    || path.endsWith(".m3u")
+    || path.endsWith(".m3u8");
+}
 async function syncManifest(env: Env, slug: string, manifest: string | null): Promise<void> {
   try {
     if (!manifest) {
@@ -245,7 +263,8 @@ export default {
       }
     }
 
-    return worker.fetch(request, env, ctx);
+    const delegated = await worker.fetch(request, env, ctx);
+    return isPublicStreamPath(path) ? withStreamDiscovery(delegated) : delegated;
   },
 
   async scheduled(
