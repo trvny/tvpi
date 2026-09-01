@@ -218,6 +218,17 @@ function identifyPage(pathname) {
   return null;
 }
 
+function withFallbackNoindex(response, hostname) {
+  if (!isFallbackHost(hostname)) return response;
+  const headers = new Headers(response.headers);
+  headers.set("x-robots-tag", "noindex, follow");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
 
@@ -232,7 +243,7 @@ export async function onRequest(context) {
   const page = identifyPage(url.pathname);
 
   if (context.request.method !== "GET" || !page) {
-    return context.next();
+    return withFallbackNoindex(await context.next(), url.hostname);
   }
 
   const needsWeather = page === "home";
