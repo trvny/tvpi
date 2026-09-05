@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      time: "21:37"
+      timezone: "Europe/Warsaw"
     groups:
       actions:
         patterns: ["*"]
@@ -14,6 +16,8 @@ updates:
     directory: "/worker"
     schedule:
       interval: "weekly"
+      time: "21:37"
+      timezone: "Europe/Warsaw"
     groups:
       worker-toolchain:
         patterns: ["*"]
