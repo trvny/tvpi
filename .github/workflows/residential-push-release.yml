@@ -69,7 +69,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-22.04
+          - runner: ubuntu-slim
             arch: x64
           - runner: ubuntu-22.04-arm
             arch: arm64
