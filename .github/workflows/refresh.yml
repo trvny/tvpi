@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Checkout repo
         # zizmor: ignore[artipacked] this job commits & pushes refreshed streams, so it needs persisted creds
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Generate playlists
         # Pure-stdlib Python (urllib) — no extra dependencies needed.
