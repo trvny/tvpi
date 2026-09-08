@@ -20,6 +20,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: trvny/.github/.github/actions/copilot-setup@main
+      - uses: trvny/.github/.github/actions/copilot-setup@3f60c7bfb02ab31c3225597ba05f6c28fbaca4f1 # main
         with:
           repository: ${{ github.repository }}
