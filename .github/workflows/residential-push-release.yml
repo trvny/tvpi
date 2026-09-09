@@ -119,7 +119,7 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/main'
     needs: [build-windows, build-linux]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 10
     permissions:
       contents: write
