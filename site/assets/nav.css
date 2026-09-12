@@ -1,0 +1,105 @@
+#trvny-nav-toggle,
+#trvny-nav-close {
+  border: 1px solid #46e0e0;
+  background: #070a10;
+  color: #46e0e0;
+  font: 700 12px/1 "Silkscreen", ui-monospace, monospace;
+  letter-spacing: .06em;
+  text-shadow: none;
+  cursor: pointer;
+}
+#trvny-nav-toggle {
+  position: fixed;
+  z-index: 2147483644;
+  top: 14px;
+  right: 14px;
+  min-width: 44px;
+  min-height: 40px;
+  padding: 0 10px;
+  box-shadow: 0 0 0 2px #04060a, 0 0 20px rgba(70,224,224,.18);
+}
+#trvny-nav-toggle:hover,
+#trvny-nav-toggle:focus-visible,
+#trvny-nav-close:hover,
+#trvny-nav-close:focus-visible {
+  background: #101725;
+  color: #fff;
+  outline: 2px solid #f5e94e;
+  outline-offset: 2px;
+}
+#trvny-nav-backdrop {
+  position: fixed;
+  z-index: 2147483645;
+  inset: 0;
+  background: rgba(0,0,0,.62);
+  backdrop-filter: blur(2px);
+}
+#trvny-nav-drawer {
+  position: fixed;
+  z-index: 2147483646;
+  top: 0;
+  right: 0;
+  width: min(360px, 88vw);
+  height: 100dvh;
+  padding: 22px;
+  overflow: auto;
+  background: #070a10;
+  color: #e6e8ea;
+  border-left: 2px solid #46e0e0;
+  box-shadow: -24px 0 70px rgba(0,0,0,.48);
+  transform: translateX(105%);
+  transition: transform .18s ease;
+  font-family: "VT323", ui-monospace, monospace;
+  text-shadow: none;
+}
+#trvny-nav-drawer[data-open="true"] { transform: translateX(0); }
+#trvny-nav-backdrop[hidden] { display: none; }
+#trvny-nav-drawer * { text-shadow: none; }
+#trvny-nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+#trvny-nav-brand {
+  color: #f5e94e;
+  font: 700 20px/1 "Silkscreen", ui-monospace, monospace;
+  letter-spacing: .04em;
+}
+#trvny-nav-close { min-width: 38px; min-height: 36px; }
+.trvny-nav-group { margin: 20px 0 0; }
+.trvny-nav-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #6f7886;
+  font: 700 10px/1 "Silkscreen", ui-monospace, monospace;
+  letter-spacing: .08em;
+}
+.trvny-nav-link {
+  display: block;
+  padding: 9px 10px;
+  border-left: 3px solid #3a4150;
+  color: #e6e8ea !important;
+  font-size: 22px;
+  line-height: 1.05;
+  text-decoration: none !important;
+}
+.trvny-nav-link:hover,
+.trvny-nav-link:focus-visible {
+  border-left-color: #46e0e0;
+  background: #101725;
+  color: #46e0e0 !important;
+  outline: none;
+}
+.trvny-nav-link small {
+  display: block;
+  margin-top: 3px;
+  color: #6f7886;
+  font-size: 15px;
+  line-height: 1.1;
+}
+body.trvny-nav-locked { overflow: hidden !important; }
+@media (prefers-reduced-motion: reduce) {
+  #trvny-nav-drawer { transition: none; }
+}
