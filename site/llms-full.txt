@@ -1,50 +1,118 @@
-# TRAVNY full documentation
+# TRAVNY full guide
 
 Source: https://trfny.com/
 
-Description: Complete LLM-oriented map of the public TRAVNY web services.
+> Complete machine-readable map of the public TRAVNY hub, related services, stable endpoints and published texts.
 
-## TRAVNY hub
+## Identity and hosts
 
-The canonical hub is https://trfny.com/. It groups public TV, weather, feed and browser-tool projects. `travny.pages.dev` is an emergency noindex fallback; `tvpi.pages.dev` redirects to the canonical host.
+- Canonical hub: https://trfny.com/
+- Emergency fallback: https://travny.pages.dev/ — serves the same Pages output with `noindex, follow`.
+- Legacy Pages host: https://tvpi.pages.dev/ — permanently redirects to the canonical host while preserving path and query.
+- Repository: https://github.com/trvny/tvpi
+
+The hub is a lightweight static/edge site. It links independent services rather than hiding them behind one application runtime.
+
+## Hub routes
+
+### Home
+
+- Human page: https://trfny.com/
+- Markdown representation: https://trfny.com/index.md
+- Concise LLM guide: https://trfny.com/llms.txt
+- This full guide: https://trfny.com/llms-full.txt
 
 ### TVPI
 
-The TV page is https://trfny.com/tv/. Stable playlist endpoints are served from https://tvpi.trfny.com/. The combined playlist is `/playlist.m3u`; per-channel `.m3u8` endpoints are stable URLs that resolve or serve fresh HLS manifests. Do not persist short-lived upstream tokenized URLs as durable endpoints.
+- Human TV page: https://trfny.com/tv/
+- Markdown page: https://trfny.com/tv/index.md
+- Streaming Worker: https://tvpi.trfny.com/
+- Worker overview: https://tvpi.trfny.com/index.md
+- Worker LLM guide: https://tvpi.trfny.com/llms.txt
+- Worker full guide: https://tvpi.trfny.com/llms-full.txt
+- Stable combined playlist: https://tvpi.trfny.com/playlist.m3u
+- Raw GitHub playlist fallback: https://raw.githubusercontent.com/trvny/tvpi/main/streams/playlist.m3u
 
-### Weather
-
-https://weather.trfny.com/ combines multiple weather sources for Koscielec in Chrzanow and publishes current state JSON plus Atom feeds for weather changes and IMGW warnings.
-
-### Feedseek
-
-https://trvny.github.io/feedseek/ publishes enhanced Atom/RSS feeds, JSON Feed 1.1 sidecars, OPML, a browser Reader and source-aware WebMCP tools where supported.
-
-### Streambench
-
-https://streambench.trfny.com/ is a local-first IPTV/radio/HLS/M3U/XMLTV workshop. Local playlists, edits and history remain in the browser; constrained public provider APIs support the catalog UI.
-
-### Code Bench
-
-https://codebench.trfny.com/ creates, styles and scans QR codes and barcodes. User payloads are processed in browser state.
-
-### Doc Bench
-
-https://docbench.travny.workers.dev/ edits text/structured documents and performs PDF operations locally in the browser, including merge, page work, bookmarks and optimization.
+TVP upstream stream signatures are short-lived. Consumers should save the stable Worker URLs. Per-channel `.m3u8` endpoints resolve or serve fresh HLS data behind a durable URL.
 
 ### Teksty
 
-https://trfny.com/teksty/ collects short TRAVNY experiments and comparisons. Tokenowy Mundial AI is served at https://trfny.com/teksty/token-worldcup/ from the maintained Quarto-generated artifact in `trvny/trvny`.
+- Human index: https://trfny.com/teksty/
+- Markdown index: https://trfny.com/teksty/index.md
+- Tokenowy Mundial AI: https://trfny.com/teksty/token-worldcup/
+- Maintained Quarto source: https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.qmd
+- Verified generated HTML source: https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.html
 
-## Markdown pages
+TRAVNY proxies the generated Token Cup artifact rather than maintaining a second copy. The article compares token counts for equivalent natural text in 27 languages using `o200k_base`; English is the normalized index baseline (`EN = 100`) while the measured English sample is 95 tokens.
 
-- [Hub page](https://trfny.com/index.md)
-- [TVPI page](https://trfny.com/tv/index.md)
-- [Teksty index](https://trfny.com/teksty/index.md)
+## Related services
 
-## Discovery and source
+### Weather
 
-- [Concise guide](https://trfny.com/llms.txt)
-- [Sitemap](https://trfny.com/sitemap.xml)
-- [Robots policy](https://trfny.com/robots.txt)
-- [Repository](https://github.com/trvny/tvpi)
+- Dashboard: https://weather.trfny.com/
+- LLM guide: https://weather.trfny.com/llms.txt
+- Full guide: https://weather.trfny.com/llms-full.txt
+- Current ensemble JSON: https://weather.trfny.com/state.json
+- Weather changes Atom feed: https://weather.trfny.com/feed.atom
+- IMGW warnings Atom feed: https://weather.trfny.com/warnings.atom
+
+The service combines multiple sources for Kościelec in Chrzanów and includes temperature, wind, humidity, air quality, pollen and IMGW warnings.
+
+### Feedseek
+
+- Directory: https://trvny.github.io/feedseek/
+- LLM guide: https://trvny.github.io/feedseek/llms.txt
+- Full guide: https://trvny.github.io/feedseek/llms-full.txt
+- Markdown directory: https://trvny.github.io/feedseek/index.md
+- OPML bundle: https://trvny.github.io/feedseek/subscriptions.opml
+- Sitemap: https://trvny.github.io/feedseek/sitemap.xml
+- Source: https://github.com/trvny/feedseek
+
+Feedseek publishes self-updating Atom/RSS feeds, JSON Feed sidecars, OPML and a browser Reader. Its own guides are the source of truth for the current feed inventory and supported WebMCP tools.
+
+### Streambench
+
+- Application: https://streambench.trfny.com/
+- Markdown page: https://streambench.trfny.com/index.md
+- LLM guide: https://streambench.trfny.com/llms.txt
+- Full guide: https://streambench.trfny.com/llms-full.txt
+- Health JSON: https://streambench.trfny.com/health
+- Provider manifest: https://streambench.trfny.com/api/providers
+
+Streambench is a local-first IPTV, internet-radio, HLS, M3U/M3U8 and XMLTV workshop. Local files, edits, favorites and history remain in the browser.
+
+### Code Bench
+
+- Application: https://codebench.trfny.com/
+- Markdown page: https://codebench.trfny.com/index.md
+- LLM guide: https://codebench.trfny.com/llms.txt
+- Full guide: https://codebench.trfny.com/llms-full.txt
+
+Code Bench creates, styles, scans and exports QR codes and barcodes. User payloads are processed in browser state.
+
+### Doc Bench
+
+- Application: https://docbench.travny.workers.dev/
+- Markdown page: https://docbench.travny.workers.dev/index.md
+- LLM guide: https://docbench.travny.workers.dev/llms.txt
+- Full guide: https://docbench.travny.workers.dev/llms-full.txt
+
+Doc Bench edits text and structured documents and performs PDF maintenance locally in the browser. Its own guide documents which WebMCP tools can expose current editor state to an agent.
+
+## Discovery files
+
+- Sitemap: https://trfny.com/sitemap.xml
+- Robots policy: https://trfny.com/robots.txt
+- Web manifest: https://trfny.com/site.webmanifest
+- Hub Markdown: https://trfny.com/index.md
+- TVPI Markdown: https://trfny.com/tv/index.md
+- Teksty Markdown: https://trfny.com/teksty/index.md
+
+The sitemap contains public human-facing hub routes. Service-specific machine-readable resources live on their owning service and are linked here rather than duplicated.
+
+## Source-of-truth rules
+
+- `trvny/tvpi` owns the TRAVNY hub and TVPI streaming Worker.
+- Each linked service owns its detailed capability and agent-access documentation in its own `llms.txt` / `llms-full.txt`.
+- Tokenowy Mundial AI is maintained in `trvny/trvny/stuff/other/token-worldcup/`; TRAVNY only publishes it through the article route.
+- Generated or proxied artifacts are not separate maintained sources.
