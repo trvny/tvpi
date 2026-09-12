@@ -18,6 +18,10 @@
   padding: 0 10px;
   box-shadow: 0 0 0 2px #04060a, 0 0 20px rgba(70,224,224,.18);
 }
+#trvny-nav-close {
+  min-width: 38px;
+  min-height: 36px;
+}
 #trvny-nav-toggle:hover,
 #trvny-nav-toggle:focus-visible,
 #trvny-nav-close:hover,
@@ -67,7 +71,6 @@
   font: 700 20px/1 "Silkscreen", ui-monospace, monospace;
   letter-spacing: .04em;
 }
-#trvny-nav-close { min-width: 38px; min-height: 36px; }
 .trvny-nav-group { margin: 20px 0 0; }
 .trvny-nav-label {
   display: block;
