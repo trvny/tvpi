@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b12">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="GitHubowa Kraina: interaktywny atlas publicznych projektów trvny i twojstar — aplikacje, usługi, benche, infrastruktura i wspólny warsztat.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:locale" content="pl_PL">
+  <meta property="og:site_name" content="TRAVNY">
+  <meta property="og:title" content="GitHubowa Kraina · TRAVNY">
+  <meta property="og:description" content="Interaktywny atlas 12 publicznych repozytoriów trvny i twojstar: główne projekty, dzielnica narzędziowa i infrastruktura.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://trfny.com/teksty/githubowa-kraina/">
+  <meta property="og:image" content="https://trfny.com/assets/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GitHubowa Kraina · TRAVNY">
+  <meta name="twitter:description" content="Interaktywny atlas projektów trvny i twojstar.">
+  <meta name="twitter:image" content="https://trfny.com/assets/og.png">
+  <title>GitHubowa Kraina · TRAVNY</title>
+  <link rel="canonical" href="https://trfny.com/teksty/githubowa-kraina/">
+  <link rel="alternate" type="text/markdown" href="/teksty/githubowa-kraina/index.md" title="GitHubowa Kraina Markdown">
+  <link rel="describedby" href="/llms.txt" title="TRAVNY llms.txt">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://avatars.githubusercontent.com">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"GitHubowa Kraina","description":"Interaktywny atlas publicznych projektów trvny i twojstar.","url":"https://trfny.com/teksty/githubowa-kraina/","inLanguage":"pl-PL","isPartOf":{"@type":"WebSite","name":"TRAVNY","url":"https://trfny.com/"},"about":[{"@type":"Organization","name":"twojstar","url":"https://github.com/twojstar"},{"@type":"Person","name":"trvny","url":"https://github.com/trvny"}]}</script>
+  <style>
+:root{--bg:#080a10;--panel:#10141d;--panel2:#0d1119;--ink:#f4f1e8;--muted:#9ca3af;--line:#232a38;--gold:#e7b75a;--cyan:#66d9ef;--violet:#a78bfa;--green:#6ee7b7;--orange:#fb923c;--yellow:#facc15;--blue:#60a5fa;--max:1180px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 50% -20%,#1c2230 0,#0c0f16 32%,var(--bg) 66%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;overflow-x:hidden}.shell{width:min(calc(100% - 32px),var(--max));margin-inline:auto}.stars{position:fixed;inset:0;pointer-events:none;opacity:.35;background-image:radial-gradient(#fff 1px,transparent 1px),radial-gradient(#8eb8ff 1px,transparent 1px);background-size:47px 47px,83px 83px;background-position:0 0,20px 30px;mask-image:linear-gradient(to bottom,#000,transparent 75%);z-index:-1}.hero{padding:28px 0 86px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-right:58px}.brand,.profile-chip{color:var(--ink);text-decoration:none}.brand{display:flex;gap:10px;align-items:center;font-weight:750;letter-spacing:-.02em}.brand-mark{display:grid;place-items:center;width:34px;height:34px;border:1px solid #3a4254;border-radius:10px;background:#111722;box-shadow:inset 0 0 20px #1b2433}.profiles{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.profile-chip{display:flex;align-items:center;gap:7px;border:1px solid #2b3343;background:#0d1119cc;padding:5px 9px 5px 5px;border-radius:999px;font-size:.82rem;color:#c8ced8}.profile-chip img{width:24px;height:24px;border-radius:50%}.hero-grid{display:grid;grid-template-columns:1.45fr .75fr;gap:64px;align-items:end;padding-top:96px}.eyebrow{font:600 .72rem/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.17em;color:var(--gold);margin:0 0 16px}.hero h1{font-size:clamp(2.8rem,7vw,6.7rem);line-height:.94;letter-spacing:-.065em;margin:0;max-width:900px}.hero h1 em{font-style:normal;color:#b9c4d4}.lede{max-width:760px;font-size:clamp(1rem,2vw,1.25rem);color:#aeb6c4;margin:28px 0 0}.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:34px}.button{appearance:none;border:1px solid #303849;border-radius:10px;padding:12px 16px;font-weight:700;font-size:.9rem;cursor:pointer;text-decoration:none}.button.primary{background:var(--ink);color:#090b10;border-color:var(--ink)}.button.ghost{background:#0e131c;color:var(--ink)}.button:hover{transform:translateY(-1px)}.realm-card{position:relative;min-height:315px;border:1px solid #30384a;border-radius:24px;background:linear-gradient(150deg,#121824e6,#090c13e6);padding:26px;overflow:hidden;box-shadow:0 30px 80px #0007}.realm-card:after{content:"";position:absolute;inset:auto -25% -55% 10%;height:75%;background:radial-gradient(circle,#6d88ff22,transparent 68%)}.realm-orbit{position:absolute;right:-45px;top:-45px;width:190px;height:190px;border:1px solid #354058;border-radius:50%;opacity:.75}.realm-orbit:before,.realm-orbit:after{content:"";position:absolute;border:1px solid #2d3548;border-radius:50%}.realm-orbit:before{inset:25px}.realm-orbit:after{inset:55px}.realm-orbit span{position:absolute;width:7px;height:7px;background:var(--gold);border-radius:50%;box-shadow:0 0 18px var(--gold)}.realm-orbit span:nth-child(1){left:22px;top:70px}.realm-orbit span:nth-child(2){right:38px;bottom:20px;background:var(--cyan)}.realm-orbit span:nth-child(3){left:85px;bottom:5px;background:var(--violet)}.realm-label{font:600 .68rem ui-monospace,monospace;color:#8d96a6;letter-spacing:.17em}.realm-stat{display:flex;align-items:baseline;gap:13px;margin-top:58px}.realm-stat strong{font-size:4.2rem;line-height:1;letter-spacing:-.08em}.realm-stat span{color:#aeb6c4}.realm-split{display:flex;gap:10px;margin-top:14px}.realm-split span{border:1px solid #2a3241;background:#0a0e15;padding:7px 10px;border-radius:8px;color:#9ea8b7;font:600 .74rem ui-monospace,monospace}.realm-note{position:relative;z-index:1;color:#98a2b1;font-size:.85rem;margin:24px 0 0}.section-heading{display:flex;justify-content:space-between;gap:40px;align-items:end;margin-bottom:28px}.section-heading h2{font-size:clamp(1.9rem,4vw,3rem);letter-spacing:-.045em;margin:0}.section-heading>p{max-width:430px;color:#8993a3;margin:0}.atlas-section{padding:28px 0 88px}.atlas{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:minmax(260px,auto);gap:14px}.region{position:relative;overflow:hidden;text-decoration:none;color:var(--ink);border:1px solid #252d3c;border-radius:18px;padding:24px;background:linear-gradient(145deg,#111722,#0b0f16);transition:.22s transform,.22s border-color,.22s background}.region:hover{transform:translateY(-4px);border-color:#49556d;background:linear-gradient(145deg,#151c29,#0b0f16)}.region:before{content:"";position:absolute;inset:auto -20% -35% 35%;height:65%;background:radial-gradient(circle,var(--glow),transparent 67%);opacity:.4}.region>*{position:relative}.region-icon{font-size:2rem;display:block;margin-bottom:42px}.region-kicker{font:600 .67rem ui-monospace,monospace;letter-spacing:.15em;color:#8994a6}.region h3{font-size:2rem;letter-spacing:-.04em;margin:7px 0 10px}.region p{color:#a7b0bf;max-width:58ch;margin:0 0 24px}.tagline{display:block;color:#7f8998;font:600 .72rem ui-monospace,monospace}.feedseek{grid-column:span 7;--glow:#ff7a18}.kanarek{grid-column:span 5;--glow:#facc15}.wam{grid-column:span 4;--glow:#2563eb}.llm{grid-column:span 8;--glow:#8b5cf6}.autka{grid-column:span 6;--glow:#22c55e}.tvpi{grid-column:span 6;--glow:#38bdf8}.roads{border-block:1px solid #1d2430;background:linear-gradient(180deg,#0b0f16,#090c12);padding:78px 0}.roads-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:60px}.compact{display:block}.road-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}.road-card{display:flex;gap:14px;align-items:flex-start;border:1px solid #242c3a;border-radius:14px;background:#0d121a;padding:18px;text-decoration:none;color:var(--ink)}.road-card:hover{border-color:#46526a}.road-card>span{font-size:1.35rem}.road-card b{display:block;font-size:.96rem}.road-card small{display:block;color:#8d97a6;margin-top:4px;line-height:1.45}.workshop-section{padding:88px 0}.workshop-hub{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;margin-bottom:14px;padding:22px;border:1px solid #3a465c;border-radius:16px;background:linear-gradient(135deg,#151c29,#0c1017);color:var(--ink);text-decoration:none}.workshop-hub:hover{border-color:#657491;transform:translateY(-2px)}.workshop-hub-icon{font-size:1.8rem}.workshop-hub b{display:block;font-size:1.15rem}.workshop-hub small{display:block;color:#8d97a6;margin-top:3px}.workshop-hub-arrow{color:#7f8999;font-size:1.25rem}.tool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.tool-grid a{display:flex;min-height:118px;flex-direction:column;justify-content:space-between;text-decoration:none;color:var(--ink);border:1px solid #242c39;border-radius:13px;background:#0d1118;padding:17px;transition:.2s}.tool-grid a:hover{transform:translateY(-3px);border-color:#4b5770}.tool-grid b{letter-spacing:-.02em}.tool-grid span{font:600 .7rem ui-monospace,monospace;color:#7f8999}.gates{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding-bottom:84px}.gate{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:22px;text-decoration:none;color:var(--ink);padding:24px;border:1px solid #293242;border-radius:18px;background:linear-gradient(135deg,#111722,#0c1017)}.gate:hover{border-color:#596780}.gate-sigil{display:grid;place-items:center;width:64px;height:64px;border-radius:16px;border:1px solid #39445a;background:#0a0e15;font:800 2rem Georgia,serif}.gate-sigil.star{color:var(--gold)}.gate small{font:600 .64rem ui-monospace,monospace;color:#7d8797;letter-spacing:.15em}.gate h2{margin:2px 0 2px;letter-spacing:-.04em}.gate p{margin:0;color:#8993a2;font-size:.9rem}.gate-arrow{font-size:1.4rem;color:#778298}.footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid #1e2531;padding:28px 0 40px;color:#626d7d;font:600 .68rem ui-monospace,monospace;text-transform:uppercase;letter-spacing:.09em}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:36px;padding-top:72px}.realm-card{max-width:560px}.atlas{grid-template-columns:1fr 1fr}.region{grid-column:span 1!important}.roads-grid{grid-template-columns:1fr}.tool-grid{grid-template-columns:1fr 1fr}.gates{grid-template-columns:1fr}.section-heading{align-items:start;flex-direction:column}.section-heading>p{max-width:none}}
+@media(max-width:560px){.workshop-hub{grid-template-columns:auto 1fr}.workshop-hub-arrow{display:none}.shell{width:min(calc(100% - 22px),var(--max))}.hero{padding-top:16px}.topbar{align-items:flex-start}.brand span:last-child{display:none}.profiles{gap:4px}.profile-chip span{display:none}.hero-grid{padding-top:55px}.hero h1{font-size:clamp(2.7rem,15vw,4.4rem)}.hero-actions{flex-direction:column}.button{text-align:center;width:100%}.atlas{grid-template-columns:1fr}.region{min-height:285px}.road-list,.tool-grid{grid-template-columns:1fr}.realm-stat{margin-top:50px}.gates{padding-bottom:58px}.gate{grid-template-columns:auto 1fr}.gate-arrow{display:none}.footer{flex-direction:column;gap:7px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+  <header class="hero shell">
+    <nav class="topbar" aria-label="Główna nawigacja">
+      <a class="brand" href="https://github.com/trvny" target="_blank" rel="noopener">
+        <span class="brand-mark">⌘</span><span>GitHubowa Kraina</span>
+      </a>
+      <div class="profiles">
+        <a class="profile-chip" href="https://github.com/trvny" target="_blank" rel="noopener">
+          <img src="https://avatars.githubusercontent.com/u/120686325?v=4" alt="Avatar trvny">
+          <span>trvny</span>
+        </a>
+        <a class="profile-chip" href="https://github.com/twojstar" target="_blank" rel="noopener">
+          <img src="https://avatars.githubusercontent.com/u/322703530?v=4" alt="Avatar twojstar">
+          <span>twojstar</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="hero-grid">
+      <section class="hero-copy">
+        <p class="eyebrow">ATLAS / BUILD 2026.09</p>
+        <h1>Tu projekty nie leżą w repozytoriach.<br><em>Mają własne dzielnice.</em></h1>
+        <p class="lede">Dwie bramy, dwanaście publicznych repozytoriów i sporo kabli biegnących pod brukiem. Oto mapa krainy, w której RSS spotyka IPTV, foobar rozmawia z głośnikiem, a modele AI siedzą przy jednym stole.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="https://github.com/trvny/trvny" target="_blank" rel="noopener">Wejdź do centrum dowodzenia ↗</a>
+          <button class="button ghost" id="shuffleLore" type="button">Rzuć kostką lore</button>
+        </div>
+      </section>
+
+      <aside class="realm-card" aria-label="Stan krainy">
+        <div class="realm-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="realm-label">STAN KRÓLESTWA</p>
+        <div class="realm-stat"><strong>12</strong><span>publicznych repo</span></div>
+        <div class="realm-split"><span><b>6</b> / trvny</span><span><b>6</b> / twojstar</span></div>
+        <p class="realm-note" id="lore">Konsolidacja ponad fragmentacją. Małe narzędzia dostają wspólny warsztat, duże projekty własne forty.</p>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section class="shell atlas-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">GŁÓWNE REGIONY</p><h2>Mapa właściwa</h2>`r`n</div>
+        <p>Największe osady. Kliknięcie teleportuje prosto do repo.</p>
+      </div>
+
+      <div class="atlas" aria-label="Najważniejsze projekty">
+        <a class="region feedseek" href="https://github.com/trvny/feedseek" target="_blank" rel="noopener">
+          <span class="region-icon">📡</span><span class="region-kicker">OBSERWATORIUM</span>
+          <h3>Feedseek</h3>`r`n<p>RSS, Atom i JSON Feed. Buduje brakujące feedy, poprawia istniejące i pilnuje, żeby jeden trup nie przewrócił całej anteny.</p>
+          <span class="tagline">Python · feeds · publishing</span>
+        </a>
+
+        <a class="region kanarek" href="https://github.com/twojstar/Kanarek" target="_blank" rel="noopener">
+          <span class="region-icon">🐤</span><span class="region-kicker">WIEŻA SYGNAŁOWA</span>
+          <h3>Kanarek</h3>`r`n<p>Androidowy czytnik RSS z widgetami, radiem i IPTV. Żółty ptak, zaskakująco dużo infrastruktury.</p>
+          <span class="tagline">Kotlin · Media3 · Worker</span>
+        </a>
+
+        <a class="region wam" href="https://github.com/twojstar/wambridge" target="_blank" rel="noopener">
+          <span class="region-icon">🔊</span><span class="region-kicker">WARSZTAT AUDIO</span>
+          <h3>WAM Bridge</h3>`r`n<p>Most między Windowsem, foobarem i Samsungiem Shape M5. Tu protokoły audio dostają smar, FLAC i drugi żywot.</p>
+          <span class="tagline">Python · foobar2000 · Wi-Fi audio</span>
+        </a>
+
+        <a class="region llm" href="https://github.com/twojstar/llmbench" target="_blank" rel="noopener">
+          <span class="region-icon">🧠</span><span class="region-kicker">LABORATORIUM AI</span>
+          <h3>LlmBench</h3>`r`n<p>Jedna klientownia dla wielu usług AI: WebView, natywne providery, porównywanie modeli i wspólny rdzeń KMP.</p>
+          <span class="tagline">Kotlin Multiplatform · LLMs · WebView</span>
+        </a>
+
+        <a class="region autka" href="https://github.com/twojstar/Autka" target="_blank" rel="noopener">
+          <span class="region-icon">🚗</span><span class="region-kicker">GARAŻ GRANICZNY</span>
+          <h3>Autka</h3>`r`n<p>Zakupy aut PL, EU i USA w jednym miejscu, z kalkulatorem importu. Bez „scrapuj wszystko i módl się do regulaminu”.</p>
+          <span class="tagline">Android · marketplace hand-off · NBP</span>
+        </a>
+
+        <a class="region tvpi" href="https://github.com/trvny/tvpi" target="_blank" rel="noopener">
+          <span class="region-icon">📺</span><span class="region-kicker">STACJA NADAWCZA</span>
+          <h3>TVPI</h3>`r`n<p>Stabilne wejścia IPTV dla kanałów TVP, Worker i domowy polski runner odświeżający krótkowieczne HLS-y.</p>
+          <span class="tagline">Python · Cloudflare · HLS</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="shell workshop-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">DZIELNICA NARZĘDZIOWA</p><h2>Warsztat twojstar</h2>`r`n</div>
+        <p>Mniejsze rzeczy nie muszą udawać imperiów. Mogą po prostu działać razem.</p>
+      </div>
+      <a class="workshop-hub" href="https://github.com/twojstar/twojstar" target="_blank" rel="noopener">
+        <span class="workshop-hub-icon">🛠️</span>
+        <span><b>twojstar/twojstar</b><small>Wspólny warsztat i główna ulica dzielnicy: Benches, weather, Feedboard, Xiaomi ADB, pluginy i eksperymenty.</small></span>
+        <span class="workshop-hub-arrow">↗</span>
+      </a>
+      <div class="tool-grid">
+        <a href="https://codebench.trfny.com" target="_blank" rel="noopener"><b>Codebench</b><span>QR + barcodes</span></a>
+        <a href="https://streambench.trfny.com" target="_blank" rel="noopener"><b>Streambench</b><span>IPTV + radio + HLS</span></a>
+        <a href="https://docbench.travny.workers.dev" target="_blank" rel="noopener"><b>Docbench</b><span>PDF + documents</span></a>
+        <a href="https://weather.trfny.com" target="_blank" rel="noopener"><b>Weather Feed</b><span>Kościelec / Chrzanów</span></a>
+        <a href="https://github.com/twojstar/twojstar/tree/main/feedboard" target="_blank" rel="noopener"><b>Feedboard</b><span>Windows 11 feeds</span></a>
+        <a href="https://github.com/twojstar/twojstar/tree/main/paintdotnet" target="_blank" rel="noopener"><b>Paint.NET</b><span>ICO + AI Restore</span></a>
+        <a href="https://github.com/twojstar/twojstar/tree/main/audacity" target="_blank" rel="noopener"><b>Audacity</b><span>Auto Declip VST3</span></a>
+        <a href="https://github.com/twojstar/twojstar/tree/main/intent-keyboard" target="_blank" rel="noopener"><b>Intent Keyboard</b><span>rough intent → natural text</span></a>
+      </div>
+    </section>
+
+    <section class="roads">
+      <div class="shell roads-grid">
+        <div class="section-heading compact"><div><p class="eyebrow">DROGI I PODZIEMIA</p><h2>To, co spina mapę</h2>`r`n</div></div>
+        <div class="road-list">
+          <a class="road-card" href="https://github.com/trvny/.ai" target="_blank" rel="noopener"><span>🤖</span><div><b>.ai</b><small>Przenośny rdzeń profili, instrukcji, adapterów i skills.</small></div></a>
+          <a class="road-card" href="https://github.com/trvny/WiFi-Automatic" target="_blank" rel="noopener"><span>📶</span><div><b>WiFi-Automatic</b><small>Utrzymywany fork Androida, który wyłącza Wi‑Fi, kiedy naprawdę nie jest potrzebne.</small></div></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell gates">
+      <a class="gate" href="https://github.com/trvny" target="_blank" rel="noopener"><span class="gate-sigil">t</span><div><small>BRAMA ZACHODNIA</small><h2>trvny</h2>`r`n<p>Źródła, usługi, eksperymenty i centrum dowodzenia.</p></div><span class="gate-arrow">↗</span></a>
+      <a class="gate" href="https://github.com/twojstar" target="_blank" rel="noopener"><span class="gate-sigil star">✦</span><div><small>BRAMA WSCHODNIA</small><h2>twojstar</h2>`r`n<p>Organizacja, większe aplikacje i wspólny warsztat.</p></div><span class="gate-arrow">↗</span></a>
+    </section>
+  </main>
+
+  <footer class="shell footer">
+    <span>GitHubowa Kraina · 2026</span>
+    <span>zero korpo-wydm, dużo kabli</span>
+  </footer>
+
+  <script>
+const lore = [
+  'Konsolidacja ponad fragmentacją. Małe narzędzia dostają wspólny warsztat, duże projekty własne forty.',
+  'Najkrótsza droga między dwoma projektami zwykle prowadzi przez kolejny skrypt, którego miało nie być.',
+  'W tej krainie „local-first” nie jest naklejką. To plan ewakuacyjny na wypadek, gdy chmura zacznie mieć pomysły.',
+  'Jeżeli urządzenie ma działający protokół z 2014 roku, istnieje niezerowa szansa, że ktoś tu właśnie pisze do niego most.',
+  'RSS nie umarł. Po prostu wyniósł się z centrum i zbudował własne obserwatorium.'
+];
+const button = document.querySelector('#shuffleLore');
+const output = document.querySelector('#lore');
+button?.addEventListener('click', () => {
+  const current = output.textContent;
+  const choices = lore.filter(item => item !== current);
+  output.textContent = choices[Math.floor(Math.random() * choices.length)];
+});
+
+</script>
+</body>
+</html>

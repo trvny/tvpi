@@ -12,7 +12,7 @@ Canonical site: https://trfny.com/. `travny.pages.dev` is a noindex emergency fa
 - [Streambench](https://streambench.trfny.com/): IPTV, radio, HLS, M3U/M3U8 and XMLTV workshop.
 - [Code Bench](https://codebench.trfny.com/): local-first QR and barcode studio.
 - [Doc Bench](https://docbench.travny.workers.dev/): local-first document and PDF studio.
-- [Teksty](https://trfny.com/teksty/): experiments, comparisons and short technical publications.
+- [Teksty](https://trfny.com/teksty/): experiments, comparisons and short technical publications, including Tokenowy Mundial AI and GitHubowa Kraina.
 
 ## Discovery
 

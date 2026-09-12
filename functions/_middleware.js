@@ -44,7 +44,7 @@ const NAV_BODY = `
     <div class="trvny-nav-group"><span class="trvny-nav-label">START</span><a class="trvny-nav-link" href="/">Strona główna<small>hub TRAVNY</small></a><a class="trvny-nav-link" href="/tv/">TVP<small>kanały i odtwarzacz</small></a></div>
     <div class="trvny-nav-group"><span class="trvny-nav-label">USŁUGI</span><a class="trvny-nav-link" href="https://weather.trfny.com/">Pogoda</a><a class="trvny-nav-link" href="https://trvny.github.io/feedseek/">Feedy</a></div>
     <div class="trvny-nav-group"><span class="trvny-nav-label">LAB</span><a class="trvny-nav-link" href="https://streambench.trfny.com/">Streambench</a><a class="trvny-nav-link" href="https://codebench.trfny.com/">Codebench</a><a class="trvny-nav-link" href="https://docbench.travny.workers.dev/">Doc Bench</a></div>
-    <div class="trvny-nav-group"><span class="trvny-nav-label">TEKSTY</span><a class="trvny-nav-link" href="/teksty/">Wszystkie teksty<small>eksperymenty i porównania</small></a><a class="trvny-nav-link" href="/teksty/token-worldcup/">Tokenowy Mundial AI</a></div>
+    <div class="trvny-nav-group"><span class="trvny-nav-label">TEKSTY</span><a class="trvny-nav-link" href="/teksty/">Wszystkie teksty<small>eksperymenty i porównania</small></a><a class="trvny-nav-link" href="/teksty/githubowa-kraina/">GitHubowa Kraina<small>atlas projektów</small></a><a class="trvny-nav-link" href="/teksty/token-worldcup/">Tokenowy Mundial AI</a></div>
   </nav>
 </aside>
 <script src="/assets/nav.js" defer></script>`;
@@ -240,6 +240,7 @@ function identifyPage(pathname) {
   if (pathname === "/tv" || pathname === "/tv/" || pathname === "/tv/index.html") return "tv";
   if (pathname === "/teksty" || pathname === "/teksty/" || pathname === "/teksty/index.html") return "texts";
   if (pathname === "/teksty/token-worldcup" || pathname === "/teksty/token-worldcup/") return "token-worldcup";
+  if (pathname === "/teksty/githubowa-kraina" || pathname === "/teksty/githubowa-kraina/" || pathname === "/teksty/githubowa-kraina/index.html") return "githubowa-kraina";
   return null;
 }
 
@@ -331,7 +332,8 @@ export async function onRequest(context) {
   const markdownPath =
     page === "home" ? "/index.md" :
       page === "tv" ? "/tv/index.md" :
-        page === "texts" ? "/teksty/index.md" : null;
+        page === "texts" ? "/teksty/index.md" :
+          page === "githubowa-kraina" ? "/teksty/githubowa-kraina/index.md" : null;
   headers.set(
     "link",
     markdownPath
