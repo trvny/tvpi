@@ -1,5 +1,5 @@
 const ARTICLE_URL =
-  "https://raw.githubusercontent.com/trvny/trvny/main/stuff/other/token-worldcup.html";
+  "https://raw.githubusercontent.com/trvny/trvny/main/stuff/other/token-worldcup/token-worldcup.html";
 
 export async function onRequest(context) {
   const method = context.request.method;
