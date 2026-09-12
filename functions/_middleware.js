@@ -34,6 +34,20 @@ const WEATHER_STATE = "https://weather.travny.workers.dev/state.json";
 const REDIRECT_HOSTS = new Set(["tvpi.pages.dev", "www.trfny.com"]);
 const FALLBACK_HOST = "travny.pages.dev";
 const CANONICAL_HOST = "trfny.com";
+const NAV_HEAD = '<link rel="stylesheet" href="/assets/nav.css">';
+const NAV_BODY = `
+<button id="trvny-nav-toggle" type="button" aria-controls="trvny-nav-drawer" aria-expanded="false" aria-label="Otwórz menu">☰</button>
+<div id="trvny-nav-backdrop" hidden></div>
+<aside id="trvny-nav-drawer" data-open="false" aria-hidden="true" aria-label="Nawigacja TRAVNY" inert>
+  <div id="trvny-nav-head"><span id="trvny-nav-brand">TRAVNY</span><button id="trvny-nav-close" type="button" aria-label="Zamknij menu">×</button></div>
+  <nav>
+    <div class="trvny-nav-group"><span class="trvny-nav-label">START</span><a class="trvny-nav-link" href="/">Strona główna<small>hub TRAVNY</small></a><a class="trvny-nav-link" href="/tv/">TVP<small>kanały i odtwarzacz</small></a></div>
+    <div class="trvny-nav-group"><span class="trvny-nav-label">USŁUGI</span><a class="trvny-nav-link" href="https://weather.trfny.com/">Pogoda</a><a class="trvny-nav-link" href="https://trvny.github.io/feedseek/">Feedy</a></div>
+    <div class="trvny-nav-group"><span class="trvny-nav-label">LAB</span><a class="trvny-nav-link" href="https://streambench.trfny.com/">Streambench</a><a class="trvny-nav-link" href="https://codebench.trfny.com/">Codebench</a><a class="trvny-nav-link" href="https://docbench.travny.workers.dev/">Doc Bench</a></div>
+    <div class="trvny-nav-group"><span class="trvny-nav-label">TEKSTY</span><a class="trvny-nav-link" href="/teksty/">Wszystkie teksty<small>eksperymenty i porównania</small></a><a class="trvny-nav-link" href="/teksty/token-worldcup/">Tokenowy Mundial AI</a></div>
+  </nav>
+</aside>
+<script src="/assets/nav.js" defer></script>`;
 
 function isFallbackHost(hostname) {
   return hostname === FALLBACK_HOST || hostname.endsWith(`.${FALLBACK_HOST}`);
@@ -212,9 +226,20 @@ class SetText {
   }
 }
 
+class AppendHtml {
+  constructor(value) {
+    this.value = value;
+  }
+  element(element) {
+    element.append(this.value, { html: true });
+  }
+}
+
 function identifyPage(pathname) {
   if (pathname === "/" || pathname === "/index.html") return "home";
   if (pathname === "/tv" || pathname === "/tv/" || pathname === "/tv/index.html") return "tv";
+  if (pathname === "/teksty" || pathname === "/teksty/" || pathname === "/teksty/index.html") return "texts";
+  if (pathname === "/teksty/token-worldcup" || pathname === "/teksty/token-worldcup/") return "token-worldcup";
   return null;
 }
 
@@ -240,28 +265,39 @@ export async function onRequest(context) {
     return Response.redirect(url.toString(), 301);
   }
 
-  const page = identifyPage(url.pathname);
-
-  if (context.request.method !== "GET" || !page) {
+  if (context.request.method !== "GET") {
     return withFallbackNoindex(await context.next(), url.hostname);
   }
 
+  const page = identifyPage(url.pathname);
+  const needsChannels = page === "home" || page === "tv";
   const needsWeather = page === "home";
   const [assetResponse, channels, weatherState] = await Promise.all([
     context.next(),
-    getChannels(),
+    needsChannels ? getChannels() : Promise.resolve([]),
     needsWeather ? getWeather() : Promise.resolve(null),
   ]);
 
   const contentType = assetResponse.headers.get("content-type") || "";
   if (!assetResponse.ok || !contentType.includes("text/html")) {
-    return assetResponse;
+    return withFallbackNoindex(assetResponse, url.hostname);
   }
+
   const online = channels.filter((channel) => channel.status === true).length;
   const known = channels.some((channel) => channel.status !== null);
   const countText = known ? `${online}/${channels.length}` : `—/${channels.length}`;
 
-  let rewriter = new HTMLRewriter().on("html", new SetAttribute("lang", "pl"));
+  let rewriter = new HTMLRewriter()
+    .on("html", new SetAttribute("lang", "pl"))
+    .on("head", new AppendHtml(NAV_HEAD))
+    .on("body", new AppendHtml(NAV_BODY));
+
+  if (page === "token-worldcup") {
+    rewriter = rewriter.on(
+      "head",
+      new AppendHtml('<link rel="canonical" href="https://trfny.com/teksty/token-worldcup/"><meta property="og:url" content="https://trfny.com/teksty/token-worldcup/">'),
+    );
+  }
 
   if (page === "home") {
     rewriter = rewriter
@@ -281,7 +317,7 @@ export async function onRequest(context) {
           .on("#wxwarn", new SetAttribute("class", "wxwarn show"));
       }
     }
-  } else {
+  } else if (page === "tv") {
     rewriter = rewriter
       .on("#rows", new SetText(renderTvRows(channels), true))
       .on("#chCount", new SetText(`${countText} ON AIR`));
@@ -289,12 +325,18 @@ export async function onRequest(context) {
 
   const transformed = rewriter.transform(assetResponse);
   const headers = new Headers(transformed.headers);
-  headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=300");
+  if (page !== "token-worldcup") headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=300");
   headers.set("content-language", "pl");
-  const markdownPath = page === "home" ? "/index.md" : "/tv/index.md";
+
+  const markdownPath =
+    page === "home" ? "/index.md" :
+      page === "tv" ? "/tv/index.md" :
+        page === "texts" ? "/teksty/index.md" : null;
   headers.set(
     "link",
-    `<${markdownPath}>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"`,
+    markdownPath
+      ? `<${markdownPath}>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"`
+      : "</llms.txt>; rel=\"describedby\"",
   );
   if (isFallbackHost(url.hostname)) headers.set("x-robots-tag", "noindex, follow");
   headers.delete("content-length");

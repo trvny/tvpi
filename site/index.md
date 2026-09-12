@@ -1,6 +1,6 @@
 # TRAVNY
 
-> Public hub for TVP IPTV, Streambench, Codebench, Doc Bench, local weather and enhanced feeds.
+> Public hub for TVP IPTV, Streambench, Codebench, Doc Bench, local weather, enhanced feeds and small technical texts.
 
 TRAVNY is available at https://trfny.com/. The `travny.pages.dev` deployment is a noindex fallback and `tvpi.pages.dev` redirects to the canonical domain.
 
@@ -12,6 +12,7 @@ TRAVNY is available at https://trfny.com/. The `travny.pages.dev` deployment is 
 - [Streambench](https://streambench.trfny.com/): IPTV, radio, HLS, M3U/M3U8 and XMLTV workshop.
 - [Code Bench](https://codebench.trfny.com/): local-first QR and barcode studio.
 - [Doc Bench](https://docbench.travny.workers.dev/): local-first document and PDF studio.
+- [Teksty](https://trfny.com/teksty/): experiments, comparisons and short technical publications.
 
 ## Discovery
 
