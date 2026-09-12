@@ -32,12 +32,11 @@ export async function onRequest(context) {
       });
     }
 
-    const headers = new Headers(upstream.headers);
-    headers.set("content-type", "text/html; charset=utf-8");
-    headers.set("cache-control", "public, max-age=60, s-maxage=300, stale-while-revalidate=86400");
-    headers.set("x-trvny-source", ARTICLE_URL);
-    headers.delete("content-disposition");
-    headers.delete("content-length");
+    const headers = new Headers({
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+      "x-trvny-source": ARTICLE_URL,
+    });
 
     return new Response(method === "HEAD" ? null : upstream.body, {
       status: 200,
