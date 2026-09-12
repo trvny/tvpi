@@ -14,6 +14,7 @@ export async function onRequest(context) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
     let upstream;
+    let body = null;
     try {
       upstream = await fetch(ARTICLE_URL, {
         method,
@@ -21,6 +22,7 @@ export async function onRequest(context) {
         cf: { cacheEverything: true, cacheTtl: 300 },
         signal: controller.signal,
       });
+      if (upstream.ok && method === "GET") body = await upstream.text();
     } finally {
       clearTimeout(timer);
     }
@@ -38,7 +40,7 @@ export async function onRequest(context) {
       "x-trvny-source": ARTICLE_URL,
     });
 
-    return new Response(method === "HEAD" ? null : upstream.body, {
+    return new Response(body, {
       status: 200,
       headers,
     });
