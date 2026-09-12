@@ -36,9 +36,9 @@ const FALLBACK_HOST = "travny.pages.dev";
 const CANONICAL_HOST = "trfny.com";
 const NAV_HEAD = '<link rel="stylesheet" href="/assets/nav.css">';
 const NAV_BODY = `
-<button id="trvny-nav-toggle" type="button" aria-controls="trvny-nav-drawer" aria-expanded="false" title="Menu">☰</button>
+<button id="trvny-nav-toggle" type="button" aria-controls="trvny-nav-drawer" aria-expanded="false" aria-label="Otwórz menu">☰</button>
 <div id="trvny-nav-backdrop" hidden></div>
-<aside id="trvny-nav-drawer" data-open="false" aria-hidden="true" aria-label="Nawigacja TRAVNY">
+<aside id="trvny-nav-drawer" data-open="false" aria-hidden="true" aria-label="Nawigacja TRAVNY" inert>
   <div id="trvny-nav-head"><span id="trvny-nav-brand">TRAVNY</span><button id="trvny-nav-close" type="button" aria-label="Zamknij menu">×</button></div>
   <nav>
     <div class="trvny-nav-group"><span class="trvny-nav-label">START</span><a class="trvny-nav-link" href="/">Strona główna<small>hub TRAVNY</small></a><a class="trvny-nav-link" href="/tv/">TVP<small>kanały i odtwarzacz</small></a></div>
