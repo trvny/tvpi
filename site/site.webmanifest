@@ -2,7 +2,7 @@
   "id": "/",
   "name": "TRAVNY — Telegazeta",
   "short_name": "TRAVNY",
-  "description": "Streams, skies & feeds — one teletext hub. TVP over IP, weather, and a self-hosted feed reader.",
+  "description": "Telegazetowy hub TRAVNY: TVP IPTV, lokalna pogoda, feedy, browserowe benche i krótkie teksty techniczne.",
   "lang": "pl-PL",
   "dir": "ltr",
   "start_url": "/",
