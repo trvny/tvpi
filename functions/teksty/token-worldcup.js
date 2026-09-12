@@ -11,11 +11,19 @@ export async function onRequest(context) {
   }
 
   try {
-    const upstream = await fetch(ARTICLE_URL, {
-      method,
-      headers: { accept: "text/html" },
-      cf: { cacheEverything: true, cacheTtl: 300 },
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    let upstream;
+    try {
+      upstream = await fetch(ARTICLE_URL, {
+        method,
+        headers: { accept: "text/html" },
+        cf: { cacheEverything: true, cacheTtl: 300 },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (!upstream.ok) {
       return new Response(method === "HEAD" ? null : "Article source unavailable.", {

@@ -10,6 +10,7 @@
 
   function openDrawer() {
     previousFocus = document.activeElement;
+    drawer.inert = false;
     drawer.dataset.open = "true";
     drawer.setAttribute("aria-hidden", "false");
     toggle.setAttribute("aria-expanded", "true");
@@ -20,6 +21,7 @@
 
   function closeDrawer() {
     drawer.dataset.open = "false";
+    drawer.inert = true;
     drawer.setAttribute("aria-hidden", "true");
     toggle.setAttribute("aria-expanded", "false");
     backdrop.hidden = true;

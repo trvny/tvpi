@@ -13,6 +13,7 @@ Use the sections below to choose the right service instead of treating the homep
 - [Streambench](https://streambench.trfny.com/): browser workshop for IPTV, internet radio, HLS, M3U/M3U8 and XMLTV EPG; [LLM guide](https://streambench.trfny.com/llms.txt)
 - [Codebench](https://codebench.trfny.com/): local QR and barcode studio for generating, reading and exporting machine-readable codes; [LLM guide](https://codebench.trfny.com/llms.txt)
 - [Doc Bench](https://docbench.travny.workers.dev/): local-first document and PDF studio for editing, previews, validation, merge, page organization, bookmarks and optimization; [LLM guide](https://docbench.travny.workers.dev/llms.txt)
+- [Teksty](https://trfny.com/teksty/index.md): short experiments and comparisons; includes [Tokenowy Mundial AI](https://trfny.com/teksty/token-worldcup/)
 
 ## TVP playlists
 
@@ -46,6 +47,10 @@ Use for creating and scanning QR codes and barcodes. Processing is designed to s
 ### Doc Bench
 
 Use for editing and inspecting TXT, Markdown, JSON, YAML and XML or for local PDF work such as merge, page reordering/deletion, bookmark editing and optimization. User files stay in the browser. On supported browser hosts, WebMCP can read, replace, validate, format and inspect the current local document state.
+
+### Teksty
+
+Use for small published experiments and comparisons from the TRAVNY lab. Tokenowy Mundial AI is maintained as Quarto in `trvny/trvny` and served here from that verified generated artifact instead of being copied into this repository.
 
 ## Discovery files
 

@@ -32,10 +32,15 @@ https://codebench.trfny.com/ creates, styles and scans QR codes and barcodes. Us
 
 https://docbench.travny.workers.dev/ edits text/structured documents and performs PDF operations locally in the browser, including merge, page work, bookmarks and optimization.
 
+### Teksty
+
+https://trfny.com/teksty/ collects short TRAVNY experiments and comparisons. Tokenowy Mundial AI is served at https://trfny.com/teksty/token-worldcup/ from the maintained Quarto-generated artifact in `trvny/trvny`.
+
 ## Markdown pages
 
 - [Hub page](https://trfny.com/index.md)
 - [TVPI page](https://trfny.com/tv/index.md)
+- [Teksty index](https://trfny.com/teksty/index.md)
 
 ## Discovery and source
 
