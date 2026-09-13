@@ -129,7 +129,7 @@ normal cache/live/fallback resolution only when that channel is opened.
 
 ## Other stuff
 
-[![feeds](https://github.com/trvny/.github/blob/main/assets/profile/pin-feeds.svg)](https://github.com/trvny/feedseek) [![wam](https://github.com/trvny/.github/blob/main/assets/profile/pin-wambridge.svg)](https://github.com/2137x/wambridge)
+[![feeds](https://github.com/trvny/.github/blob/main/assets/profile/pin-feeds.svg)](https://github.com/trvny/feedseek) [![wam](https://github.com/trvny/.github/blob/main/assets/profile/pin-wambridge.svg)](https://github.com/enclaro/wambridge)
 
 ## 💬 Quote from the drawer
 
