@@ -1,21 +1,21 @@
 # GitHubowa Kraina
 
-> Interaktywny atlas publicznych projektów `trvny` i `enclaro`.
+> Interaktywny atlas publicznych projektów `trvny` i `travnie`.
 
 Canonical page: https://trfny.com/teksty/githubowa-kraina/
 
 ## Map
 
 - **Główne regiony:** Feedseek, Kanarek, WAM Bridge, LlmBench, Autka i TVPI.
-- **Dzielnica Narzędziowa:** `enclaro/twojstar` jako wspólny warsztat dla Benchów, Weather, Feedboarda, Xiaomi ADB, pluginów i eksperymentów.
+- **Dzielnica Narzędziowa:** `travnie/twojstar` jako wspólny warsztat dla Benchów, Weather, Feedboarda, Xiaomi ADB, pluginów i eksperymentów.
 - **Drogi i podziemia:** `.ai` oraz `WiFi-Automatic` jako infrastruktura i utrzymywany fork.
-- **Bramy:** profile GitHub `trvny` i `enclaro`.
+- **Bramy:** profile GitHub `trvny` i `travnie`.
 
 ## Repository layout
 
 - [trvny](https://github.com/trvny): 6 public repositories in the atlas build.
-- [enclaro](https://github.com/enclaro): 6 public repositories in the atlas build.
-- [enclaro/twojstar](https://github.com/enclaro/twojstar): shared workshop and home for smaller tools.
+- [travnie](https://github.com/travnie): 6 public repositories in the atlas build.
+- [travnie/twojstar](https://github.com/travnie/twojstar): shared workshop and home for smaller tools.
 - [trvny/.ai](https://github.com/trvny/.ai): portable AI profiles, instructions, adapters and skills.
 - [WiFi-Automatic](https://github.com/trvny/WiFi-Automatic): maintained Android fork.
 

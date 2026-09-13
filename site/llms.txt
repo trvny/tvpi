@@ -10,7 +10,7 @@ Canonical hub: https://trfny.com/
 - [TVPI](https://trfny.com/tv/) · [Markdown](https://trfny.com/tv/index.md)
 - [Teksty](https://trfny.com/teksty/) · [Markdown](https://trfny.com/teksty/index.md)
 - [Tokenowy Mundial AI](https://trfny.com/teksty/token-worldcup/): token-count comparison for equivalent text in 27 languages using `o200k_base`
-- [GitHubowa Kraina](https://trfny.com/teksty/githubowa-kraina/) · [Markdown](https://trfny.com/teksty/githubowa-kraina/index.md): interactive atlas of the public `trvny` and `enclaro` project landscape
+- [GitHubowa Kraina](https://trfny.com/teksty/githubowa-kraina/) · [Markdown](https://trfny.com/teksty/githubowa-kraina/index.md): interactive atlas of the public `trvny` and `travnie` project landscape
 
 ## Services
 

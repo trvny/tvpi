@@ -45,7 +45,7 @@ TVP upstream stream signatures are short-lived. Consumers should save the stable
 - Maintained Quarto source: https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.qmd
 - Verified generated HTML source: https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.html
 
-TRAVNY proxies the generated Token Cup artifact rather than maintaining a second copy. The article compares token counts for equivalent natural text in 27 languages using `o200k_base`; English is the normalized index baseline (`EN = 100`) while the measured English sample is 95 tokens. GitHubowa Kraina is maintained directly in `trvny/tvpi` as an interactive atlas of the 12 public repositories split evenly between `trvny` and `enclaro`.
+TRAVNY proxies the generated Token Cup artifact rather than maintaining a second copy. The article compares token counts for equivalent natural text in 27 languages using `o200k_base`; English is the normalized index baseline (`EN = 100`) while the measured English sample is 95 tokens. GitHubowa Kraina is maintained directly in `trvny/tvpi` as an interactive atlas of the 12 public repositories split evenly between `trvny` and `travnie`.
 
 ## Related services
 
