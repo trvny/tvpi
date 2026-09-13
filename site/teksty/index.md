@@ -5,7 +5,7 @@
 ## Articles
 
 - [Tokenowy Mundial AI](https://trfny.com/teksty/token-worldcup/): equivalent natural text in 27 languages measured with `o200k_base`; English is the normalized index baseline (`EN = 100`) and the measured English sample is 95 tokens.
-- [GitHubowa Kraina](https://trfny.com/teksty/githubowa-kraina/): interactive atlas of the 12 public repositories split between `trvny` and `twojstar`, with project regions, the shared tool district and infrastructure.
+- [GitHubowa Kraina](https://trfny.com/teksty/githubowa-kraina/): interactive atlas of the 12 public repositories split between `trvny` and `2137x`, with project regions, the shared tool district and infrastructure.
 
 ## Source
 
