@@ -16,6 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://trfny.com/teksty/">
 <link rel="alternate" type="text/markdown" href="/teksty/index.md" title="TRAVNY Teksty Markdown">
+<link rel="alternate" type="application/atom+xml" href="/teksty/feed.xml" title="TRAVNY Teksty">
 <link rel="alternate" type="text/plain" href="/llms.txt" title="TRAVNY llms.txt">
 <link rel="describedby" href="/llms.txt" title="TRAVNY llms.txt">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -32,7 +33,7 @@ h1{margin:22px 0 10px;color:var(--yellow);font-family:"Silkscreen",monospace;fon
 .lede{max-width:700px;margin:0;color:#aab1bb;font-size:24px;line-height:1.28}.rule{height:6px;margin:28px 0 22px;background:linear-gradient(90deg,var(--cyan) 0 34%,var(--yellow) 34% 66%,var(--magenta) 66%)}
 .card{display:block;position:relative;margin-top:18px;padding:22px 22px 20px;background:var(--panel);border:1px solid var(--line);border-top:6px solid var(--cyan);text-decoration:none;transition:transform .12s,background .12s}
 .card:hover,.card:focus-visible{transform:translateY(-2px);background:#101725;outline:2px solid var(--cyan);outline-offset:3px}.meta{color:var(--dim);font-size:17px;letter-spacing:.07em}.card h2{margin:8px 0 8px;color:var(--cyan);font-family:"Silkscreen",monospace;font-size:clamp(20px,4vw,30px);line-height:1.1}.card p{max-width:700px;margin:0;color:#c1c7cf;font-size:22px;line-height:1.25}.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}.tag{padding:2px 7px;background:#111826;color:var(--yellow);font-size:16px}.go{position:absolute;right:18px;top:18px;color:var(--magenta);font-family:"Silkscreen",monospace;font-size:11px}
-.note{margin-top:28px;color:var(--dim);font-size:18px;line-height:1.25}.note a{color:var(--cyan)}
+.loading{margin-top:18px;color:var(--dim);font-size:20px}.loading a{color:var(--cyan)}
 </style>
 </head>
 <body>
@@ -41,21 +42,9 @@ h1{margin:22px 0 10px;color:var(--yellow);font-family:"Silkscreen",monospace;fon
 <h1>TEKSTY</h1>
 <p class="lede">Porównania, eksperymenty i inne rzeczy z kategorii „kto normalny to mierzy?”. Małe publikacje, bez silnika blogowego ważącego pół internetu.</p>
 <div class="rule"></div>
-<a class="card" href="/teksty/token-worldcup/">
-<span class="go">OTWÓRZ ›</span>
-<div class="meta">2026-08 · EKSPERYMENT</div>
-<h2>Tokenowy Mundial AI</h2>
-<p>Ten sam sens, 27 języków i tokenizer <code>o200k_base</code>. Który język zjada najmniej kontekstu i ile podatku tokenowego płaci polski?</p>
-<div class="tags"><span class="tag">AI</span><span class="tag">tokeny</span><span class="tag">języki</span></div>
-</a>
-<a class="card" href="/teksty/githubowa-kraina/">
-<span class="go">OTWÓRZ ›</span>
-<div class="meta">2026-09 · ATLAS</div>
-<h2>GitHubowa Kraina</h2>
-<p>Interaktywny atlas 12 publicznych repozytoriów trvny i travnie: główne regiony, dzielnica narzędziowa, drogi i podziemia.</p>
-<div class="tags"><span class="tag">GitHub</span><span class="tag">projekty</span><span class="tag">atlas</span></div>
-</a>
-<p class="note">Tokenowy Mundial AI jest serwowany z utrzymywanego źródła w <a href="https://github.com/trvny/trvny/tree/main/stuff/other/token-worldcup">trvny/trvny</a>. GitHubowa Kraina jest utrzymywana bezpośrednio w tym hubie.</p>
+<div id="text-list">
+<p class="loading">Lista tekstów jest ładowana z katalogu publikacji. <a href="/teksty/feed.xml">Kanał Atom</a> działa niezależnie.</p>
+</div>
 </main>
 </body>
 </html>
