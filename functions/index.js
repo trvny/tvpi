@@ -1,5 +1,4 @@
 const TEXTS_HEAD = `
-<link rel="alternate" type="application/atom+xml" href="/teksty/feed.xml" title="TRAVNY Teksty">
 <style>
   .texthome{margin-top:28px}
   .textfeed{color:var(--c);font-family:"Silkscreen";font-size:10px;text-shadow:none;text-decoration:none;letter-spacing:.03em}
