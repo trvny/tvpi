@@ -4,12 +4,10 @@
 
 ## Articles
 
-- [Tokenowy Mundial AI](https://trfny.com/teksty/token-worldcup/): equivalent natural text in 27 languages measured with `o200k_base`; English is the normalized index baseline (`EN = 100`) and the measured English sample is 95 tokens.
 - [GitHubowa Kraina](https://trfny.com/teksty/githubowa-kraina/): interactive atlas of the 12 public repositories split between `trvny` and `travnie`, with project regions, the shared tool district and infrastructure.
+- [Tokenowy Mundial AI](https://trfny.com/teksty/token-worldcup/): equivalent natural text in 27 languages with OpenAI and Claude tokenization comparisons.
 
-## Source
+## Feed
 
-Tokenowy Mundial AI is maintained in [`trvny/trvny/stuff/other/token-worldcup/`](https://github.com/trvny/trvny/tree/main/stuff/other/token-worldcup) as Quarto source plus verified generated HTML. TRAVNY proxies the generated artifact instead of maintaining a second copy.
-
-- [Quarto source](https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.qmd)
-- [Generated HTML](https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.html)
+- [Atom feed](https://trfny.com/teksty/feed.xml)
+- [Publication catalog](https://trfny.com/teksty/posts.json)
