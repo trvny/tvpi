@@ -1,4 +1,4 @@
-User-agent: *
+# AI crawlers and user-triggered fetchers explicitly welcome.\nUser-agent: GPTBot\nUser-agent: OAI-SearchBot\nUser-agent: OAI-AdsBot\nUser-agent: ChatGPT-User\nUser-agent: ClaudeBot\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Google-Extended\nUser-agent: Applebot\nUser-agent: Applebot-Extended\nContent-Signal: ai-train=yes, search=yes, ai-input=yes\nAllow: /\n\nUser-agent: *
 Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /
 
