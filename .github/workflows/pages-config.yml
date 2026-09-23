@@ -34,3 +34,198 @@ jobs:
             --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             --header "Content-Type: application/json" \
             --data '{"source":{"type":"github","config":{"owner":"trvny","owner_id":"120686325","repo_name":"tvpi","repo_id":"1248425876","production_branch":"main","production_deployments_enabled":true,"preview_deployment_setting":"none","pr_comments_enabled":false,"path_includes":["site/*","functions/*"],"path_excludes":[]}}}'
+
+      - name: Allow ChatGPT Work Cloud browser
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: "22c6b82ea8b722c6976f5c2c4714c5e8"
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from urllib.error import HTTPError
+          from urllib.request import Request, urlopen
+
+          API = "https://api.cloudflare.com/client/v4"
+          ZONE_ID = os.environ["CLOUDFLARE_ZONE_ID"]
+          TOKEN = os.environ["CLOUDFLARE_API_TOKEN"]
+          PHASE = "http_request_firewall_custom"
+          RULE_REF = "trfny-chatgpt-work-agent"
+          RULE_DESCRIPTION = (
+              "Allow signed ChatGPT Work Cloud browser "
+              "(chatgpt-agent / detection ID 129220581)"
+          )
+
+          # OpenAI documents detection ID 129220581 for ChatGPT Work's signed
+          # Cloud browser. Detection-ID matching requires Cloudflare Bot
+          # Management on some plans, so we automatically fall back to
+          # Cloudflare's cryptographically/IP-verified good-bot signal instead
+          # of trusting a spoofable User-Agent string.
+          PREFERRED_EXPRESSION = (
+              "any(cf.bot_management.detection_ids[*] eq 129220581)"
+          )
+          FALLBACK_EXPRESSION = "cf.client.bot"
+
+          class ApiError(RuntimeError):
+              def __init__(self, status, payload):
+                  self.status = status
+                  self.payload = payload
+                  super().__init__(f"Cloudflare API HTTP {status}: {payload}")
+
+          def call(method, path, payload=None):
+              data = None
+              headers = {
+                  "Authorization": f"Bearer {TOKEN}",
+                  "Content-Type": "application/json",
+              }
+              if payload is not None:
+                  data = json.dumps(payload).encode()
+              request = Request(
+                  f"{API}{path}",
+                  data=data,
+                  headers=headers,
+                  method=method,
+              )
+              try:
+                  with urlopen(request, timeout=30) as response:
+                      body = response.read().decode()
+              except HTTPError as error:
+                  body = error.read().decode()
+                  try:
+                      parsed = json.loads(body)
+                  except json.JSONDecodeError:
+                      parsed = body
+                  raise ApiError(error.code, parsed) from error
+
+              parsed = json.loads(body) if body else {}
+              if parsed and not parsed.get("success", True):
+                  raise ApiError(response.status, parsed)
+              return parsed
+
+          def rule(expression, *, broad_skip):
+              action_parameters = {"ruleset": "current"}
+              if broad_skip:
+                  # Preserve Cloudflare DDoS protection. Skip only the layers
+                  # most likely to challenge or block a genuine signed agent.
+                  action_parameters["phases"] = [
+                      "http_ratelimit",
+                      "http_request_firewall_managed",
+                      "http_request_sbfm",
+                  ]
+                  action_parameters["products"] = [
+                      "bic",
+                      "uaBlock",
+                      "zoneLockdown",
+                  ]
+              return {
+                  "action": "skip",
+                  "action_parameters": action_parameters,
+                  "expression": expression,
+                  "description": RULE_DESCRIPTION,
+                  "ref": RULE_REF,
+                  "enabled": True,
+              }
+
+          preferred = rule(PREFERRED_EXPRESSION, broad_skip=True)
+          fallback = rule(FALLBACK_EXPRESSION, broad_skip=False)
+
+          entrypoint_path = (
+              f"/zones/{ZONE_ID}/rulesets/phases/{PHASE}/entrypoint"
+          )
+
+          try:
+              entrypoint = call("GET", entrypoint_path)["result"]
+          except ApiError as error:
+              if error.status != 404:
+                  raise
+              entrypoint = None
+
+          def comparable(value):
+              return {
+                  key: value.get(key)
+                  for key in (
+                      "action",
+                      "action_parameters",
+                      "expression",
+                      "description",
+                      "ref",
+                      "enabled",
+                  )
+              }
+
+          def is_same(existing, desired, rules):
+              return (
+                  comparable(existing) == comparable(desired)
+                  and bool(rules)
+                  and rules[0].get("id") == existing.get("id")
+              )
+
+          def write_rule(ruleset_id, existing, desired):
+              payload = dict(desired)
+              payload["position"] = {"index": 1}
+              if existing:
+                  path = (
+                      f"/zones/{ZONE_ID}/rulesets/{ruleset_id}/rules/"
+                      f"{existing['id']}"
+                  )
+                  return call("PUT", path, payload)
+              path = f"/zones/{ZONE_ID}/rulesets/{ruleset_id}/rules"
+              return call("POST", path, payload)
+
+          if entrypoint is None:
+              def create_entrypoint(desired):
+                  payload = {
+                      "name": "zone",
+                      "description": "Zone-level phase entry point",
+                      "kind": "zone",
+                      "phase": PHASE,
+                      "rules": [desired],
+                  }
+                  return call(
+                      "POST",
+                      f"/zones/{ZONE_ID}/rulesets",
+                      payload,
+                  )
+
+              try:
+                  create_entrypoint(preferred)
+                  print("Created ChatGPT Work allow rule using detection ID 129220581.")
+              except ApiError as error:
+                  if error.status != 400:
+                      raise
+                  print(
+                      "Detection-ID matching is unavailable on this Cloudflare "
+                      "plan; creating the verified-bot fallback."
+                  )
+                  create_entrypoint(fallback)
+                  print("Created verified-bot fallback allow rule.")
+          else:
+              rules = entrypoint.get("rules", [])
+              existing = next(
+                  (item for item in rules if item.get("ref") == RULE_REF),
+                  None,
+              )
+              ruleset_id = entrypoint["id"]
+
+              if existing and is_same(existing, preferred, rules):
+                  print("ChatGPT Work detection-ID rule is already current.")
+              else:
+                  try:
+                      write_rule(ruleset_id, existing, preferred)
+                      print(
+                          "Applied ChatGPT Work allow rule using "
+                          "detection ID 129220581."
+                      )
+                  except ApiError as error:
+                      if error.status != 400:
+                          raise
+                      print(
+                          "Detection-ID matching is unavailable on this "
+                          "Cloudflare plan; using verified-bot fallback."
+                      )
+                      if existing and is_same(existing, fallback, rules):
+                          print("Verified-bot fallback rule is already current.")
+                      else:
+                          write_rule(ruleset_id, existing, fallback)
+                          print("Applied verified-bot fallback allow rule.")
+          PY
