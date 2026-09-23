@@ -47,7 +47,8 @@ const NAV_BODY = `
     <div class="trvny-nav-group"><span class="trvny-nav-label">TEKSTY</span><a class="trvny-nav-link" href="/teksty/">Wszystkie teksty</a><a class="trvny-nav-link" href="/teksty/githubowa-kraina/">GitHubowa Kraina<small>atlas projektów</small></a><a class="trvny-nav-link" href="/teksty/token-worldcup/">Tokenowy Mundial AI</a></div>
   </nav>
 </aside>
-<script src="/assets/nav.js" defer></script>`;
+<script src="/assets/nav.js" defer></script>
+<script src="/assets/webmcp.js" defer></script>`;
 
 function isFallbackHost(hostname) {
   return hostname === FALLBACK_HOST || hostname.endsWith(`.${FALLBACK_HOST}`);

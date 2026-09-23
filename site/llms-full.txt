@@ -120,3 +120,8 @@ The sitemap contains public human-facing hub routes. Service-specific machine-re
 - Tokenowy Mundial AI is maintained in `trvny/trvny/stuff/other/token-worldcup/`; TRAVNY only publishes it through the article route.
 - GitHubowa Kraina is maintained directly in `trvny/tvpi/site/teksty/githubowa-kraina/`.
 - Generated or proxied artifacts are not separate maintained sources.
+
+
+## Agent access
+
+On browser hosts implementing WebMCP, TRAVNY pages with the shared navigation expose `open_travny_destination`. It only starts navigation to destinations already present in the visible TRAVNY menu and does not accept arbitrary URLs.

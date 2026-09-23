@@ -35,3 +35,8 @@ Canonical hub: https://trfny.com/
 - [Robots policy](https://trfny.com/robots.txt)
 - [Web manifest](https://trfny.com/site.webmanifest)
 - [Source](https://github.com/trvny/tvpi)
+
+
+## Agent access
+
+On browser hosts implementing WebMCP, TRAVNY pages with the shared navigation expose `open_travny_destination`. It only starts navigation to destinations already present in the visible TRAVNY menu and does not accept arbitrary URLs.
