@@ -106,18 +106,15 @@ export async function onRequest(context) {
 
   let rewriter = new HTMLRewriter();
 
-  if (shitpost) {
-    rewriter = rewriter.on("#shitpost-of-day", {
-      element(element) {
-        element.setInnerContent(renderShitpostCard(shitpost), { html: true });
-      },
-    });
-  }
-
-  if (posts.length > 0) {
+  if (shitpost || posts.length > 0) {
     rewriter = rewriter.on("#text-list", {
       element(element) {
-        element.setInnerContent(posts.map(renderCard).join("\n"), { html: true });
+        if (shitpost) {
+          element.before(renderShitpostCard(shitpost), { html: true });
+        }
+        if (posts.length > 0) {
+          element.setInnerContent(posts.map(renderCard).join("\n"), { html: true });
+        }
       },
     });
   }
