@@ -42,6 +42,7 @@ export async function getLatestShitpost(fetchImpl = fetch) {
     const response = await fetchImpl(SHITPOST_FEED_URL, {
       headers: { accept: "application/feed+json, application/json" },
       cf: { cacheEverything: true, cacheTtl: 300 },
+      signal: AbortSignal.timeout(3_000),
     });
     if (!response.ok) return null;
     const feed = await response.json();
