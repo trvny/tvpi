@@ -1,3 +1,5 @@
+import { getLatestShitpost } from "./_shared/shitpost.js";
+
 const TEXTS_HEAD = `
 <style>
   .texthome{margin-top:28px}
@@ -41,8 +43,28 @@ function renderTextCard(post, index) {
   </a>`;
 }
 
-function renderTexts(posts) {
-  const cards = posts.slice(0, 3).map(renderTextCard).join("");
+function renderShitpostTextCard(post, index) {
+  const tags = post.tags.slice(0, 3).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
+  const meta = post.date ? `${escapeHtml(post.date)} · SHITPOST` : "SHITPOST";
+  const caption = escapeHtml(post.caption).replaceAll("\n", "<br>");
+  return `<a class="textitem" href="${escapeHtml(post.url)}">
+    <div class="textmeta"><b>P${501 + index}</b>${meta}</div>
+    <h3>SHITPOST REACTOR</h3>
+    <p>${caption}</p>
+    <div class="texttags">${tags}</div>
+  </a>`;
+}
+
+function renderTexts(posts, shitpost) {
+  const entries = [
+    ...(shitpost ? [{ type: "shitpost", value: shitpost }] : []),
+    ...posts.map((post) => ({ type: "text", value: post })),
+  ].slice(0, 3);
+  const cards = entries.map((entry, index) =>
+    entry.type === "shitpost"
+      ? renderShitpostTextCard(entry.value, index)
+      : renderTextCard(entry.value, index)
+  ).join("");
   return `<section class="texthome" aria-labelledby="textsHeading">
     <div class="labhead">
       <h2 id="textsHeading">P500 · TEKSTY</h2>
@@ -66,9 +88,10 @@ async function getPosts(context) {
 }
 
 export async function onRequest(context) {
-  const [response, posts] = await Promise.all([
+  const [response, posts, shitpost] = await Promise.all([
     context.env.ASSETS.fetch(context.request),
     getPosts(context),
+    getLatestShitpost(),
   ]);
   const contentType = response.headers.get("content-type") || "";
 
@@ -86,10 +109,10 @@ export async function onRequest(context) {
       },
     });
 
-  if (posts.length > 0) {
+  if (shitpost || posts.length > 0) {
     rewriter = rewriter.on(".fastext", {
       element(element) {
-        element.before(renderTexts(posts), { html: true });
+        element.before(renderTexts(posts, shitpost), { html: true });
       },
     });
   }
