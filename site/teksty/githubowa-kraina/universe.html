@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TRVNY / TRAVNIE Universe</title>
+<meta name="description" content="Interactive operational map of the TRVNY / TRAVNIE GitHub and Cloudflare universe.">
+<link rel="canonical" href="https://trfny.com/teksty/githubowa-kraina/universe.html">
+<style>
+:root{color-scheme:dark;--bg:#090b10;--panel:#11151d;--card:#171c26;--text:#eef2f7;--muted:#9aa6b6;--border:#2b3442;--repo:#7dd3fc;--component:#c4b5fd;--worker:#f6c453;--storage:#86efac;--external:#f9a8d4;--accent:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1500px;margin:auto;padding:20px}.top{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{margin:.25rem 0;font-size:clamp(26px,4vw,44px);line-height:1.03}p{margin:.35rem 0;color:var(--muted)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.controls button,.controls input{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:10px;padding:10px 12px;font:inherit}
+.controls button{cursor:pointer}.controls button:hover,.controls button.active{border-color:var(--accent);background:#152236}.controls input{min-width:210px;outline:none}.controls input:focus{border-color:var(--accent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:4px 0 14px;color:var(--muted);font-size:12px}.legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:9px;height:9px;border-radius:50%}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:start}.canvas{border:1px solid var(--border);background:linear-gradient(180deg,#0d1118,#0a0d13);border-radius:14px;overflow:auto}
+svg{display:block;width:100%;min-width:980px;height:auto}.edge{fill:none;stroke:#526071;stroke-width:1.7;opacity:.55;transition:.18s}.edge.service{stroke:#f59e0b;stroke-dasharray:7 5}.edge.storage{stroke:#22c55e;stroke-dasharray:3 4}.edge.external{stroke:#ec4899;stroke-dasharray:10 5}.edge.active{stroke-width:4;opacity:1}.edge.dim{opacity:.08}
+.node{cursor:pointer;transition:.15s}.node rect.body{fill:#141a23;stroke:#344052;stroke-width:1.2;rx:10}.node rect.strip{rx:10}.node text.title{fill:var(--text);font-size:12px;font-weight:700}.node text.sub{fill:var(--muted);font-size:9.5px}.node:hover rect.body,.node.active rect.body{stroke:var(--accent);stroke-width:2.2}.node.dim{opacity:.13}.node.repo rect.strip{fill:var(--repo)}.node.component rect.strip{fill:var(--component)}.node.worker rect.strip{fill:var(--worker)}.node.storage rect.strip{fill:var(--storage)}.node.external rect.strip{fill:var(--external)}
+.cluster{fill:none;stroke:#243041;stroke-width:1;stroke-dasharray:6 7;rx:18}.cluster-label{fill:#667487;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.side{position:sticky;top:12px;border:1px solid var(--border);background:var(--panel);border-radius:14px;padding:14px}.side h2{font-size:16px;margin:0 0 4px}.pill{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--muted);font-size:11px;margin-bottom:10px}.side dl{margin:12px 0}.side dt{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.side dd{margin:2px 0 10px}.side a{color:#93c5fd;text-decoration:none;word-break:break-word}.side ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}.hint{font-size:12px;color:var(--muted);margin-top:10px}
+.footer{margin-top:14px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.side{position:static}.controls input{flex:1;min-width:180px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <div class="eyebrow">Verified snapshot · 2026-10-03</div>
+      <h1>TRVNY / TRAVNIE Universe</h1>
+      <p>Repos, internal services, Cloudflare runtime, storage and the Kanarek network. Click any node to trace its neighborhood.</p>
+    </div>
+  </div>
+
+  <div class="controls" aria-label="Graph controls">
+    <button type="button" data-preset="all" class="active">Everything</button>
+    <button type="button" data-preset="kanarek">Kanarek network</button>
+    <button type="button" data-preset="web">Public web</button>
+    <button type="button" data-preset="automation">Automation</button>
+    <input id="search" type="search" placeholder="Search repo, worker, storage…" aria-label="Search graph">
+    <button type="button" id="download-json">Download JSON</button>
+    <button type="button" id="download-svg">Download SVG</button>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--repo)"></i>Repository</span>
+    <span><i class="dot" style="background:var(--component)"></i>Repo component</span>
+    <span><i class="dot" style="background:var(--worker)"></i>Cloudflare runtime</span>
+    <span><i class="dot" style="background:var(--storage)"></i>State / queue / storage</span>
+    <span><i class="dot" style="background:var(--external)"></i>External system</span>
+  </div>
+
+  <div class="layout">
+    <div class="canvas">
+      <svg id="graph" viewBox="0 0 1330 930" role="img" aria-label="Interactive graph of TRVNY and TRAVNIE repositories and infrastructure">
+        <g id="clusters"></g>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+
+    <aside class="side" id="details" aria-live="polite">
+      <span class="pill">Select a node</span>
+      <h2>Universe map</h2>
+      <p>Choose a repo, Worker or storage node. Direct relations stay bright while the rest of the galaxy goes sleepy.</p>
+      <div class="hint">Tip: presets are useful when the full graph starts resembling spaghetti that learned Kubernetes.</div>
+    </aside>
+  </div>
+
+  <div class="footer">
+    <span>GitHub + Cloudflare state verified on 2026-10-03. Secrets and secret values are intentionally omitted.</span>
+    <span>Source lives in <code>trvny/tvpi/site/teksty/githubowa-kraina/universe.html</code>.</span>
+  </div>
+</main>
+
+<script>
+(() => {
+const nodes = [
+{id:"repo-hub",label:"trvny/trvny",sub:"hub repo",kind:"repo",x:45,y:75,url:"https://github.com/trvny/trvny",info:"Mixed hub: GitHub Apps, MCP services, Telegram assistant, Loopling, token reports and shared AI config.",tags:["all","automation","kanarek"]},
+{id:"repo-tvpi",label:"trvny/tvpi",sub:"public hub + TV",kind:"repo",x:45,y:205,url:"https://github.com/trvny/tvpi",info:"Public web hub and TVPI source. Drives two Cloudflare Pages projects and the TVPI Worker.",tags:["all","web"]},
+{id:"repo-feedseek",label:"trvny/feedseek",sub:"feeds + reader",kind:"repo",x:45,y:335,url:"https://github.com/trvny/feedseek",info:"Feed generation, GitHub Pages reader, constrained feed proxy and durable R2 generation cache.",tags:["all","web"]},
+{id:"repo-gh",label:"trvny/.github",sub:"shared automation",kind:"repo",x:45,y:465,url:"https://github.com/trvny/.github",info:"Shared workflow and repository automation home for the trvny account.",tags:["all","automation"]},
+{id:"repo-ai",label:"trvny/.ai",sub:"AI config",kind:"repo",x:45,y:595,url:"https://github.com/trvny/.ai",info:"Shared AI instructions, roles and reference material.",tags:["all","automation"]},
+{id:"repo-kanarek",label:"travnie/Kanarek",sub:"Android reader",kind:"repo",x:270,y:75,url:"https://github.com/travnie/Kanarek",info:"Kanarek Android application. Uses the dedicated kanarek Worker backend for feeds and state.",tags:["all","kanarek","web"]},
+{id:"repo-autka",label:"travnie/Autka",sub:"vehicle app",kind:"repo",x:270,y:205,url:"https://github.com/travnie/Autka",info:"Autka mobile app plus cargate-backend Cloudflare Worker.",tags:["all","web"]},
+{id:"repo-twojstar",label:"travnie/twojstar",sub:"workshop",kind:"repo",x:270,y:335,url:"https://github.com/travnie/twojstar",info:"Workshop repo containing Codebench, Streambench, Docbench, Weather Feed and SpaceMolt tooling.",tags:["all","web","automation"]},
+{id:"repo-aistee",label:"travnie/aistee",sub:"AI client",kind:"repo",x:270,y:465,url:"https://github.com/travnie/aistee",info:"AI client project with direct-provider and WebView integrations.",tags:["all"]},
+{id:"repo-wam",label:"travnie/wambridge",sub:"audio bridge",kind:"repo",x:270,y:595,url:"https://github.com/travnie/wambridge",info:"Local Samsung WAM bridge, foobar2000 output and Android media renderer.",tags:["all"]},
+{id:"repo-travnie-gh",label:"travnie/.github",sub:"org automation",kind:"repo",x:270,y:725,url:"https://github.com/travnie/.github",info:"Organization-level workflows, assets and automation for travnie.",tags:["all","automation"]},
+
+{id:"src-companion",label:"kanarek-companion",sub:"gh-apps/",kind:"component",x:500,y:55,url:"https://github.com/trvny/trvny/tree/main/gh-apps/kanarek-companion",info:"GitHub webhook/operator side of the Kanarek network; owns GPTomek identity, review jobs and guarded mutations.",tags:["all","kanarek","automation"]},
+{id:"src-review",label:"kanarek-review",sub:"gh-apps/",kind:"component",x:500,y:135,url:"https://github.com/trvny/trvny/tree/main/gh-apps/kanarek-review",info:"Private review router source. Free-provider sweep, Workers AI and paid escalation live here.",tags:["all","kanarek","automation"]},
+{id:"src-pet",label:"pet-dispatcher",sub:"mcp/",kind:"component",x:500,y:215,url:"https://github.com/trvny/trvny/tree/main/mcp/pet-dispatcher",info:"Managed local orchestration plus remote Cloudflare control plane.",tags:["all","automation"]},
+{id:"src-status",label:"status-mcp",sub:"mcp/",kind:"component",x:500,y:295,url:"https://github.com/trvny/trvny/tree/main/mcp/status-mcp",info:"Read-only service health roll-up for TVPI, Weather, Autka and Feedseek.",tags:["all","automation","web"]},
+{id:"src-tg",label:"cloudflare-assistant",sub:"tg-bots/",kind:"component",x:500,y:375,url:"https://github.com/trvny/trvny/tree/main/tg-bots/cloudflare-assistant",info:"Telegram assistant source, Mini App, queues, reminders, watches and specialist handoff.",tags:["all","automation","kanarek"]},
+{id:"src-gptomek",label:"gptomek",sub:"gh-apps/",kind:"component",x:500,y:455,url:"https://github.com/trvny/trvny/tree/main/gh-apps/gptomek",info:"GitHub App control path and bot-authored GitHub operations.",tags:["all","automation","kanarek"]},
+{id:"src-claudiusz",label:"claudiusz",sub:"gh-apps/",kind:"component",x:500,y:535,url:"https://github.com/trvny/trvny/tree/main/gh-apps/claudiusz",info:"Claude-oriented GitHub App / MCP integration source.",tags:["all","automation"]},
+{id:"src-shitpost",label:"shitpost-reactor",sub:"gh-apps/",kind:"component",x:500,y:615,url:"https://github.com/trvny/trvny/tree/main/gh-apps/shitpost-reactor",info:"Feed-producing GitHub reaction service backed by R2.",tags:["all","automation","web"]},
+{id:"src-token",label:"token-worldcup",sub:"Quarto report",kind:"component",x:500,y:695,url:"https://github.com/trvny/trvny/tree/main/token-worldcup",info:"Token language/model reports and tokenizer recount scripts.",tags:["all","web"]},
+{id:"src-loopling",label:"loopling",sub:"pet assets",kind:"component",x:500,y:775,url:"https://github.com/trvny/trvny/tree/main/loopling",info:"Generated ChatGPT/Codex pet assets and installers.",tags:["all"]},
+
+{id:"w-kanarek",label:"kanarek",sub:"Worker",kind:"worker",x:745,y:45,url:"https://kanarek.travny.workers.dev",info:"Feed/state backend for the Kanarek app. Bound to feed-scrape KV and kanarek-state D1.",tags:["all","kanarek","web"]},
+{id:"w-companion",label:"kanarek-companion",sub:"Worker",kind:"worker",x:745,y:120,url:"https://kanarek-companion.travny.workers.dev",info:"Kanarek control plane: GitHub webhooks, provider routing, operator actions and durable review jobs.",tags:["all","kanarek","automation"]},
+{id:"w-review",label:"kanarek-review",sub:"Worker",kind:"worker",x:745,y:195,url:"https://kanarek-review.travny.workers.dev",info:"Private AI review router. Uses Workers AI plus configured provider pool and shared cooldown state.",tags:["all","kanarek","automation"]},
+{id:"w-pet",label:"pet-dispatcher-control",sub:"Worker",kind:"worker",x:745,y:270,url:"https://pet-dispatcher-control.travny.workers.dev",info:"Remote task control plane with Queue and Durable Object task state. Local authority remains on the Legion.",tags:["all","automation","kanarek"]},
+{id:"w-tg",label:"tg-assistant",sub:"Worker",kind:"worker",x:745,y:345,url:"https://tg-assistant.travny.workers.dev",info:"Always-on Telegram side. Uses Kanarek specialist/router bindings and Pet Dispatcher handoff.",tags:["all","automation","kanarek"]},
+{id:"w-status",label:"status-mcp",sub:"Worker",kind:"worker",x:745,y:420,url:"https://status-mcp.travny.workers.dev",info:"Read-only status MCP using same-account service bindings to TVPI, Weather and Autka.",tags:["all","automation","web"]},
+{id:"w-tvpi",label:"tvpi",sub:"Worker",kind:"worker",x:745,y:495,url:"https://tvpi.travny.workers.dev",info:"TVPI streaming Worker with D1 last-known-good state and R2 mirror.",tags:["all","web"]},
+{id:"w-weather",label:"weather",sub:"Worker",kind:"worker",x:745,y:570,url:"https://weather.trfny.com",info:"Multi-source Kościelec / Chrzanów weather service with Atom + JSON output and KV state.",tags:["all","web"]},
+{id:"w-feeds",label:"feeds-proxy",sub:"Worker",kind:"worker",x:745,y:645,url:"https://feeds.trfny.com",info:"Constrained HTTPS fetch helper and Feedseek MCP endpoint.",tags:["all","web"]},
+{id:"w-cargate",label:"cargate-backend",sub:"Worker",kind:"worker",x:745,y:720,url:"https://cargate-backend.travny.workers.dev",info:"Autka backend using cargate-offers D1 and cargate-images R2.",tags:["all","web"]},
+{id:"w-bench",label:"Bench Workers",sub:"code · stream · doc",kind:"worker",x:745,y:795,url:"https://github.com/travnie/twojstar/tree/main/benches",info:"Codebench, Streambench and Docbench Workers, all sourced from travnie/twojstar.",tags:["all","web"]},
+
+{id:"w-space",label:"spacemolt-gateway",sub:"Worker",kind:"worker",x:975,y:70,url:"https://github.com/travnie/twojstar/tree/main/spacemolt/gateway",info:"Authenticated Gremlin / SpaceMolt bridge. Uses kanarek-review as planner and KV state.",tags:["all","automation","kanarek"]},
+{id:"w-claudiusz",label:"claudiusz-mcp",sub:"Worker",kind:"worker",x:975,y:145,url:"https://github.com/trvny/trvny/tree/main/gh-apps/claudiusz",info:"Cloudflare-hosted Claude/GitHub MCP surface.",tags:["all","automation"]},
+{id:"w-shitpost",label:"shitpost-reactor",sub:"Worker",kind:"worker",x:975,y:220,url:"https://github.com/trvny/trvny/tree/main/gh-apps/shitpost-reactor",info:"Feed renderer / OIDC validator with R2 persistence.",tags:["all","automation","web"]},
+{id:"pages",label:"Cloudflare Pages",sub:"travny + tvpi",kind:"worker",x:975,y:295,url:"https://trfny.com",info:"Two Pages projects sourced from trvny/tvpi, including Functions. Canonical public domains include trfny.com and www.trfny.com.",tags:["all","web"]},
+
+{id:"s-kanarek",label:"kanarek-state",sub:"D1",kind:"storage",x:975,y:400,info:"D1 state database bound to the kanarek Worker.",tags:["all","kanarek"]},
+{id:"s-feed",label:"feed-scrape",sub:"KV",kind:"storage",x:975,y:465,info:"Shared KV namespace used by the Kanarek feed backend and Kanarek quip bank binding.",tags:["all","kanarek"]},
+{id:"s-review",label:"Kanarek DO cluster",sub:"Durable Objects",kind:"storage",x:975,y:530,info:"Review jobs, provider cooldowns, mutation replay, locks and operator checkpoints.",tags:["all","kanarek","automation"]},
+{id:"s-pet",label:"pet-dispatcher-tasks",sub:"Queue + DO",kind:"storage",x:975,y:595,info:"Task delivery Queue plus TaskStateStore Durable Object.",tags:["all","automation"]},
+{id:"s-tg",label:"Telegram state",sub:"Queues + DOs",kind:"storage",x:975,y:660,info:"Update queue, DLQ, dedup, memory, reminders, media groups, task watches and inline-query gates.",tags:["all","automation","kanarek"]},
+{id:"s-tvpi",label:"tvpi-lkg + mirror",sub:"D1 + R2",kind:"storage",x:975,y:725,info:"TVPI last-known-good D1 state and R2 mirror bucket.",tags:["all","web"]},
+{id:"s-weather",label:"weather-feed",sub:"KV",kind:"storage",x:975,y:790,info:"KV namespace for Weather Feed state.",tags:["all","web"]},
+{id:"s-feedseek",label:"feedseek-cache",sub:"R2",kind:"storage",x:975,y:855,info:"Durable Feedseek generation cache: snapshots/cache.tar.gz.",tags:["all","web"]},
+{id:"s-cargate",label:"cargate data",sub:"D1 + R2",kind:"storage",x:1150,y:720,info:"cargate-offers D1 plus cargate-images R2.",tags:["all","web"]},
+{id:"s-space",label:"spacemolt state",sub:"KV",kind:"storage",x:1150,y:70,info:"KV namespace spacemolt-gateway-state.",tags:["all","automation","kanarek"]},
+{id:"s-shitpost",label:"shitpost-reactor",sub:"R2",kind:"storage",x:1150,y:220,info:"R2 bucket storing generated shitpost feed state.",tags:["all","automation","web"]},
+
+{id:"ext-github",label:"GitHub API",sub:"repos · PRs · webhooks",kind:"external",x:1150,y:335,url:"https://github.com",info:"GitHub App actions, public metadata reads and repository automation.",tags:["all","automation","kanarek"]},
+{id:"ext-ai",label:"AI provider pool",sub:"Workers AI + APIs",kind:"external",x:1150,y:430,info:"Provider pool behind Kanarek review/routing: Workers AI and configured external providers.",tags:["all","automation","kanarek"]},
+{id:"ext-telegram",label:"Telegram",sub:"webhook + Mini App",kind:"external",x:1150,y:525,url:"https://telegram.org",info:"Inbound updates, inline mode, Business mode and Mini App entrypoint.",tags:["all","automation","kanarek"]},
+{id:"ext-legion",label:"Legion",sub:"local authority",kind:"external",x:1150,y:620,info:"Outbound-polling local Pet Dispatcher worker. Host and filesystem authority stays here, not in Cloudflare.",tags:["all","automation"]}
+];
+
+const edges = [
+["repo-hub","src-companion","source"],["repo-hub","src-review","source"],["repo-hub","src-pet","source"],["repo-hub","src-status","source"],["repo-hub","src-tg","source"],["repo-hub","src-gptomek","source"],["repo-hub","src-claudiusz","source"],["repo-hub","src-shitpost","source"],["repo-hub","src-token","source"],["repo-hub","src-loopling","source"],
+["src-companion","w-companion","source"],["src-review","w-review","source"],["src-pet","w-pet","source"],["src-status","w-status","source"],["src-tg","w-tg","source"],["src-claudiusz","w-claudiusz","source"],["src-shitpost","w-shitpost","source"],
+["repo-kanarek","w-kanarek","source"],["repo-tvpi","w-tvpi","source"],["repo-tvpi","pages","source"],["repo-feedseek","w-feeds","source"],["repo-twojstar","w-weather","source"],["repo-twojstar","w-bench","source"],["repo-twojstar","w-space","source"],["repo-autka","w-cargate","source"],
+["w-companion","w-review","service"],["w-pet","w-companion","service"],["w-tg","w-companion","service"],["w-tg","w-pet","service"],["w-status","w-tvpi","service"],["w-status","w-weather","service"],["w-status","w-cargate","service"],["w-space","w-review","service"],
+["w-kanarek","s-kanarek","storage"],["w-kanarek","s-feed","storage"],["w-companion","s-feed","storage"],["w-companion","s-review","storage"],["w-review","s-review","storage"],["w-pet","s-pet","storage"],["w-tg","s-tg","storage"],["w-tvpi","s-tvpi","storage"],["w-weather","s-weather","storage"],["repo-feedseek","s-feedseek","storage"],["w-cargate","s-cargate","storage"],["w-space","s-space","storage"],["w-shitpost","s-shitpost","storage"],
+["w-companion","ext-github","external"],["src-gptomek","ext-github","external"],["w-status","repo-feedseek","external"],["w-review","ext-ai","external"],["w-companion","ext-ai","external"],["w-tg","ext-telegram","external"],["w-pet","ext-legion","external"],
+["pages","w-weather","external"],["pages","repo-feedseek","external"],["pages","w-bench","external"]
+];
+
+const clusters = [
+{x:24,y:30,w:425,h:835,label:"Repositories"},
+{x:476,y:25,w:202,h:850,label:"trvny/trvny components"},
+{x:716,y:20,w:205,h:850,label:"Cloudflare runtime"},
+{x:945,y:20,w:360,h:875,label:"State + external systems"}
+];
+
+const svg=document.getElementById("graph"), gClusters=document.getElementById("clusters"), gEdges=document.getElementById("edges"), gNodes=document.getElementById("nodes"), details=document.getElementById("details"), search=document.getElementById("search");
+const byId=new Map(nodes.map(n=>[n.id,n]));
+let selectedId=null;
+const neighbors=new Map(nodes.map(n=>[n.id,new Set()]));
+edges.forEach(([a,b])=>{neighbors.get(a).add(b);neighbors.get(b).add(a)});
+
+clusters.forEach(c=>{
+ const r=document.createElementNS("http://www.w3.org/2000/svg","rect");r.setAttribute("class","cluster");r.setAttribute("x",c.x);r.setAttribute("y",c.y);r.setAttribute("width",c.w);r.setAttribute("height",c.h);gClusters.appendChild(r);
+ const t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("class","cluster-label");t.setAttribute("x",c.x+12);t.setAttribute("y",c.y+20);t.textContent=c.label;gClusters.appendChild(t);
+});
+
+function center(n){return [n.x+78,n.y+26]}
+function pathFor(a,b){
+ const A=byId.get(a),B=byId.get(b),[x1,y1]=center(A),[x2,y2]=center(B),dx=Math.max(35,Math.abs(x2-x1)*.42);
+ return "M"+x1+" "+y1+" C"+(x1+dx)+" "+y1+" "+(x2-dx)+" "+y2+" "+x2+" "+y2;
+}
+edges.forEach((e,i)=>{
+ const p=document.createElementNS("http://www.w3.org/2000/svg","path");p.setAttribute("d",pathFor(e[0],e[1]));p.setAttribute("class","edge "+e[2]);p.dataset.a=e[0];p.dataset.b=e[1];p.dataset.index=i;gEdges.appendChild(p);
+});
+
+nodes.forEach(n=>{
+ const g=document.createElementNS("http://www.w3.org/2000/svg","g");g.setAttribute("class","node "+n.kind);g.setAttribute("transform","translate("+n.x+" "+n.y+")");g.dataset.id=n.id;g.setAttribute("tabindex","0");g.setAttribute("role","button");g.setAttribute("aria-label",n.label+", "+n.sub);
+ const body=document.createElementNS("http://www.w3.org/2000/svg","rect");body.setAttribute("class","body");body.setAttribute("width","156");body.setAttribute("height","52");
+ const strip=document.createElementNS("http://www.w3.org/2000/svg","rect");strip.setAttribute("class","strip");strip.setAttribute("width","6");strip.setAttribute("height","52");
+ const title=document.createElementNS("http://www.w3.org/2000/svg","text");title.setAttribute("class","title");title.setAttribute("x","14");title.setAttribute("y","21");title.textContent=n.label;
+ const sub=document.createElementNS("http://www.w3.org/2000/svg","text");sub.setAttribute("class","sub");sub.setAttribute("x","14");sub.setAttribute("y","38");sub.textContent=n.sub;
+ g.append(body,strip,title,sub);gNodes.appendChild(g);
+ g.addEventListener("click",()=>select(n.id));g.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();select(n.id)}});
+});
+
+function connectedList(id){
+ return Array.from(neighbors.get(id)||[]).map(x=>byId.get(x)).sort((a,b)=>a.label.localeCompare(b.label));
+}
+function select(id){
+ const n=byId.get(id), keep=new Set([id,...neighbors.get(id)]);
+ document.querySelectorAll(".node").forEach(el=>{el.classList.toggle("active",el.dataset.id===id);el.classList.toggle("dim",!keep.has(el.dataset.id))});
+ document.querySelectorAll(".edge").forEach(el=>{const on=el.dataset.a===id||el.dataset.b===id;el.classList.toggle("active",on);el.classList.toggle("dim",!on)});
+ const links=connectedList(id).map(x=>"<li>"+escapeHtml(x.label)+" <small>· "+escapeHtml(x.sub)+"</small></li>").join("");
+ details.innerHTML='<span class="pill">'+escapeHtml(n.kind)+'</span><h2>'+escapeHtml(n.label)+'</h2><p>'+escapeHtml(n.info)+'</p><dl><dt>Role</dt><dd>'+escapeHtml(n.sub)+'</dd>'+(n.url?'<dt>Open</dt><dd><a href="'+escapeAttr(n.url)+'" target="_blank" rel="noopener">'+escapeHtml(n.url)+'</a></dd>':'')+'<dt>Direct connections</dt><dd><ul>'+links+'</ul></dd></dl><div class="hint">Click the same node again or choose a preset to reset the neighborhood.</div>';
+}
+function reset(){
+ document.querySelectorAll(".node,.edge").forEach(el=>el.classList.remove("active","dim"));
+ details.innerHTML='<span class="pill">Overview</span><h2>Universe map</h2><p>Repos on the left, source components in the middle, Cloudflare runtime to the right, state and external systems at the edge.</p><div class="hint">Search narrows the graph. Presets highlight one operational slice.</div>';
+}
+function preset(tag){
+ search.value="";
+ document.querySelectorAll("[data-preset]").forEach(b=>b.classList.toggle("active",b.dataset.preset===tag));
+ if(tag==="all"){reset();return}
+ const keep=new Set(nodes.filter(n=>n.tags.includes(tag)).map(n=>n.id));
+ document.querySelectorAll(".node").forEach(el=>el.classList.toggle("dim",!keep.has(el.dataset.id)));
+ document.querySelectorAll(".edge").forEach(el=>el.classList.toggle("dim",!(keep.has(el.dataset.a)&&keep.has(el.dataset.b))));
+ details.innerHTML='<span class="pill">Preset</span><h2>'+escapeHtml(tag[0].toUpperCase()+tag.slice(1))+'</h2><p>'+keep.size+' nodes in this operational slice.</p><div class="hint">Click any visible node to trace direct connections.</div>';
+}
+document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>preset(b.dataset.preset)));
+search.addEventListener("input",()=>{
+ const q=search.value.trim().toLowerCase();
+ document.querySelectorAll("[data-preset]").forEach(b=>b.classList.remove("active"));
+ if(!q){reset();document.querySelector('[data-preset="all"]').classList.add("active");return}
+ const keep=new Set(nodes.filter(n=>(n.label+" "+n.sub+" "+n.info).toLowerCase().includes(q)).map(n=>n.id));
+ document.querySelectorAll(".node").forEach(el=>el.classList.toggle("dim",!keep.has(el.dataset.id)));
+ document.querySelectorAll(".edge").forEach(el=>el.classList.toggle("dim",!(keep.has(el.dataset.a)||keep.has(el.dataset.b))));
+ details.innerHTML='<span class="pill">Search</span><h2>'+keep.size+' matches</h2><p>Matching nodes stay bright; adjacent lines remain visible when they touch a match.</p>';
+});
+function download(name,type,data){
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0);
+}
+document.getElementById("download-json").addEventListener("click",()=>download("trvny-universe-2026-10-03.json","application/json",JSON.stringify({snapshot:"2026-10-03",nodes,edges},null,2)));
+document.getElementById("download-svg").addEventListener("click",()=>{const copy=svg.cloneNode(true);copy.querySelectorAll(".dim,.active").forEach(el=>el.classList.remove("dim","active"));const style=document.createElementNS("http://www.w3.org/2000/svg","style");style.textContent=".edge{fill:none;stroke:#526071;stroke-width:1.7;opacity:.55}.edge.service{stroke:#f59e0b;stroke-dasharray:7 5}.edge.storage{stroke:#22c55e;stroke-dasharray:3 4}.edge.external{stroke:#ec4899;stroke-dasharray:10 5}.cluster{fill:none;stroke:#243041;stroke-width:1;stroke-dasharray:6 7}.cluster-label{fill:#667487;font-size:11px;font-weight:700}.node rect.body{fill:#141a23;stroke:#344052;stroke-width:1.2}.node text.title{fill:#eef2f7;font-size:12px;font-weight:700}.node text.sub{fill:#9aa6b6;font-size:9.5px}.node.repo rect.strip{fill:#7dd3fc}.node.component rect.strip{fill:#c4b5fd}.node.worker rect.strip{fill:#f6c453}.node.storage rect.strip{fill:#86efac}.node.external rect.strip{fill:#f9a8d4}";copy.insertBefore(style,copy.firstChild);download("trvny-universe-2026-10-03.svg","image/svg+xml",new XMLSerializer().serializeToString(copy))});
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
+function escapeAttr(s){return escapeHtml(s)}
+reset();
+})();
+</script>
+</body>
+</html>
