@@ -4,7 +4,7 @@ const SHITPOST_ORIGIN = "https://shitpost.trfny.com";
 function normalizeShitpostItem(item) {
   if (!item || typeof item !== "object" || Array.isArray(item)) return null;
 
-  let url = null;
+  let url;
   try {
     url = new URL(String(item.url || item.id || ""));
   } catch {
@@ -16,10 +16,9 @@ function normalizeShitpostItem(item) {
   const caption = String(item.summary || item.title || "").trim();
   if (!caption) return null;
 
-  const publishedAt = String(item.date_published || item.date_modified || "");
-  const parsedPublishedAt = Date.parse(publishedAt);
-  const date = Number.isFinite(parsedPublishedAt)
-    ? new Date(parsedPublishedAt).toISOString().slice(0, 10)
+  const parsedPublishedAt = Date.parse(String(item.date_published || item.date_modified || ""));
+  const published = Number.isFinite(parsedPublishedAt)
+    ? new Date(parsedPublishedAt).toISOString()
     : "";
 
   const tags = Array.isArray(item.tags)
@@ -32,23 +31,39 @@ function normalizeShitpostItem(item) {
   return {
     url: url.toString(),
     caption,
-    date,
+    published,
+    date: published.slice(0, 10),
     tags,
   };
 }
 
-export async function getLatestShitpost(fetchImpl = fetch) {
+export async function getShitposts(fetchImpl = fetch, limit = 50) {
   try {
     const response = await fetchImpl(SHITPOST_FEED_URL, {
       headers: { accept: "application/feed+json, application/json" },
       cf: { cacheEverything: true, cacheTtl: 300 },
       signal: AbortSignal.timeout(3_000),
     });
-    if (!response.ok) return null;
+    if (!response.ok) return [];
     const feed = await response.json();
-    if (!feed || !Array.isArray(feed.items) || feed.items.length === 0) return null;
-    return normalizeShitpostItem(feed.items[0]);
+    if (!feed || !Array.isArray(feed.items)) return [];
+
+    const seen = new Set();
+    const posts = feed.items
+      .map(normalizeShitpostItem)
+      .filter((post) => {
+        if (!post || seen.has(post.url)) return false;
+        seen.add(post.url);
+        return true;
+      })
+      .sort((a, b) => (b.published || "").localeCompare(a.published || ""));
+
+    return posts.slice(0, Math.max(0, Math.min(100, Math.trunc(limit) || 0)));
   } catch {
-    return null;
+    return [];
   }
+}
+
+export async function getLatestShitpost(fetchImpl = fetch) {
+  return (await getShitposts(fetchImpl, 1))[0] || null;
 }
