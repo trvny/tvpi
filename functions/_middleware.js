@@ -34,7 +34,7 @@ const WEATHER_STATE = "https://weather.travny.workers.dev/state.json";
 const REDIRECT_HOSTS = new Set(["tvpi.pages.dev", "www.trfny.com"]);
 const FALLBACK_HOST = "travny.pages.dev";
 const CANONICAL_HOST = "trfny.com";
-const NAV_HEAD = '<link rel="stylesheet" href="/assets/nav.css"><link rel="alternate" type="application/atom+xml" href="/teksty/feed.xml" title="TRAVNY Teksty">';
+const NAV_HEAD = '<link rel="stylesheet" href="/assets/nav.css"><link rel="alternate" type="application/atom+xml" href="/teksty/feed.xml" title="TRAVNY Teksty + Shitposts">';
 const NAV_BODY = `
 <button id="trvny-nav-toggle" type="button" aria-controls="trvny-nav-drawer" aria-expanded="false" aria-label="Otwórz menu">☰</button>
 <div id="trvny-nav-backdrop" hidden></div>
