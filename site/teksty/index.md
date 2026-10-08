@@ -8,10 +8,11 @@
 
 ## Articles
 
+- [The Alpaca, the Crab and the Censor](https://trfny.com/teksty/grass-mud-horse/): how Mandarin profanity, fictional internet animals and censorship collide.
 - [GitHubowa Kraina](https://trfny.com/teksty/githubowa-kraina/): interactive atlas of the 12 public repositories split between `trvny` and `travnie`, with project regions, the shared tool district and infrastructure.
 - [Tokenowy Mundial AI](https://trfny.com/teksty/token-worldcup/): equivalent natural text in 27 languages with OpenAI and Claude tokenization comparisons.
 
 ## Feed
 
-- [Atom feed](https://trfny.com/teksty/feed.xml)
+- [Main Atom feed: articles + Shitpost Reactor entries](https://trfny.com/teksty/feed.xml)
 - [Publication catalog](https://trfny.com/teksty/posts.json)
