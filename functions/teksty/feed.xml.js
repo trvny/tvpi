@@ -2,6 +2,7 @@ import { getShitposts } from "../_shared/shitpost.js";
 
 function escapeXml(value) {
   return String(value ?? "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF]/gu, "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -37,6 +38,7 @@ ${categories}
 
 function renderShitpostEntry(post) {
   const title = post.caption.split(/\r?\n/u)[0].slice(0, 100);
+  const publishedLine = post.published ? `    <published>${escapeXml(post.published)}</published>\n` : "";
   const categories = ["Shitpost", ...post.tags]
     .map((tag) => `    <category term="${escapeXml(tag)}"/>`)
     .join("\n");
@@ -44,8 +46,7 @@ function renderShitpostEntry(post) {
     <title>${escapeXml(title)}</title>
     <id>${escapeXml(post.url)}</id>
     <link rel="alternate" href="${escapeXml(post.url)}"/>
-    <published>${escapeXml(post.published)}</published>
-    <updated>${escapeXml(post.published)}</updated>
+${publishedLine}    <updated>${escapeXml(post.updated)}</updated>
     <author><name>Shitpost Reactor</name></author>
     <source><id>https://shitpost.trfny.com/</id><title>Shitpost Reactor</title></source>
 ${categories}
@@ -65,8 +66,7 @@ async function feedResponse(context, headOnly = false) {
     const [posts, shitposts] = await Promise.all([getPosts(context), getShitposts()]);
     const entries = [
       ...posts.map((post) => ({ updated: post.updated, xml: renderEntry(post) })),
-      ...shitposts.filter((post) => post.published)
-        .map((post) => ({ updated: post.published, xml: renderShitpostEntry(post) })),
+      ...shitposts.map((post) => ({ updated: post.updated, xml: renderShitpostEntry(post) })),
     ].sort((a, b) => Date.parse(b.updated) - Date.parse(a.updated)).slice(0, 100);
     const xml = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
