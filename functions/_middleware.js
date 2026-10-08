@@ -34,7 +34,7 @@ const WEATHER_STATE = "https://weather.travny.workers.dev/state.json";
 const REDIRECT_HOSTS = new Set(["tvpi.pages.dev", "www.trfny.com"]);
 const FALLBACK_HOST = "travny.pages.dev";
 const CANONICAL_HOST = "trfny.com";
-const NAV_HEAD = '<link rel="stylesheet" href="/assets/nav.css"><link rel="alternate" type="application/atom+xml" href="/teksty/feed.xml" title="TRAVNY Teksty">';
+const NAV_HEAD = '<link rel="stylesheet" href="/assets/nav.css"><link rel="alternate" type="application/atom+xml" href="/teksty/feed.xml" title="TRAVNY Teksty + Shitposts">';
 const NAV_BODY = `
 <button id="trvny-nav-toggle" type="button" aria-controls="trvny-nav-drawer" aria-expanded="false" aria-label="Otwórz menu">☰</button>
 <div id="trvny-nav-backdrop" hidden></div>
@@ -242,6 +242,7 @@ function identifyPage(pathname) {
   if (pathname === "/teksty" || pathname === "/teksty/" || pathname === "/teksty/index.html") return "texts";
   if (pathname === "/teksty/token-worldcup" || pathname === "/teksty/token-worldcup/") return "token-worldcup";
   if (pathname === "/teksty/githubowa-kraina" || pathname === "/teksty/githubowa-kraina/" || pathname === "/teksty/githubowa-kraina/index.html") return "githubowa-kraina";
+  if (pathname === "/teksty/grass-mud-horse" || pathname === "/teksty/grass-mud-horse/" || pathname === "/teksty/grass-mud-horse/index.html") return "grass-mud-horse";
   return null;
 }
 
@@ -272,6 +273,7 @@ export async function onRequest(context) {
   }
 
   const page = identifyPage(url.pathname);
+  const pageLanguage = page === "grass-mud-horse" ? "en" : "pl";
   const needsChannels = page === "home" || page === "tv";
   const needsWeather = page === "home";
   const [assetResponse, channels, weatherState] = await Promise.all([
@@ -290,7 +292,7 @@ export async function onRequest(context) {
   const countText = known ? `${online}/${channels.length}` : `—/${channels.length}`;
 
   let rewriter = new HTMLRewriter()
-    .on("html", new SetAttribute("lang", "pl"))
+    .on("html", new SetAttribute("lang", pageLanguage))
     .on("head", new AppendHtml(NAV_HEAD))
     .on("body", new AppendHtml(NAV_BODY));
 
@@ -328,7 +330,7 @@ export async function onRequest(context) {
   const transformed = rewriter.transform(assetResponse);
   const headers = new Headers(transformed.headers);
   if (page !== "token-worldcup") headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=300");
-  headers.set("content-language", "pl");
+  headers.set("content-language", pageLanguage);
 
   const markdownPath =
     page === "home" ? "/index.md" :

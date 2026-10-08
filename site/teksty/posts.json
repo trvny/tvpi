@@ -1,12 +1,30 @@
 [
   {
+    "slug": "grass-mud-horse",
+    "title": "The Alpaca, the Crab and the Censor",
+    "date": "2026-10",
+    "kind": "CULTURE",
+    "updated": "2026-10-08T12:52:00Z",
+    "lang": "en",
+    "summary": "How Mandarin swearing, mythical internet animals and censorship became one of the weirdest boss battles in language history.",
+    "tags": [
+      "Chinese",
+      "internet culture",
+      "censorship"
+    ]
+  },
+  {
     "slug": "githubowa-kraina",
     "title": "GitHubowa Kraina",
     "date": "2026-09",
     "kind": "ATLAS",
     "updated": "2026-09-13T13:33:25Z",
     "summary": "Interaktywny atlas 12 publicznych repozytoriów trvny i travnie: główne regiony, dzielnica narzędziowa, drogi i podziemia.",
-    "tags": ["GitHub", "projekty", "atlas"]
+    "tags": [
+      "GitHub",
+      "projekty",
+      "atlas"
+    ]
   },
   {
     "slug": "token-worldcup",
@@ -15,6 +33,10 @@
     "kind": "EKSPERYMENT",
     "updated": "2026-09-15T17:30:10+02:00",
     "summary": "Ten sam sens w 27 językach i porównanie tokenizacji OpenAI oraz Claude. Który język zjada najmniej kontekstu i ile podatku tokenowego płaci polski?",
-    "tags": ["AI", "tokeny", "języki"]
+    "tags": [
+      "AI",
+      "tokeny",
+      "języki"
+    ]
   }
 ]

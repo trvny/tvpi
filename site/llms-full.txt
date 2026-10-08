@@ -41,11 +41,13 @@ TVP upstream stream signatures are short-lived. Consumers should save the stable
 - Markdown index: https://trfny.com/teksty/index.md
 - Tokenowy Mundial AI: https://trfny.com/teksty/token-worldcup/
 - GitHubowa Kraina: https://trfny.com/teksty/githubowa-kraina/
+- The Alpaca, the Crab and the Censor: https://trfny.com/teksty/grass-mud-horse/
+- Main Atom feed (articles and Shitpost Reactor entries): https://trfny.com/teksty/feed.xml
 - GitHubowa Kraina Markdown: https://trfny.com/teksty/githubowa-kraina/index.md
 - Maintained Quarto source: https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.qmd
 - Verified generated HTML source: https://github.com/trvny/trvny/blob/main/stuff/other/token-worldcup/token-worldcup.html
 
-TRAVNY proxies the generated Token Cup artifact rather than maintaining a second copy. The article compares token counts for equivalent natural text in 27 languages using `o200k_base`; English is the normalized index baseline (`EN = 100`) while the measured English sample is 95 tokens. GitHubowa Kraina is maintained directly in `trvny/tvpi` as an interactive atlas of the 12 public repositories split evenly between `trvny` and `travnie`.
+TRAVNY proxies the generated Token Cup artifact rather than maintaining a second copy. The article compares token counts for equivalent natural text in 27 languages using `o200k_base`; English is the normalized index baseline (`EN = 100`) while the measured English sample is 95 tokens. GitHubowa Kraina is maintained directly in `trvny/tvpi` as an interactive atlas of the 12 public repositories split evenly between `trvny` and `travnie`. The Chinese internet slang essay is maintained as an HTML article at `site/teksty/grass-mud-horse/index.html`. The main Atom feed reads the local publication catalog and dynamically aggregates entries from Shitpost Reactor's JSON Feed; it does not store a second copy of shitposts.
 
 ## Related services
 
@@ -110,6 +112,7 @@ Doc Bench edits text and structured documents and performs PDF maintenance local
 - TVPI Markdown: https://trfny.com/tv/index.md
 - Teksty Markdown: https://trfny.com/teksty/index.md
 - GitHubowa Kraina Markdown: https://trfny.com/teksty/githubowa-kraina/index.md
+- Teksty Atom (including shitposts): https://trfny.com/teksty/feed.xml
 
 The sitemap contains public human-facing hub routes. Service-specific machine-readable resources live on their owning service and are linked here rather than duplicated.
 
