@@ -1,5 +1,12 @@
 const SHITPOST_FEED_URL = "https://shitpost.trfny.com/feed.json";
 const SHITPOST_ORIGIN = "https://shitpost.trfny.com";
+const UNDATED_UPDATED = "1970-01-01T00:00:00.000Z";
+const MAX_SOURCE_ITEMS = 500;
+
+function parseTimestamp(value) {
+  const parsed = Date.parse(String(value || ""));
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : "";
+}
 
 function normalizeShitpostItem(item) {
   if (!item || typeof item !== "object" || Array.isArray(item)) return null;
@@ -12,14 +19,16 @@ function normalizeShitpostItem(item) {
   }
 
   if (url.origin !== SHITPOST_ORIGIN || !/^\/posts\/gh-\d+-\d+$/u.test(url.pathname)) return null;
+  url.search = "";
+  url.hash = "";
 
   const caption = String(item.summary || item.title || "").trim();
   if (!caption) return null;
 
-  const parsedPublishedAt = Date.parse(String(item.date_published || item.date_modified || ""));
-  const published = Number.isFinite(parsedPublishedAt)
-    ? new Date(parsedPublishedAt).toISOString()
-    : "";
+  const published = parseTimestamp(item.date_published);
+  const modified = parseTimestamp(item.date_modified);
+  // Atom requires updated; stable sentinel for genuinely undated source entries.
+  const updated = modified || published || UNDATED_UPDATED;
 
   const tags = Array.isArray(item.tags)
     ? item.tags
@@ -32,7 +41,8 @@ function normalizeShitpostItem(item) {
     url: url.toString(),
     caption,
     published,
-    date: published.slice(0, 10),
+    updated,
+    date: (published || modified).slice(0, 10),
     tags,
   };
 }
@@ -48,17 +58,21 @@ export async function getShitposts(fetchImpl = fetch, limit = 50) {
     const feed = await response.json();
     if (!feed || !Array.isArray(feed.items)) return [];
 
-    const seen = new Set();
-    const posts = feed.items
-      .map(normalizeShitpostItem)
-      .filter((post) => {
-        if (!post || seen.has(post.url)) return false;
-        seen.add(post.url);
-        return true;
-      })
-      .sort((a, b) => (b.published || "").localeCompare(a.published || ""));
+    const count = Math.max(0, Math.min(100, Math.trunc(limit) || 0));
+    if (count === 0) return [];
 
-    return posts.slice(0, Math.max(0, Math.min(100, Math.trunc(limit) || 0)));
+    // Source feed is newest-first. Bound CPU even if its archive grows.
+    const newestByUrl = new Map();
+    for (const item of feed.items.slice(0, MAX_SOURCE_ITEMS)) {
+      const post = normalizeShitpostItem(item);
+      if (!post) continue;
+      const previous = newestByUrl.get(post.url);
+      if (!previous || post.updated > previous.updated) newestByUrl.set(post.url, post);
+    }
+
+    return [...newestByUrl.values()]
+      .sort((a, b) => b.updated.localeCompare(a.updated))
+      .slice(0, count);
   } catch {
     return [];
   }
