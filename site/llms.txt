@@ -11,7 +11,8 @@ Canonical hub: https://trfny.com/
 - [Teksty](https://trfny.com/teksty/) · [Markdown](https://trfny.com/teksty/index.md)
 - [Tokenowy Mundial AI](https://trfny.com/teksty/token-worldcup/): token-count comparison for equivalent text in 27 languages using `o200k_base`
 - [GitHubowa Kraina](https://trfny.com/teksty/githubowa-kraina/) · [Markdown](https://trfny.com/teksty/githubowa-kraina/index.md): interactive atlas of the public `trvny` and `travnie` project landscape
-- [The Alpaca, the Crab and the Censor](https://trfny.com/teksty/grass-mud-horse/): illustrated essay about Chinese internet slang and censorship
+- [The Alpaca, the Crab and the Censor (English)](https://trfny.com/teksty/grass-mud-horse/): essay about Chinese internet slang and censorship
+- [Alpaka, krab i Wielki Harmonizator (Polish)](https://trfny.com/teksty/grass-mud-horse-pl/): Polish adaptation of the essay
 
 - [Main Atom feed](https://trfny.com/teksty/feed.xml): articles and Shitpost Reactor entries, live-aggregated
 
