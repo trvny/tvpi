@@ -85,3 +85,60 @@ test("articles remain available if Shitpost Reactor is unavailable", async () =>
     globalThis.fetch = original;
   }
 });
+
+test("newer duplicate updates win and tracking URL variants collapse", async () => {
+  const stale = {
+    ...first,
+    url: first.url + "?utm_source=test#fragment",
+    date_modified: "2026-10-07T08:00:00Z",
+    summary: "Stale copy",
+  };
+  const edited = {
+    ...first,
+    date_modified: "2026-10-10T15:00:00Z",
+    summary: "Edited copy",
+  };
+  const posts = await getShitposts(fakeFetch([stale, edited]));
+  assert.equal(posts.length, 1);
+  assert.equal(posts[0].url, first.url);
+  assert.equal(posts[0].caption, "Edited copy");
+  assert.equal(posts[0].published, "2026-10-07T08:00:00.000Z");
+  assert.equal(posts[0].updated, "2026-10-10T15:00:00.000Z");
+});
+
+test("Atom strips XML control characters and retains original publication dates", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = fakeFetch([{
+    ...first,
+    summary: "Invalid \u0001 XML",
+    date_modified: "2026-10-10T15:00:00Z",
+    tags: ["\u0002 x"],
+  }]);
+  try {
+    const response = await onRequestGet(context());
+    const xml = await response.text();
+    assert.equal(response.status, 200);
+    assert.doesNotMatch(xml, /[\u0001\u0002]/u);
+    assert.match(xml, /<published>2026-10-07T08:00:00.000Z<\/published>/);
+    assert.match(xml, /<updated>2026-10-10T15:00:00.000Z<\/updated>/);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("undated Reactor entries use a stable Atom updated fallback, not a fake publish date", async () => {
+  const original = globalThis.fetch;
+  const undated = { ...first };
+  delete undated.date_published;
+  globalThis.fetch = fakeFetch([undated]);
+  try {
+    const response = await onRequestGet(context());
+    const xml = await response.text();
+    assert.equal(response.status, 200);
+    assert.match(xml, /First post &amp; &lt;payload&gt;/);
+    assert.match(xml, /<updated>1970-01-01T00:00:00.000Z<\/updated>/);
+    assert.doesNotMatch(xml, /<published>1970-01-01/u);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
