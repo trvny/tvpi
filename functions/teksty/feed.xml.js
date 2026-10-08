@@ -1,3 +1,5 @@
+import { getShitposts } from "../_shared/shitpost.js";
+
 function escapeXml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -22,7 +24,8 @@ function renderEntry(post) {
     .map((tag) => `    <category term="${escapeXml(tag)}"/>`)
     .join("\n");
   const summary = escapeXml(`<p>${post.summary}</p>`);
-  return `  <entry>
+  const lang = post.lang === "en" ? "en" : "pl";
+  return `  <entry xml:lang="${lang}">
     <title>${escapeXml(post.title)}</title>
     <id>${href}</id>
     <link rel="alternate" href="${href}"/>
@@ -32,29 +35,49 @@ ${categories}
   </entry>`;
 }
 
-function latestUpdated(posts) {
-  const fallback = Date.parse("1970-01-01T00:00:00Z");
-  const latest = posts.reduce((current, post) => {
-    const parsed = Date.parse(String(post.updated || ""));
-    return Number.isFinite(parsed) && parsed > current ? parsed : current;
-  }, fallback);
-  return new Date(latest).toISOString();
+function renderShitpostEntry(post) {
+  const title = post.caption.split(/\r?\n/u)[0].slice(0, 100);
+  const categories = ["Shitpost", ...post.tags]
+    .map((tag) => `    <category term="${escapeXml(tag)}"/>`)
+    .join("\n");
+  return `  <entry xml:lang="pl">
+    <title>${escapeXml(title)}</title>
+    <id>${escapeXml(post.url)}</id>
+    <link rel="alternate" href="${escapeXml(post.url)}"/>
+    <published>${escapeXml(post.published)}</published>
+    <updated>${escapeXml(post.published)}</updated>
+    <author><name>Shitpost Reactor</name></author>
+    <source><id>https://shitpost.trfny.com/</id><title>Shitpost Reactor</title></source>
+${categories}
+    <summary type="text">${escapeXml(post.caption)}</summary>
+  </entry>`;
+}
+
+function latestUpdated(entries) {
+  return new Date(entries.reduce((latest, entry) => {
+    const time = Date.parse(String(entry.updated || ""));
+    return Number.isFinite(time) && time > latest ? time : latest;
+  }, 0)).toISOString();
 }
 
 async function feedResponse(context, headOnly = false) {
   try {
-    const posts = await getPosts(context);
-    const entries = posts.map(renderEntry).join("\n");
+    const [posts, shitposts] = await Promise.all([getPosts(context), getShitposts()]);
+    const entries = [
+      ...posts.map((post) => ({ updated: post.updated, xml: renderEntry(post) })),
+      ...shitposts.filter((post) => post.published)
+        .map((post) => ({ updated: post.published, xml: renderShitpostEntry(post) })),
+    ].sort((a, b) => Date.parse(b.updated) - Date.parse(a.updated)).slice(0, 100);
     const xml = `<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="pl">
-  <title>TRAVNY · Teksty</title>
-  <subtitle>Krótkie publikacje, eksperymenty i atlasy z TRAVNY.</subtitle>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>TRAVNY · Teksty + Shitposts</title>
+  <subtitle>Articles, experiments and Shitpost Reactor transmissions.</subtitle>
   <id>https://trfny.com/teksty/</id>
   <link rel="alternate" href="https://trfny.com/teksty/"/>
   <link rel="self" type="application/atom+xml" href="https://trfny.com/teksty/feed.xml"/>
-  <updated>${escapeXml(latestUpdated(posts))}</updated>
+  <updated>${escapeXml(latestUpdated(entries))}</updated>
   <author><name>TRAVNY</name></author>
-${entries}
+${entries.map((entry) => entry.xml).join("\n")}
 </feed>
 `;
     return new Response(headOnly ? null : xml, {
