@@ -35,9 +35,22 @@ jobs:
             --header "Content-Type: application/json" \
             --data '{"source":{"type":"github","config":{"owner":"trvny","owner_id":"120686325","repo_name":"tvpi","repo_id":"1248425876","production_branch":"main","production_deployments_enabled":true,"preview_deployment_setting":"none","pr_comments_enabled":false,"path_includes":["site/*","functions/*"],"path_excludes":[]}}}'
 
-      - name: Allow ChatGPT Work Cloud browser
+      - name: Check dedicated WAF token
+        id: waf_token
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_WAF_API_TOKEN: ${{ secrets.CLOUDFLARE_WAF_API_TOKEN }}
+        run: |
+          if [[ -n "$CLOUDFLARE_WAF_API_TOKEN" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::WAF sync skipped: set CLOUDFLARE_WAF_API_TOKEN (Zone WAF Write on trfny.com). Pages configuration remains enforced."
+          fi
+
+      - name: Allow ChatGPT Work Cloud browser
+        if: steps.waf_token.outputs.available == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WAF_API_TOKEN }}
           CLOUDFLARE_ZONE_ID: "22c6b82ea8b722c6976f5c2c4714c5e8"
         run: |
           python - <<'PY'
