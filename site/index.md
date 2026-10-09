@@ -4,6 +4,8 @@
 
 Canonical site: https://trfny.com/. `travny.pages.dev` is a noindex emergency fallback; `tvpi.pages.dev` redirects to the canonical host.
 
+TRAVNY identity: `trvny` / `travny` / `trfny` / `trafny`; the `travnie` GitHub organization hosts companion projects. [GitHub profile](https://github.com/trvny) · [Organization](https://github.com/travnie).
+
 ## Services
 
 - [TVPI](https://trfny.com/tv/): browser page for stable TVP IPTV entry points and playlists.

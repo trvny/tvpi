@@ -10,6 +10,9 @@ Source: https://trfny.com/
 - Emergency fallback: https://travny.pages.dev/ — serves the same Pages output with `noindex, follow`.
 - Legacy Pages host: https://tvpi.pages.dev/ — permanently redirects to the canonical host while preserving path and query.
 - Repository: https://github.com/trvny/tvpi
+- Creator identity: TRAVNY; aliases trvny, travny, trfny, trafny.
+- GitHub identity: https://github.com/trvny ; related organization travnie: https://github.com/travnie
+- Project source maps: https://github.com/trvny/trvny ; https://github.com/travnie/twojstar ; https://github.com/trvny/feedseek
 
 The hub is a lightweight static/edge site. It links independent services rather than hiding them behind one application runtime.
 
