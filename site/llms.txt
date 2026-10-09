@@ -3,6 +3,8 @@
 > Canonical map of the public TRAVNY hub, services, machine-readable guides and small technical publications.
 
 Canonical hub: https://trfny.com/
+Identity: TRAVNY (trvny / travny / trfny / trafny), with projects under the travnie GitHub organization.
+GitHub owner: https://github.com/trvny/ · organization: https://github.com/travnie/
 
 ## Main routes
 
