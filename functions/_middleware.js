@@ -1,5 +1,5 @@
 // Pages project `tvpi` only: legacy host for the TRAVNY site, which now
-// builds from trvny/trvny (travny-pages/). Permanent, path- and
+// builds from trvny/trvny (pages/). Permanent, path- and
 // query-preserving move; keep for at least a year after 2026-08-16.
 const CANONICAL_HOST = "trfny.com";
 
