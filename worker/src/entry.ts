@@ -34,7 +34,7 @@ const WORKER_LLMS = `# TVPI streaming Worker
 
 - [Worker overview](${WORKER_ORIGIN}/index.md): Markdown description of the Worker.
 - [Combined playlist](${WORKER_ORIGIN}/playlist.m3u): stable M3U containing all channel endpoints.
-- [Human TV page](https://trfny.com/tv/index.md): Markdown page for the browser UI.
+- [Human TV page](https://travny.pages.dev/tv/index.md): Markdown page for the browser UI.
 - [Full LLM guide](${WORKER_ORIGIN}/llms-full.txt): complete Worker guide.
 - [Source](https://github.com/trvny/tvpi/tree/main/worker): implementation and deployment files.
 `;
