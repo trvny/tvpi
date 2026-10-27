@@ -46,3 +46,7 @@ mega-linter.log
 *.bak
 *.orig
 *.rej
+
+# Agent / local state
+.claude/
+CLAUDE.local.md
