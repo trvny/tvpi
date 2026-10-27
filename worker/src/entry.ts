@@ -9,7 +9,7 @@ const manifestKey = (slug: string): string => `manifests/${slug}.m3u8`;
 const APPROVED_VOLUNTEER_IDS = new Set<string>([]);
 
 const TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
-const WORKER_ORIGIN = "https://tvpi.trfny.com";
+const WORKER_ORIGIN = "https://tvpi.travny.workers.dev";
 const WORKER_ROBOTS = `User-agent: *
 Allow: /
 Disallow: /push/
@@ -19,7 +19,7 @@ const WORKER_INDEX_MD = `# TVPI streaming Worker
 > Stable M3U and HLS entry points for the TVP channels exposed by TRAVNY.
 
 - [Combined playlist](${WORKER_ORIGIN}/playlist.m3u)
-- [Human TV page](https://trfny.com/tv/)
+- [Human TV page](https://travny.pages.dev/tv/)
 - [Concise LLM guide](${WORKER_ORIGIN}/llms.txt)
 - [Full LLM guide](${WORKER_ORIGIN}/llms-full.txt)
 - [Source](https://github.com/trvny/tvpi/tree/main/worker)
@@ -56,7 +56,7 @@ TVP upstream signatures are short-lived. Clients should store the stable Worker 
 
 - [Combined playlist](${WORKER_ORIGIN}/playlist.m3u)
 - [Markdown Worker overview](${WORKER_ORIGIN}/index.md)
-- [Human TV page](https://trfny.com/tv/index.md)
+- [Human TV page](https://travny.pages.dev/tv/index.md)
 - [Source](https://github.com/trvny/tvpi/tree/main/worker)
 
 ## Non-public operation
