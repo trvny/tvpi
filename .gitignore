@@ -50,3 +50,8 @@ mega-linter.log
 # Agent / local state
 .claude/
 CLAUDE.local.md
+
+# Generated Windows helper scripts (scoped to scripts/)
+/scripts/**/*.bat
+/scripts/**/*.cmd
+/scripts/**/*.logs
