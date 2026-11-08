@@ -1,5 +1,5 @@
-<img src="https://github.com/primer/octicons/main/icons/code-of-conduct-24.svg" width="20" height="20">
 # Przymierze Współpracy — Kodeks Postępowania
+<img src="https://github.com/primer/octicons/blob/main/icons/code-of-conduct-24.svg">
 
 ## Nasza Przysięga
 
