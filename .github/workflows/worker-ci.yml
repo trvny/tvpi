@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - "worker/**"
+      - "functions/**"
       - ".github/workflows/worker-ci.yml"
   pull_request:
     branches: [main]
     paths:
       - "worker/**"
+      - "functions/**"
       - ".github/workflows/worker-ci.yml"
   workflow_dispatch:
 
@@ -41,3 +43,8 @@ jobs:
 
       - run: npm run typecheck
         working-directory: worker
+
+      - name: Check Pages middleware
+        run: |
+          worker/node_modules/.bin/tsc -p functions/tsconfig.json
+          node --test functions/_middleware.test.mjs
