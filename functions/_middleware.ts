@@ -3,7 +3,12 @@
 // Keep this alias for existing links while it remains available.
 const CANONICAL_HOST = "travny.pages.dev";
 
-export function onRequest({ request, next }) {
+interface RedirectContext {
+  request: Request;
+  next(): Promise<Response>;
+}
+
+export function onRequest({ request, next }: RedirectContext): Response | Promise<Response> {
   const url = new URL(request.url);
   // Misdeployment guard: never 301 the canonical host to itself.
   if (url.hostname === CANONICAL_HOST) return next();
