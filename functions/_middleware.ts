@@ -5,7 +5,7 @@ const CANONICAL_HOST = "travny.pages.dev";
 
 interface RedirectContext {
   request: Request;
-  next(): Promise<Response>;
+  next: () => Promise<Response>;
 }
 
 export function onRequest({ request, next }: RedirectContext): Response | Promise<Response> {
