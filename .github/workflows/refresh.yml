@@ -1,12 +1,12 @@
 name: Refresh M3U
 
 on:
-  schedule:
+#  schedule:
     # Every 15 min. TVP signs HLS tokens with a ~15–30 min lifetime, so a
     # 30-min cadence guarantees a dead window near the end of each cycle.
     # GitHub may delay scheduled runs under load; using off-peak minutes
     # reduces contention without changing the cadence.
-    - cron: "7,22,37,52 * 31 * *"
+#    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 permissions:
