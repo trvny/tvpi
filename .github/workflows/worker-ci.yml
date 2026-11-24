@@ -44,6 +44,9 @@ jobs:
       - run: npm run typecheck
         working-directory: worker
 
+      - run: npm test
+        working-directory: worker
+
       - name: Check Pages middleware
         run: |
           worker/node_modules/.bin/tsc -p functions/tsconfig.json

@@ -1,3 +1,4 @@
+import { CHANNELS, type Channel } from "./channels";
 /**
  * TVP Live Stream Worker (TypeScript)
  * Cloudflare Workers — free tier (100k req/day; L3a now on D1: 100k row-writes/day).
@@ -56,28 +57,6 @@
 // ---------------------------------------------------------------------------
 // Channels
 // ---------------------------------------------------------------------------
-
-interface Channel {
-  id: string;
-  slug: string;
-  name: string;
-  logo: string;
-  group: string;
-}
-
-const TVP_LOGO = "https://s.tvp.pl/files/tvp.pl/images/vod-logo-header.png";
-
-const CHANNELS: readonly Channel[] = [
-  { id: "399697",  slug: "tvp1",        name: "TVP 1 HD",              logo: TVP_LOGO, group: "Polska" },
-  { id: "399698",  slug: "tvp2",        name: "TVP 2 HD",              logo: TVP_LOGO, group: "Polska" },
-  { id: "399699",  slug: "tvpinfo",     name: "TVP Info",              logo: TVP_LOGO, group: "Polska" },
-  { id: "399702",  slug: "tvpsport",    name: "TVP Sport",             logo: TVP_LOGO, group: "Polska" },
-  { id: "399721",  slug: "tvpdokument", name: "TVP Dokument",          logo: TVP_LOGO, group: "Polska" },
-  { id: "399722",  slug: "tvpnauka",    name: "TVP Nauka",             logo: TVP_LOGO, group: "Polska" },
-  { id: "399724",  slug: "tvprozrywka", name: "TVP Rozrywka",          logo: TVP_LOGO, group: "Polska" },
-  { id: "399703",  slug: "tvphistoria", name: "TVP Historia",          logo: TVP_LOGO, group: "Polska" },
-  { id: "2999109", slug: "tvpmuzyka",   name: "TVP Muzyka i Koncerty", logo: TVP_LOGO, group: "Polska" },
-] as const;
 
 const CHANNEL_BY_SLUG = new Map(CHANNELS.map((c) => [c.slug, c]));
 

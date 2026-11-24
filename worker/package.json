@@ -5,7 +5,8 @@
   "scripts": {
     "types": "wrangler types",
     "typecheck": "wrangler types && tsc --noEmit",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "node --test tests/*.test.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2",
