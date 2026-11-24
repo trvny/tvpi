@@ -140,7 +140,8 @@ async function readManifest(env: Env, slug: string): Promise<string | null> {
     if (!object) return null;
 
     const timestamp = Number(object.customMetadata?.ts);
-    if (!Number.isFinite(timestamp) || Date.now() - timestamp > MANIFEST_MAX_AGE_MS) {
+    if (!Number.isFinite(timestamp) || timestamp > Date.now()
+      || Date.now() - timestamp > MANIFEST_MAX_AGE_MS) {
       return null;
     }
 
@@ -225,6 +226,14 @@ export default {
     }
 
     if ((request.method === "GET" || request.method === "HEAD") && path === "/api/status") {
+      if (request.method === "HEAD") {
+        return new Response(null, { headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "no-store",
+          "Access-Control-Allow-Origin": "*",
+          "X-Robots-Tag": "noindex, nofollow",
+        } });
+      }
       const channels = await Promise.all(CHANNELS.map(async (ch) => {
         try {
           const object = await env.MIRROR.head(manifestKey(ch.slug));
@@ -240,7 +249,7 @@ export default {
           return { slug: ch.slug, manifest: "unknown", updatedAt: null };
         }
       }));
-      return new Response(request.method === "HEAD" ? null : JSON.stringify({
+      return new Response(JSON.stringify({
         version: 1, generatedAt: new Date().toISOString(),
         meaning: "R2 pushed-manifest freshness only; playback not verified.",
         channels,
