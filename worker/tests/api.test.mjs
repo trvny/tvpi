@@ -12,7 +12,7 @@ function environment() {
     ["tvp2", now - 20 * 60_000],
     ["tvpinfo", now + 60_000],
   ]);
-  const calls = { head: 0, get: 0 };
+  const calls = { head: 0, get: 0, lastGetKey: null };
   const env = { MIRROR: {
     async head(key) {
       calls.head++;
@@ -21,8 +21,10 @@ function environment() {
       if (!timestamps.has(slug)) return null;
       return { customMetadata: { ts: String(timestamps.get(slug)) } };
     },
-    async get() {
+    async get(key) {
       calls.get++;
+      calls.lastGetKey = key;
+      assert.equal(key, "manifests/tvp1.m3u8");
       return { customMetadata: { ts: String(now - 60_000) },
         text: async () => "#EXTM3U\\n#EXT-X-VERSION:3\\n" };
     },
@@ -68,7 +70,7 @@ test("GET status describes manifest freshness without claiming playback", async 
 });
 
 test("legacy playlist and normalized manifest still share the catalog", async () => {
-  const { env } = environment();
+  const { env, calls } = environment();
   const playlist = await tvpi.fetch(new Request(ORIGIN + "/playlist.m3u"), env, ctx);
   assert.equal(playlist.status, 200);
   const body = await playlist.text();
@@ -76,5 +78,6 @@ test("legacy playlist and normalized manifest still share the catalog", async ()
   const hls = await tvpi.fetch(new Request(ORIGIN + "/tvp1.m3u8"), env, ctx);
   assert.equal(hls.status, 200);
   assert.equal(hls.headers.get("x-manifest"), "normalized");
+  assert.equal(calls.lastGetKey, "manifests/tvp1.m3u8");
   assert.match(await hls.text(), /#EXTM3U/);
 });
