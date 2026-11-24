@@ -1,4 +1,4 @@
-import { CHANNELS, type Channel } from "./channels";
+import { CHANNELS, type Channel } from "./channels.ts";
 /**
  * TVP Live Stream Worker (TypeScript)
  * Cloudflare Workers — free tier (100k req/day; L3a now on D1: 100k row-writes/day).
