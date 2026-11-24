@@ -9,6 +9,103 @@ const manifestKey = (slug: string): string => `manifests/${slug}.m3u8`;
 // the random bearer credentials themselves stay DPAPI-protected on each runner.
 const APPROVED_VOLUNTEER_IDS = new Set<string>([]);
 
+const WORKER_ORIGIN = "https://tvpi.travny.workers.dev";
+const WORKER_ROBOTS = `User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: OAI-AdsBot
+User-agent: ChatGPT-User
+User-agent: anthropic-ai
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: MistralAI-Index
+User-agent: MistralAI-Training
+User-agent: MistralAI-User
+User-agent: KimiBot
+User-agent: Kimi-SearchBot
+User-agent: Kimi-User
+User-agent: Meta-WebIndexer
+User-agent: Meta-ExternalFetcher
+User-agent: Meta-ExternalAgent
+User-agent: Googlebot
+User-agent: Googlebot-News
+User-agent: Googlebot-Image
+User-agent: Googlebot-Video
+User-agent: GoogleOther
+User-agent: GoogleOther-Image
+User-agent: GoogleOther-Video
+User-agent: Google-InspectionTool
+User-agent: Google-Extended
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: BingBot
+User-agent: DuckDuckBot
+User-agent: DuckAssistBot
+User-agent: YandexBot
+User-agent: YandexFavicons
+User-agent: CCBot
+User-agent: SemanticScholarBot
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /push/
+
+User-agent: *
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Disallow: /push/
+`;
+const WORKER_INDEX_MD = `# TVPI streaming Worker
+
+> Stable M3U and HLS entry points for the TVP channels exposed by TRAVNY.
+
+- [Combined playlist](${WORKER_ORIGIN}/playlist.m3u)
+- [Human TV page](https://travny.pages.dev/tv/)
+- [Concise LLM guide](${WORKER_ORIGIN}/llms.txt)
+- [Full LLM guide](${WORKER_ORIGIN}/llms-full.txt)
+- [Source](https://github.com/trvny/tvpi/tree/main/worker)
+
+Resolved upstream stream URLs are short-lived. Use the stable Worker endpoints instead of storing tokenized HLS URLs.
+`;
+const WORKER_LLMS = `# TVPI streaming Worker
+
+> Stable public M3U/HLS gateway for TRAVNY's TVP channel list.
+
+## Resources
+
+- [Worker overview](${WORKER_ORIGIN}/index.md): Markdown description of the Worker.
+- [Combined playlist](${WORKER_ORIGIN}/playlist.m3u): stable M3U containing all channel endpoints.
+- [Human TV page](https://travny.pages.dev/tv/index.md): Markdown page for the browser UI.
+- [Full LLM guide](${WORKER_ORIGIN}/llms-full.txt): complete Worker guide.
+- [Source](https://github.com/trvny/tvpi/tree/main/worker): implementation and deployment files.
+`;
+const WORKER_LLMS_FULL = `# TVPI streaming Worker full documentation
+
+Source: ${WORKER_ORIGIN}/
+
+Description: Complete LLM-oriented guide to the public TVPI streaming Worker.
+
+## Stable playlist model
+
+GET / or GET /playlist.m3u returns a stable combined M3U. Its entries point to per-channel .m3u8 endpoints on the same Worker. Those endpoints serve a recently pushed manifest where available or fall through to the normal TVPI resolution stack.
+
+## Freshness
+
+TVP upstream signatures are short-lived. Clients should store the stable Worker endpoint, not a resolved tokenized upstream URL. The project can use a Polish residential refresh path because TVP geo-filtering prevents some server-side environments from refreshing every channel directly.
+
+## Public resources
+
+- [Combined playlist](${WORKER_ORIGIN}/playlist.m3u)
+- [Markdown Worker overview](${WORKER_ORIGIN}/index.md)
+- [Human TV page](https://travny.pages.dev/tv/index.md)
+- [Source](https://github.com/trvny/tvpi/tree/main/worker)
+
+## Non-public operation
+
+POST /push/<slug> is an authenticated maintenance path. Discovery documentation intentionally does not expose credentials or operational secrets.
+`;
+
 function pushedManifest(value: unknown): string | null {
   if (typeof value !== "string" || value.length > MANIFEST_MAX_BYTES) return null;
   return value.trimStart().startsWith("#EXTM3U") ? value : null;
