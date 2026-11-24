@@ -1,5 +1,5 @@
-import worker from "./index";
-import { CHANNELS, buildStablePlaylist, publicChannels } from "./channels";
+import worker from "./index.ts";
+import { CHANNELS, buildStablePlaylist, publicChannels } from "./channels.ts";
 
 const MANIFEST_MAX_AGE_MS = 15 * 60_000;
 const MANIFEST_MAX_BYTES = 512 * 1024;
