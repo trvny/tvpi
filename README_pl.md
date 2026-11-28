@@ -139,7 +139,7 @@ uruchamia zwykłą ścieżkę cache/live/fallback dopiero przy otwarciu kanału.
 
 <!-- markdownlint-disable MD033 -->
 <!--STARTS_HERE_QUOTE_README-->
-<i>❝The most original authors are not so because they advance what is new, but because they put what they have to say as if it had never been said before. — Johann Wolfgang von Goethe❞</i>
+<i>❝“BASIC is to computer programming as QWERTY is to typing.”— Seymour Papert❞</i>
 <!--ENDS_HERE_QUOTE_README-->
 <!-- markdownlint-enable MD033 -->
 
